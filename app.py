@@ -44,11 +44,7 @@ VERSION = "2.0"
 TAGLINE = "DATA. INSIGHTS. INTELLIGENCE."
 BASE_DIR = Path(__file__).resolve().parent
 ASSETS_DIR = BASE_DIR / "assets"
-LOGO_PATH = ASSETS_DIR / "logo.png"
-if not LOGO_PATH.exists():
-    fallback_logo = ASSETS_DIR / "New_logo.png"
-    if fallback_logo.exists():
-        LOGO_PATH = fallback_logo
+LOGO_PATH = ASSETS_DIR / "New_logo.png"
 FAVICON_PATH = ASSETS_DIR / "favicon.png"
 ERROR_REPORT_COLUMNS = ["Row", "Column", "Value", "Issue", "Risk Level", "Details"]
 CHART_TEMPLATE = "plotly_white"
@@ -1701,8 +1697,8 @@ footer_col1, footer_col2, footer_col3, footer_col4 = st.columns(4)
 with footer_col1:
     with st.expander("ℹ️ About"):
         st.markdown(f"""
-        **{APP_NAME}** v{VERSION}  
-        Powered by {COMPANY_NAME}  
+        **{APP_NAME}** v{VERSION}
+        ColtraDataAi is the data analytics tool of {COMPANY_NAME}.
         May 2026
         """)
 
@@ -1718,8 +1714,8 @@ with footer_col2:
 
 with footer_col3:
     with st.expander("📞 Support"):
-        st.markdown(f"""
-        For issues or feature requests, contact {COMPANY_NAME}.
+        st.markdown("""
+        For issues or feature requests, email [support@coltradata.com](mailto:support@coltradata.com)
         """)
 
 with footer_col4:
