@@ -1,0 +1,21 @@
+Invoice_ID,Invoice_Date,Amount,VAT,Customer_Name,Email,Payment_Status,Notes
+INV001,2026-01-15,1000.00,200.00,John Smith,john@example.com,Paid,Clean record
+INV002,2026-01-16,1500.50,300.10,Sarah Jones,sarah@example.com,Paid,Clean record
+INV003,2026-01-17,,285.00,Michael Brown,michael@example.com,Pending,MISSING AMOUNT
+INV004,01/18/2026,2000,400,Robert Wilson,robert.example.com,Paid,INVALID EMAIL
+INV005,2026-01-19,  500.25  ,100.05,Emma Davis,emma@example.com,Paid,EXTRA SPACES
+INV006,2026-01-20,750.00,150.00,David Martinez,david@example.com,Paid,Clean record
+INV007,2026-01-21,25000.00,300.00,Lisa Anderson,,Overdue,MISSING EMAIL - VAT MISMATCH
+INV008,2026-01-22,1200.00,240.00,James Taylor,james@example.com,Paid,Clean record
+INV009,2026-01-15,1050.00,210.00,John Smith,john@example.com,Paid,DUPLICATE DATE & CUSTOMER
+INV010,2026-01-23,-500.00,100.00,Patricia White,patricia@example.com,Paid,NEGATIVE AMOUNT
+INV011,2026-01-24,900.00,,Christopher Moore,christopher@example.com,Paid,MISSING VAT
+INV012,2026-01-25,11000.50,2200.10,Jennifer Garcia,jennifer@garcia.com,Pending,Clean record - HIGH AMOUNT
+INV013,2026-01-26,1100.00,220.00,Daniel Rodriguez,daniel@example.com,Paid,Clean record
+INV014,,1300.00,260.00,Carol Lewis,,Overdue,MISSING DATE AND EMAIL
+INV015,2026-01-27,550.75,110.15,Thomas Lee,thomas@example.com,Paid,Clean record
+INV016,2026-01-28,88000.00,300.00,Barbara Walker,barbara.walker@example.com,Paid,STATISTICAL OUTLIER - VAT MISMATCH
+INV017,2026-01-29,450.00,90.00,Mark Young,mark@example.com,Paid,Clean record
+INV018,2026-01-30,3300.00,660.00,Susan Hernandez,susan@example.com,Pending,Clean record
+INV019,2026-01-15,1000.00,200.00,John Smith,john@example.com,Paid,COMPLETE DUPLICATE
+INV020,2026-02-01,800.00,160.00,Joseph King,joseph@example.com,Paid,Clean record

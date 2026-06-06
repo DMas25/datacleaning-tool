@@ -18,3 +18,7 @@ Thumbs.db
 # IDE
 .vscode/
 *.code-workspace
+Search.code-search
+
+# Generated report output
+output/
