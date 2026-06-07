@@ -1,4 +1,4 @@
-# ColtraDataAi - Enterprise Data Cleaning & Analytics Tool
+# ColtraDataAi - Structured Data Cleaning & Dashboard Reporting
 
 **Version:** 2.0  
 **By:** Coltrane Ltd  

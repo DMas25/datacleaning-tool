@@ -230,51 +230,24 @@ if not _check_password():
 # ---------------------------------------------------------------------------
 
 if LOGO_PATH.exists():
-    logo_col, copy_col = st.columns([1.3, 1.7], vertical_alignment="center")
-    with logo_col:
-        st.image(str(LOGO_PATH), width=700)
-        st.markdown(
-            f"""
-            <div style="margin-top: 6px; margin-left: 215px;">
-                <div style="font-size: 18px; font-weight: 600; letter-spacing: .22em; color: #657286; text-transform: uppercase;">
-                    {TAGLINE}
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    with copy_col:
-        st.markdown(
-            f"""
-            <div style="display: flex; flex-direction: column; justify-content: center; height: 100%; border-left: 4px solid #008E9B; padding-left: 18px;">
-                <div class="brand-subtitle" style="font-size: 18px; margin-top: 0; margin-bottom: 8px; font-weight: 600; color: #071733;">
-                    Transform Data into Actionable Intelligence
-                </div>
-                <div class="brand-subtitle" style="margin-bottom: 4px;">
-                    Enterprise Data Cleaning • Analytics • Business Intelligence
-                </div>
-                <div class="brand-subtitle">
-                    Powered by {COMPANY_NAME}
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    st.markdown('<div style="border-bottom:1px solid #E2E8F0; margin: 12px 0 20px 0;"></div>', unsafe_allow_html=True)
+    st.image(str(LOGO_PATH), width=260)
 else:
-    st.markdown(
-        f"""
-        <div class="brand-header">
-            <div class="brand-mark-fallback">C</div>
-            <div>
-                <div class="brand-title">Coltra<span>Data</span><em>Ai</em></div>
-                <div class="brand-tagline">{TAGLINE}</div>
-                <div class="brand-subtitle">Transform Data into Actionable Intelligence</div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.markdown(f"### {APP_NAME}")
+
+st.markdown(
+    """
+    <div style="display:flex; align-items:center; gap:10px; margin-top:6px;">
+        <span style="font-size:17px; font-weight:600; color:#071733;">Data Cleaning</span>
+        <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#008E9B;"></span>
+        <span style="font-size:17px; font-weight:600; color:#071733;">Validation</span>
+        <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#008E9B;"></span>
+        <span style="font-size:17px; font-weight:600; color:#071733;">Dashboard Reporting</span>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+st.caption("Generate structured cleaned datasets, validation reports and visual data summaries.")
+st.markdown('<div style="border-bottom:1px solid #E2E8F0; margin: 12px 0 20px 0;"></div>', unsafe_allow_html=True)
 
 mode = st.selectbox(
     "Select Processing Mode",

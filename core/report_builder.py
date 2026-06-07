@@ -1,418 +1,352 @@
-from datetime import datetime
-from io import BytesIO
-from pathlib import Path
-
-import matplotlib.pyplot as plt
 import pandas as pd
-
-
-BRAND = {
-    "navy":   "#071733",
-    "teal":   "#008E9B",
-    "green":  "#46D324",
-    "amber":  "#F59E0B",
-    "red":    "#DC2626",
-    "purple": "#6D5DF5",
-    "gray":   "#CBD5E1",
-    "muted":  "#657286",
-    "white":  "#FFFFFF",
-    "light":  "#F8FAFC",
-}
-
-RISK_COLORS = {
-    "Critical": "#7F1D1D",
-    "High":     "#DC2626",
-    "Medium":   "#F59E0B",
-    "Low":      "#46D324",
-}
+from datetime import datetime
+import os
 
 
 class ReportBuilder:
-
-    def __init__(self, config=None):
-        self.config    = config or {}
-        self.company   = self.config.get("company",        "Coltrane Ltd")
-        self.app_name  = self.config.get("app_name",       "ColtraDataAi")
-        self.version   = self.config.get("version",        "2.0")
-        self.tagline   = self.config.get("tagline",        "DATA. INSIGHTS. INTELLIGENCE.")
-        self.primary   = self.config.get("primary_colour",   BRAND["navy"]).lstrip("#")
-        self.secondary = self.config.get("secondary_colour", "#D9E1F2").lstrip("#")
-
-    # ------------------------------------------------------------------ #
-    # Public                                                               #
-    # ------------------------------------------------------------------ #
+    def __init__(self, config):
+        self.config = config
 
     def build_report(self, raw_df, cleaned_df, log_df, quality_df, dictionary_df=None):
-        output_dir = Path("output")
-        output_dir.mkdir(exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+        file_name = f"ColtraDataAi_Cleaned_Report_{timestamp}.xlsx"
 
-        filename = f"ColtraDataAi_Report_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
-        filepath = output_dir / filename
-
-        with pd.ExcelWriter(str(filepath), engine="xlsxwriter") as writer:
+        with pd.ExcelWriter(file_name, engine="xlsxwriter") as writer:
             workbook = writer.book
-            self._create_styles(workbook)
-            self._build_cover_sheet(workbook, writer, filename)
-            self._build_dashboard_sheet(workbook, writer, raw_df, log_df)
-            self._build_missing_chart(workbook, writer, cleaned_df)
+            self._create_formats(workbook)
+
+            # Sheets
+            self._build_cover_sheet(workbook, writer, raw_df)
+            self._write_dataframe(writer, raw_df, "Raw Data")
             self._write_dataframe(writer, cleaned_df, "Cleaned Data")
-            self._write_dataframe(writer, raw_df,     "Raw Data")
-            self._write_dataframe(writer, log_df,     "Cleaning Log")
-            self._write_dataframe(writer, quality_df, "Quality Checks")
+            self._write_dataframe(writer, log_df, "Cleaning Log")
+            self._write_quality_sheet(writer, quality_df)
+
             if dictionary_df is not None:
                 self._write_dataframe(writer, dictionary_df, "Data Dictionary")
-            self._build_processing_notes(writer)
 
-        return str(filepath)
+            self._build_processing_notes(workbook)
+            self._build_dashboard_sheet(workbook, raw_df, cleaned_df, quality_df)
 
-    # ------------------------------------------------------------------ #
-    # Styles                                                               #
-    # ------------------------------------------------------------------ #
+        return file_name
 
-    def _create_styles(self, workbook):
-        def c(h):
-            return h.lstrip("#")
-
-        primary   = self.primary
-        secondary = self.secondary
-        teal  = c(BRAND["teal"])
-        amber = c(BRAND["amber"])
-        red   = c(BRAND["red"])
-        white = c(BRAND["white"])
-        light = c(BRAND["light"])
-        muted = c(BRAND["muted"])
-        gray  = c(BRAND["gray"])
-
+    def _create_formats(self, workbook):
         self.title_format = workbook.add_format({
-            "bold": True, "font_size": 18, "font_color": primary,
-        })
-        self.header_format = workbook.add_format({
-            "bold": True, "bg_color": secondary, "border": 1,
-        })
-        self.text_format = workbook.add_format({
-            "font_size": 11,
-        })
-        self.small_text = workbook.add_format({
-            "font_size": 9, "italic": True,
+            "bold": True,
+            "font_size": 20,
+            "font_color": self.config["primary_colour"],
+            "align": "left",
+            "valign": "vcenter"
         })
 
-        base = {"font_name": "Calibri", "font_size": 10, "valign": "vcenter"}
-
-        self.tagline_format = workbook.add_format({
-            **base, "bold": True, "font_size": 11, "font_color": teal, "italic": True,
-        })
         self.subtitle_format = workbook.add_format({
-            **base, "font_size": 12, "font_color": muted,
+            "font_size": 11,
+            "font_color": "#444444",
+            "italic": True
         })
-        self.section_header_format = workbook.add_format({
-            **base, "bold": True, "font_size": 11,
-            "font_color": white, "bg_color": primary,
-            "border": 1, "border_color": gray,
+
+        self.section_header = workbook.add_format({
+            "bold": True,
+            "font_size": 12,
+            "font_color": "white",
+            "bg_color": self.config["primary_colour"],
+            "border": 1,
+            "align": "left",
+            "valign": "vcenter"
         })
-        self.sheet_title_format = workbook.add_format({
-            **base, "bold": True, "font_size": 13,
-            "font_color": white, "bg_color": primary,
+
+        self.table_header = workbook.add_format({
+            "bold": True,
+            "bg_color": self.config["header_fill"],
+            "font_color": self.config["primary_colour"],
+            "border": 1,
+            "text_wrap": True
         })
-        self.kpi_value_format = workbook.add_format({
-            **base, "bold": True, "font_size": 22,
-            "font_color": primary, "bg_color": secondary,
-            "border": 1, "border_color": gray, "align": "center",
+
+        self.body_format = workbook.add_format({
+            "border": 1,
+            "valign": "top"
         })
-        self.kpi_label_format = workbook.add_format({
-            **base, "font_size": 9, "font_color": muted,
-            "bg_color": light, "border": 1, "border_color": gray, "align": "center",
-        })
-        self.meta_key_format = workbook.add_format({
-            **base, "bold": True, "bg_color": secondary, "border": 1, "border_color": gray,
-        })
-        self.meta_value_format = workbook.add_format({
-            **base, "bg_color": white, "border": 1, "border_color": gray,
-        })
-        self.row_even_format = workbook.add_format({
-            **base, "bg_color": light, "border": 1, "border_color": gray,
-        })
-        self.row_odd_format = workbook.add_format({
-            **base, "bg_color": white, "border": 1, "border_color": gray,
-        })
-        self.row_high_format = workbook.add_format({
-            **base, "bg_color": "FECACA", "border": 1, "border_color": red,
-        })
-        self.row_medium_format = workbook.add_format({
-            **base, "bg_color": "FEF3C7", "border": 1, "border_color": amber,
-        })
+
         self.note_format = workbook.add_format({
-            **base, "text_wrap": True, "align": "left",
-            "bg_color": light, "border": 1, "border_color": gray,
+            "font_size": 10,
+            "font_color": "#555555",
+            "italic": True,
+            "text_wrap": True
         })
 
-    # ------------------------------------------------------------------ #
-    # Cover sheet                                                          #
-    # ------------------------------------------------------------------ #
+        self.metric_label = workbook.add_format({
+            "bold": True,
+            "bg_color": self.config["neutral_fill"],
+            "border": 1
+        })
 
-    def _build_cover_sheet(self, workbook, writer, filename):
+        self.metric_value = workbook.add_format({
+            "bold": True,
+            "font_color": self.config["primary_colour"],
+            "border": 1
+        })
+
+        self.success_format = workbook.add_format({
+            "bold": True,
+            "font_color": "white",
+            "bg_color": self.config["success_colour"],
+            "align": "center",
+            "border": 1
+        })
+
+        self.warning_format = workbook.add_format({
+            "bold": True,
+            "font_color": "black",
+            "bg_color": self.config["warning_colour"],
+            "align": "center",
+            "border": 1
+        })
+
+        self.danger_format = workbook.add_format({
+            "bold": True,
+            "font_color": "white",
+            "bg_color": self.config["danger_colour"],
+            "align": "center",
+            "border": 1
+        })
+
+        self.disclaimer_format = workbook.add_format({
+            "font_size": 9,
+            "italic": True,
+            "font_color": "#666666",
+            "text_wrap": True
+        })
+
+    def _build_cover_sheet(self, workbook, writer, raw_df):
         sheet = workbook.add_worksheet("Report Summary")
-        writer.sheets["Report Summary"] = sheet
 
-        sheet.merge_range("A1:H4", "")  # Logo space
+        # Widths
+        sheet.set_column("A:A", 4)
+        sheet.set_column("B:B", 18)
+        sheet.set_column("C:H", 18)
 
-        sheet.merge_range("A6:H6", "ColtraDataAi Report", self.title_format)
-        sheet.merge_range("A8:H8", self.config.get("tagline", ""), self.text_format)
+        # Optional logo
+        logo_path = "assets/logo/coltradata_logo.png"
+        if os.path.exists(logo_path):
+            sheet.insert_image("B2", logo_path, {"x_scale": 0.45, "y_scale": 0.45})
 
-        sheet.write("A10", "Generated On:")
-        sheet.write("C10", datetime.now().strftime("%Y-%m-%d %H:%M"))
+        sheet.merge_range("B6:H6", self.config["app_name"], self.title_format)
+        sheet.merge_range("B7:H7", self.config["tagline"], self.subtitle_format)
 
-        sheet.write("A11", "Source File:")
-        sheet.write("C11", filename)
+        sheet.write("B10", "Generated On", self.metric_label)
+        sheet.write("C10", datetime.now().strftime("%d/%m/%Y %H:%M"), self.metric_value)
+
+        sheet.write("B11", "Total Rows", self.metric_label)
+        sheet.write("C11", len(raw_df), self.metric_value)
+
+        sheet.write("B12", "Total Columns", self.metric_label)
+        sheet.write("C12", len(raw_df.columns), self.metric_value)
 
         sheet.merge_range(
-            "A13:H16",
-            "This report provides structured data cleaning outputs including raw data, "
-            "cleaned data, logs and quality summaries.",
-            self.text_format,
+            "B15:H18",
+            "This workbook contains the original uploaded data, cleaned data output, processing log, quality checks and dashboard reporting generated by ColtraDataAi.",
+            self.body_format
         )
+
         sheet.merge_range(
-            "A20:H20",
-            "ColtraDataAi provides data cleaning and structured reporting only.",
-            self.small_text,
-        )
-        sheet.merge_range(
-            "A22:H22",
-            f"Contact: {self.config.get('contact_email', 'support@coltradata.com')}",
-            self.small_text,
+            "B21:H22",
+            "ColtraDataAi provides structured data cleaning, validation and dashboard reporting outputs. It does not provide advisory or decision-making recommendations.",
+            self.disclaimer_format
         )
 
-    # ------------------------------------------------------------------ #
-    # Executive Summary (matplotlib boardroom chart)                       #
-    # ------------------------------------------------------------------ #
-
-    def _build_dashboard_sheet(self, workbook, writer, raw_df, log_df):
-        ws = workbook.add_worksheet("Executive Summary")
-        writer.sheets["Executive Summary"] = ws
-        ws.hide_gridlines(2)
-        ws.set_zoom(80)
-        img_buf = self._make_dashboard_png(raw_df, log_df)
-        ws.insert_image("B2", "dashboard.png", {"image_data": img_buf, "x_scale": 1, "y_scale": 1})
-
-    def _make_dashboard_png(self, raw_df, log_df):
-        error_df = log_df if (log_df is not None and not log_df.empty) else pd.DataFrame()
-
-        total_cells  = raw_df.size
-        missing      = int(raw_df.isnull().sum().sum())
-        valid        = max(total_cells - missing, 0)
-        completeness = (valid / total_cells * 100) if total_cells else 0
-        issues       = len(error_df)
-        high_risk    = (
-            int(error_df["Risk Level"].isin(["High", "Critical"]).sum())
-            if "Risk Level" in error_df.columns else 0
-        )
-
-        missing_by_col = (
-            raw_df.isnull().sum()
-            .sort_values(ascending=False)
-            .reset_index()
-            .rename(columns={"index": "Column", 0: "Missing Cells"})
-        )
-
-        if error_df.empty:
-            risk_df  = pd.DataFrame({"Risk Level": ["No issues"], "Issues": [0]})
-            issue_df = pd.DataFrame({"Issue": ["No issues"], "Records": [0]})
-        else:
-            risk_df = (
-                error_df["Risk Level"]
-                .value_counts()
-                .reindex(["Critical", "High", "Medium", "Low"], fill_value=0)
-                .reset_index()
-            )
-            risk_df.columns = ["Risk Level", "Issues"]
-            issue_df = error_df["Issue"].value_counts().head(6).reset_index()
-            issue_df.columns = ["Issue", "Records"]
-
-        fig = plt.figure(figsize=(22, 10), facecolor="white")
-        grid = fig.add_gridspec(2, 4, hspace=0.5, wspace=0.6, top=0.78, bottom=0.08)
-
-        fig.suptitle(
-            f"{self.app_name} — Executive Summary",
-            x=0.03, y=0.97, ha="left", fontsize=20,
-            fontweight="bold", color=BRAND["navy"],
-        )
-        fig.text(
-            0.03, 0.92,
-            f"{self.tagline}  |  Powered by {self.company}",
-            ha="left", fontsize=11, color=BRAND["muted"],
-        )
-
-        kpis = [
-            (f"{completeness:.1f}%", "Completeness",   BRAND["teal"]),
-            (f"{missing:,}",         "Missing Cells",   BRAND["amber"]),
-            (f"{issues:,}",          "Issues Flagged",  BRAND["red"]),
-            (f"{high_risk:,}",       "High / Critical", BRAND["purple"]),
-        ]
-        for i, (val, lbl, color) in enumerate(kpis):
-            ax = fig.add_axes([0.03 + i * 0.15, 0.82, 0.13, 0.10])
-            ax.axis("off")
-            ax.add_patch(plt.Rectangle((0, 0), 1, 1, transform=ax.transAxes, color="#F8FAFC"))
-            ax.add_patch(plt.Rectangle((0, 0), 0.03, 1, transform=ax.transAxes, color=color))
-            ax.text(0.08, 0.62, val, transform=ax.transAxes, fontsize=22,
-                    fontweight="bold", color=BRAND["navy"])
-            ax.text(0.08, 0.22, lbl, transform=ax.transAxes, fontsize=10, color=BRAND["muted"])
-
-        ax1 = fig.add_subplot(grid[0, 0])
-        ax1.pie([valid, missing], colors=[BRAND["teal"], BRAND["amber"]],
-                startangle=90, wedgeprops=dict(width=0.35, edgecolor="white"))
-        ax1.text(0,  0.08, f"{completeness:.1f}%", ha="center", fontsize=18, fontweight="bold")
-        ax1.text(0, -0.18, "complete", ha="center", fontsize=10, color=BRAND["muted"])
-        ax1.set_title("Coverage", loc="left", fontsize=12, fontweight="bold", color=BRAND["navy"])
-
-        ax2 = fig.add_subplot(grid[0, 1:3])
-        plot_m = missing_by_col[missing_by_col["Missing Cells"] > 0].tail(6)
-        if plot_m.empty:
-            ax2.text(0.5, 0.5, "No missing values", ha="center", va="center",
-                     transform=ax2.transAxes, fontsize=11, color=BRAND["muted"])
-            ax2.axis("off")
-        else:
-            mc = [BRAND["red"] if v == plot_m["Missing Cells"].max() else BRAND["amber"]
-                  for v in plot_m["Missing Cells"]]
-            ax2.barh(plot_m["Column"].astype(str), plot_m["Missing Cells"],
-                     color=mc, edgecolor="#111827", linewidth=0.3)
-            ax2.invert_yaxis()
-            ax2.spines[["top", "right", "left"]].set_visible(False)
-            ax2.grid(axis="x", color="#E5E7EB", linewidth=0.7)
-        ax2.set_title("Where Data Is Thinnest", loc="left", fontsize=12,
-                      fontweight="bold", color=BRAND["navy"])
-
-        ax3 = fig.add_subplot(grid[0, 3])
-        risk_plot = risk_df[risk_df["Issues"] > 0]
-        if risk_plot.empty:
-            ax3.text(0.5, 0.5, "No issues", ha="center", va="center",
-                     transform=ax3.transAxes, fontsize=11, color=BRAND["muted"])
-            ax3.axis("off")
-        else:
-            rc = [RISK_COLORS.get(r, BRAND["gray"]) for r in risk_plot["Risk Level"]]
-            ax3.barh(risk_plot["Risk Level"], risk_plot["Issues"],
-                     color=rc, edgecolor="#111827", linewidth=0.3)
-            ax3.invert_yaxis()
-            ax3.spines[["top", "right", "left"]].set_visible(False)
-            ax3.grid(axis="x", color="#E5E7EB", linewidth=0.7)
-        ax3.set_title("Risk Profile", loc="left", fontsize=12,
-                      fontweight="bold", color=BRAND["navy"])
-
-        ax4 = fig.add_subplot(grid[1, 0:2])
-        issue_plot = issue_df[issue_df["Records"] > 0].sort_values("Records")
-        if issue_plot.empty:
-            ax4.text(0.5, 0.5, "No issues flagged", ha="center", va="center",
-                     transform=ax4.transAxes, fontsize=11, color=BRAND["muted"])
-            ax4.axis("off")
-        else:
-            ic = [BRAND["red"] if v == issue_plot["Records"].max() else BRAND["teal"]
-                  for v in issue_plot["Records"]]
-            ax4.barh(issue_plot["Issue"].astype(str), issue_plot["Records"],
-                     color=ic, edgecolor="#111827", linewidth=0.3)
-            ax4.spines[["top", "right", "left"]].set_visible(False)
-            ax4.grid(axis="x", color="#E5E7EB", linewidth=0.7)
-        ax4.set_title("Most Common Issues", loc="left", fontsize=12,
-                      fontweight="bold", color=BRAND["navy"])
-
-        ax5 = fig.add_subplot(grid[1, 2:4])
-        dtype_counts = raw_df.dtypes.astype(str).value_counts()
-        palette = [BRAND["teal"], BRAND["amber"], BRAND["red"], BRAND["purple"], BRAND["green"]]
-        ax5.barh(dtype_counts.index.astype(str), dtype_counts.values,
-                 color=palette[:len(dtype_counts)], edgecolor="#111827", linewidth=0.3)
-        ax5.invert_yaxis()
-        ax5.spines[["top", "right", "left"]].set_visible(False)
-        ax5.grid(axis="x", color="#E5E7EB", linewidth=0.7)
-        ax5.set_title("Column Type Mix", loc="left", fontsize=12,
-                      fontweight="bold", color=BRAND["navy"])
-
-        buf = BytesIO()
-        fig.savefig(buf, format="png", dpi=150, bbox_inches="tight", facecolor="white")
-        plt.close(fig)
-        buf.seek(0)
-        return buf
-
-    # ------------------------------------------------------------------ #
-    # Data sheets                                                          #
-    # ------------------------------------------------------------------ #
+        sheet.write("B24", "Contact", self.metric_label)
+        sheet.write("C24", self.config["contact_email"], self.metric_value)
 
     def _write_dataframe(self, writer, df, sheet_name):
-        if df is None or df.empty:
-            df = pd.DataFrame({"Note": ["No data available."]})
+        df.to_excel(writer, sheet_name=sheet_name, startrow=1, index=False)
 
-        df.to_excel(writer, sheet_name=sheet_name, index=False)
-
-        workbook  = writer.book
+        workbook = writer.book
         worksheet = writer.sheets[sheet_name]
 
+        # Header formatting
         for col_num, value in enumerate(df.columns.values):
-            worksheet.write(0, col_num, value, self.header_format)
+            worksheet.write(1, col_num, value, self.table_header)
 
-        worksheet.freeze_panes(1, 0)
+        # Top title row
+        worksheet.write(0, 0, sheet_name, self.section_header)
 
-        # Highlight blank cells across all data columns
-        last_row = len(df)          # row 0 is header, data is rows 1..last_row
-        last_col = len(df.columns) - 1
-        blank_fmt = workbook.add_format({"bg_color": "#FFF2CC"})
-        worksheet.conditional_format(1, 0, last_row, last_col, {
-            "type":   "blanks",
-            "format": blank_fmt,
-        })
+        # Freeze panes
+        worksheet.freeze_panes(2, 0)
 
-    # ------------------------------------------------------------------ #
-    # Missing values chart (native xlsxwriter)                            #
-    # ------------------------------------------------------------------ #
+        # Autofilter
+        worksheet.autofilter(1, 0, len(df) + 1, max(len(df.columns) - 1, 0))
 
-    def _build_missing_chart(self, workbook, writer, cleaned_df):
-        sheet = workbook.add_worksheet("Dashboard")
-        writer.sheets["Dashboard"] = sheet
+        # Column widths
+        for i, col in enumerate(df.columns):
+            series = df[col].astype(str)
+            max_len = max(
+                [len(str(col))] + series.head(200).map(len).tolist()
+            )
+            worksheet.set_column(i, i, min(max_len + 2, 28))
 
-        missing = cleaned_df.isnull().sum()
-        missing = missing[missing > 0]
+        # Conditional formatting for blanks
+        if len(df.columns) > 0 and len(df) > 0:
+            worksheet.conditional_format(
+                2, 0, len(df) + 1, len(df.columns) - 1,
+                {
+                    "type": "blanks",
+                    "format": workbook.add_format({"bg_color": "#FFF2CC"})
+                }
+            )
 
-        sheet.write(0, 0, "Column",         self.header_format)
-        sheet.write(0, 1, "Missing Values",  self.header_format)
-
-        sheet.write_column("A2", missing.index.tolist())
-        sheet.write_column("B2", missing.values.tolist())
-
-        n = len(missing)
-        if n > 0:
-            chart = workbook.add_chart({"type": "column"})
-            chart.add_series({
-                "name":       "Missing Values",
-                "categories": f"=Dashboard!$A$2:$A${n + 1}",
-                "values":     f"=Dashboard!$B$2:$B${n + 1}",
-                "fill":       {"color": BRAND["amber"]},
-                "border":     {"color": BRAND["navy"]},
-            })
-            chart.set_title({"name": "Missing Values by Column"})
-            chart.set_x_axis({"name": "Column"})
-            chart.set_y_axis({"name": "Missing Count"})
-            chart.set_style(10)
-            sheet.insert_chart("D2", chart, {"x_scale": 1.6, "y_scale": 1.4})
-        else:
-            sheet.write(1, 0, "No missing values detected.", self.text_format)
-
-    # ------------------------------------------------------------------ #
-    # Processing notes                                                     #
-    # ------------------------------------------------------------------ #
-
-    def _build_processing_notes(self, writer):
+    def _write_quality_sheet(self, writer, quality_df):
+        quality_df.to_excel(writer, sheet_name="Quality Checks", startrow=1, index=False)
         workbook = writer.book
-        sheet = workbook.add_worksheet("Processing Notes")
-        writer.sheets["Processing Notes"] = sheet
+        worksheet = writer.sheets["Quality Checks"]
 
+        worksheet.write(0, 0, "Quality Checks", self.section_header)
+
+        for col_num, value in enumerate(quality_df.columns.values):
+            worksheet.write(1, col_num, value, self.table_header)
+
+        worksheet.freeze_panes(2, 0)
+        worksheet.autofilter(1, 0, len(quality_df) + 1, max(len(quality_df.columns) - 1, 0))
+        worksheet.set_column("A:A", 26)
+        worksheet.set_column("B:B", 16)
+
+        # Optional visual highlight for status-style values if present
+        if "Metric" in quality_df.columns and "Value" in quality_df.columns:
+            worksheet.write("D2", "Overall Status", self.metric_label)
+
+            missing_total = 0
+            rows_total = 0
+
+            try:
+                if "Missing Values" in quality_df["Metric"].values:
+                    missing_total = int(
+                        quality_df.loc[quality_df["Metric"] == "Missing Values", "Value"].iloc[0]
+                    )
+                if "Rows" in quality_df["Metric"].values:
+                    rows_total = int(
+                        quality_df.loc[quality_df["Metric"] == "Rows", "Value"].iloc[0]
+                    )
+            except Exception:
+                pass
+
+            if missing_total == 0:
+                worksheet.write("E2", "PASS", self.success_format)
+            elif missing_total < max(50, rows_total * 0.05):
+                worksheet.write("E2", "REVIEW", self.warning_format)
+            else:
+                worksheet.write("E2", "WARNING", self.danger_format)
+
+    def _build_processing_notes(self, workbook):
+        sheet = workbook.add_worksheet("Processing Notes")
+        sheet.set_column("A:A", 100)
+
+        sheet.write("A1", "Processing Notes", self.section_header)
         notes = [
-            "Data cleaning rules applied:",
-            "- Duplicate removal",
+            "This section records the assumptions and processing rules applied during report generation.",
+            "",
+            "Standard elements may include:",
+            "- Duplicate handling",
             "- Whitespace trimming",
             "- Header standardisation",
-            "- Null handling",
+            "- Missing value reporting",
+            "- Dashboard summary generation",
             "",
-            "Assumptions:",
-            "- Input structure preserved where possible",
-            "",
-            "Limitations:",
-            "- Output is non-advisory",
+            "This output is non-advisory and is provided for structured reporting purposes only."
         ]
 
-        for row, text in enumerate(notes):
-            sheet.write(row, 0, text)
+        for idx, line in enumerate(notes, start=3):
+            sheet.write(f"A{idx}", line, self.body_format if not line.startswith("-") else self.note_format)
+
+    def _build_dashboard_sheet(self, workbook, raw_df, cleaned_df, quality_df):
+        sheet = workbook.add_worksheet("Dashboard")
+
+        # Set layout
+        sheet.set_column("A:A", 24)
+        sheet.set_column("B:B", 14)
+        sheet.set_column("D:J", 12)
+
+        sheet.write("A1", "Dashboard Reporting", self.section_header)
+
+        # Summary cards area
+        original_rows = len(raw_df)
+        cleaned_rows = len(cleaned_df)
+        removed_rows = original_rows - cleaned_rows
+        total_columns = len(cleaned_df.columns)
+        missing_values = int(cleaned_df.isnull().sum().sum())
+
+        metrics = [
+            ("Original Rows", original_rows),
+            ("Cleaned Rows", cleaned_rows),
+            ("Rows Removed", removed_rows),
+            ("Columns", total_columns),
+            ("Missing Values", missing_values),
+        ]
+
+        r = 3
+        for label, value in metrics:
+            sheet.write(r, 0, label, self.metric_label)
+            sheet.write(r, 1, value, self.metric_value)
+            r += 1
+
+        # Chart source data: missing values by top columns
+        missing_by_col = cleaned_df.isnull().sum().sort_values(ascending=False).head(10)
+        start_row = 3
+        sheet.write(start_row - 1, 3, "Top Columns by Missing Values", self.table_header)
+        sheet.write(start_row - 1, 4, "Count", self.table_header)
+
+        for i, (col_name, val) in enumerate(missing_by_col.items(), start=start_row):
+            sheet.write(i, 3, str(col_name), self.body_format)
+            sheet.write(i, 4, int(val), self.body_format)
+
+        # Chart 1 - Missing values
+        chart1 = workbook.add_chart({"type": "column"})
+        chart1.add_series({
+            "name": "Missing Values",
+            "categories": ["Dashboard", start_row, 3, start_row + len(missing_by_col) - 1, 3],
+            "values": ["Dashboard", start_row, 4, start_row + len(missing_by_col) - 1, 4],
+            "fill": {"color": self.config["secondary_colour"]},
+            "border": {"color": self.config["primary_colour"]}
+        })
+        chart1.set_title({"name": "Missing Values by Column"})
+        chart1.set_legend({"none": True})
+        chart1.set_y_axis({"major_gridlines": {"visible": False}})
+        chart1.set_style(10)
+
+        sheet.insert_chart("G3", chart1, {"x_scale": 1.15, "y_scale": 1.15})
+
+        # Chart source data: row counts comparison
+        compare_row = 18
+        sheet.write(compare_row, 3, "Dataset Stage", self.table_header)
+        sheet.write(compare_row, 4, "Rows", self.table_header)
+
+        sheet.write(compare_row + 1, 3, "Original", self.body_format)
+        sheet.write(compare_row + 1, 4, original_rows, self.body_format)
+
+        sheet.write(compare_row + 2, 3, "Cleaned", self.body_format)
+        sheet.write(compare_row + 2, 4, cleaned_rows, self.body_format)
+
+        chart2 = workbook.add_chart({"type": "bar"})
+        chart2.add_series({
+            "name": "Rows",
+            "categories": ["Dashboard", compare_row + 1, 3, compare_row + 2, 3],
+            "values": ["Dashboard", compare_row + 1, 4, compare_row + 2, 4],
+            "fill": {"color": self.config["primary_colour"]},
+            "border": {"color": self.config["primary_colour"]}
+        })
+        chart2.set_title({"name": "Original vs Cleaned Rows"})
+        chart2.set_legend({"none": True})
+        chart2.set_x_axis({"major_gridlines": {"visible": False}})
+        chart2.set_style(10)
+
+        sheet.insert_chart("G18", chart2, {"x_scale": 1.15, "y_scale": 1.0})
+
+        # Optional completeness ratio example
+        completeness_row = 26
+        sheet.write(completeness_row, 0, "Data Completeness", self.section_header)
+
+        total_cells = cleaned_df.shape[0] * cleaned_df.shape[1] if cleaned_df.shape[0] > 0 and cleaned_df.shape[1] > 0 else 0
+        complete_cells = total_cells - missing_values
+        completeness_pct = round((complete_cells / total_cells) * 100, 2) if total_cells else 0
+
+        sheet.write(completeness_row + 2, 0, "Completeness %", self.metric_label)
+        sheet.write(completeness_row + 2, 1, completeness_pct, self.metric_value)
