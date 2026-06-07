@@ -67,7 +67,6 @@ with head1:
     st.image("assets/logo/coltradata_logo.png", width=110)
 
 with head2:
-    st.title(branding["app_name"])
     st.markdown(f"**{branding['tagline']}**")
     st.caption("Generate structured cleaned datasets, validation reports and visual data summaries.")
 
