@@ -1,3 +1,5 @@
+import base64
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -64,7 +66,16 @@ builder = ReportBuilder(branding)
 head1, head2 = st.columns([1, 4])
 
 with head1:
-    st.image("assets/logo/coltradata_logo.png", width=110)
+    # Embed at full resolution and let CSS scale it down — st.image's
+    # width=N param has Streamlit downscale the source to N raw pixels,
+    # which then looks blurry when the browser stretches it back up on
+    # high-DPI/retina displays.
+    with open("assets/logo/coltradata_logo.png", "rb") as logo_file:
+        logo_b64 = base64.b64encode(logo_file.read()).decode()
+    st.markdown(
+        f'<img src="data:image/png;base64,{logo_b64}" style="width:220px; height:auto;" />',
+        unsafe_allow_html=True,
+    )
 
 with head2:
     st.markdown(f"**{branding['tagline']}**")
