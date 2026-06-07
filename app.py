@@ -58,6 +58,65 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
+# ---------------------------------------------------------------------------
+# Secure login — gates the entire app via st.secrets
+# ---------------------------------------------------------------------------
+def _get_configured_password():
+    # st.secrets raises StreamlitSecretNotFoundError on access (even via
+    # .get) when no secrets.toml exists at all, e.g. a fresh Codespace
+    # clone — treat that the same as "no password configured".
+    try:
+        return st.secrets["credentials"]["password"]
+    except (KeyError, st.errors.StreamlitSecretNotFoundError):
+        return None
+
+
+def _check_password() -> bool:
+    if st.session_state.get("authenticated"):
+        return True
+
+    st.markdown(
+        f"""
+        <div style="max-width:420px;margin:80px auto 0 auto;text-align:center;">
+            <div style="font-size:38px;font-weight:800;color:{branding['primary_colour']};margin-bottom:4px;">
+                {branding['app_name']}
+            </div>
+            <div style="font-size:12px;letter-spacing:.26em;color:#657286;text-transform:uppercase;margin-bottom:36px;">
+                {branding['tagline']}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    _, mid, _ = st.columns([1, 2, 1])
+    with mid:
+        st.markdown("##### Sign in to continue")
+        pwd = st.text_input(
+            "Password",
+            type="password",
+            label_visibility="collapsed",
+            placeholder="Enter password",
+        )
+        if st.button("Sign in", use_container_width=True, type="primary"):
+            configured_password = _get_configured_password()
+            if configured_password is None:
+                st.error(
+                    "No login password is configured. Add a "
+                    "[credentials] password to .streamlit/secrets.toml "
+                    "(see .streamlit/secrets.toml.example)."
+                )
+            elif pwd == configured_password:
+                st.session_state.authenticated = True
+                st.rerun()
+            else:
+                st.error("Incorrect password. Please try again.")
+    return False
+
+
+if not _check_password():
+    st.stop()
+
 builder = ReportBuilder(branding)
 
 # ---------------------------
