@@ -22,3 +22,10 @@ Search.code-search
 
 # Generated report output
 output/
+
+# Claude Code local session state
+.claude/
+
+# Stray run logs
+streamlit_run.log
+*.log

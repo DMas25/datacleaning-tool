@@ -1,7 +1,12 @@
-from typing import Optional, Dict
+from typing import Optional, Dict, List, Tuple
+from io import BytesIO
 import pandas as pd
 from datetime import datetime
 import os
+
+from core.data_validator import build_validation_issues
+from core.insights_engine import generate_insights, detect_date_columns
+from core.chart_gallery import ChartCard, build_chart_gallery, render_chart_images
 
 
 class ReportBuilder:
@@ -11,15 +16,22 @@ class ReportBuilder:
     def __init__(self, config):
         self.config = config
 
-    def build_report(self, raw_df, cleaned_df, log_df, quality_df, dictionary_df=None):
+    def build_report(
+        self, raw_df, cleaned_df, log_df, quality_df, dictionary_df=None,
+        quality_breakdown_df=None, chart_assets=None,
+    ):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
         file_name = f"ColtraDataAi_Cleaned_Report_{timestamp}.xlsx"
+
+        if quality_breakdown_df is None:
+            quality_breakdown_df = self.build_quality_breakdown(cleaned_df)
+
+        if chart_assets is None:
+            chart_assets = self.build_chart_assets(raw_df, cleaned_df, quality_breakdown_df)
 
         with pd.ExcelWriter(file_name, engine="xlsxwriter") as writer:
             workbook = writer.book
             self._create_formats(workbook)
-
-            quality_breakdown_df = self._build_column_quality_breakdown(cleaned_df)
 
             # Sheets
             self._build_cover_sheet(workbook, writer, raw_df)
@@ -32,9 +44,34 @@ class ReportBuilder:
                 self._write_dataframe(writer, dictionary_df, "Data Dictionary")
 
             self._build_processing_notes(workbook)
+            self._build_insights_sheet(workbook, cleaned_df)
+            self._build_executive_summary_sheet(workbook, raw_df, cleaned_df, quality_breakdown_df, chart_assets)
             self._build_dashboard_sheet(workbook, raw_df, cleaned_df, quality_df, quality_breakdown_df)
 
         return file_name
+
+    def build_quality_breakdown(self, cleaned_df) -> pd.DataFrame:
+        return self._build_column_quality_breakdown(cleaned_df)
+
+    def build_risk_summary(self, quality_breakdown_df: pd.DataFrame) -> Dict[str, object]:
+        return self._build_risk_summary_v2(quality_breakdown_df)
+
+    def build_chart_assets(
+        self, raw_df, cleaned_df, quality_breakdown_df=None, date_cols=None,
+    ) -> List[Tuple[ChartCard, bytes]]:
+        """
+        Builds the premium chart gallery for this dataset and renders each
+        figure to PNG bytes (via Kaleido) so the same visuals can be embedded
+        in the Excel Executive Summary sheet and the downloadable PDF report.
+        """
+        if quality_breakdown_df is None:
+            quality_breakdown_df = self.build_quality_breakdown(cleaned_df)
+
+        if date_cols is None:
+            date_cols = detect_date_columns(cleaned_df)
+
+        cards = build_chart_gallery(raw_df, cleaned_df, self.config, quality_breakdown_df, date_cols=date_cols)
+        return render_chart_images(cards)
 
     def _create_formats(self, workbook):
         self.title_format = workbook.add_format({
@@ -394,7 +431,13 @@ class ReportBuilder:
                 "Total Rows": total_rows,
             })
 
-        breakdown_df = self._prepare_quality_df_with_risk_v2(pd.DataFrame(rows), total_rows=total_rows)
+        issues_df = pd.DataFrame(rows)
+
+        validation_df = build_validation_issues(cleaned_df)
+        if not validation_df.empty:
+            issues_df = pd.concat([issues_df, validation_df], ignore_index=True)
+
+        breakdown_df = self._prepare_quality_df_with_risk_v2(issues_df, total_rows=total_rows)
         breakdown_df["Issue %"] = (breakdown_df["Issue %"] * 100).round(2)
 
         return breakdown_df
@@ -491,6 +534,31 @@ class ReportBuilder:
                     }
                 )
 
+    def _build_insights_sheet(self, workbook, cleaned_df):
+        sheet = workbook.add_worksheet("Data Insights")
+        sheet.set_column("A:A", 4)
+        sheet.set_column("B:B", 110)
+
+        sheet.write("A1", "Data Insights", self.section_header)
+        sheet.merge_range(
+            "A2:B2",
+            "Structured, descriptive observations generated directly from the dataset. "
+            "These are observational only and do not constitute advice or recommendations.",
+            self.disclaimer_format
+        )
+
+        insights = generate_insights(cleaned_df)
+
+        row = 4
+        for category, lines in insights.items():
+            sheet.write(row, 0, category, self.section_header)
+            row += 1
+            for line in lines:
+                sheet.write(row, 0, "-", self.note_format)
+                sheet.write(row, 1, line, self.body_format)
+                row += 1
+            row += 1
+
     def _build_processing_notes(self, workbook):
         sheet = workbook.add_worksheet("Processing Notes")
         sheet.set_column("A:A", 100)
@@ -511,6 +579,55 @@ class ReportBuilder:
 
         for idx, line in enumerate(notes, start=3):
             sheet.write(f"A{idx}", line, self.body_format if not line.startswith("-") else self.note_format)
+
+    def _build_executive_summary_sheet(self, workbook, raw_df, cleaned_df, quality_breakdown_df, chart_assets):
+        sheet = workbook.add_worksheet("Executive Summary")
+        sheet.set_column("A:A", 4)
+        sheet.set_column("B:B", 110)
+
+        sheet.write("A1", "Executive Summary", self.section_header)
+        sheet.merge_range(
+            "A2:B2",
+            "Premium visual highlights generated automatically from the cleaned dataset. These charts "
+            "mirror the live dashboard and are embedded here for offline review and sharing.",
+            self.disclaimer_format
+        )
+
+        risk_summary = self.build_risk_summary(quality_breakdown_df)
+        missing_values = int(cleaned_df.isnull().sum().sum())
+
+        metrics = [
+            ("Original Rows", len(raw_df)),
+            ("Cleaned Rows", len(cleaned_df)),
+            ("Columns", len(cleaned_df.columns)),
+            ("Missing Values", missing_values),
+            ("Overall Risk", f"{self.RISK_EMOJI[risk_summary['overall_risk']]} {risk_summary['overall_risk']}"),
+            ("Top Issue", risk_summary["top_issue"]),
+        ]
+
+        row = 4
+        for label, value in metrics:
+            sheet.write(row, 0, label, self.metric_label)
+            sheet.write(row, 1, value, self.metric_value)
+            row += 1
+
+        row += 2
+
+        if not chart_assets:
+            sheet.write(row, 0, "No charts could be generated for this dataset.", self.note_format)
+            return
+
+        for card, png_bytes in chart_assets:
+            sheet.merge_range(row, 0, row, 1, card.title, self.section_header)
+            row += 1
+            sheet.write(row, 0, card.description, self.note_format)
+            row += 1
+            sheet.insert_image(row, 0, f"{card.key}.png", {
+                "image_data": BytesIO(png_bytes),
+                "x_scale": 0.5,
+                "y_scale": 0.5,
+            })
+            row += 22
 
     def _build_dashboard_sheet(self, workbook, raw_df, cleaned_df, quality_df, quality_breakdown_df):
         sheet = workbook.add_worksheet("Dashboard")

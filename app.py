@@ -5,6 +5,19 @@ import pandas as pd
 import plotly.express as px
 
 from core.report_builder import ReportBuilder
+from core.insights_engine import generate_insights, detect_date_columns
+from core.chart_gallery import build_chart_gallery
+from core.pdf_report import build_pdf_report
+from core.dashboard_analytics import (
+    numeric_columns,
+    categorical_columns,
+    frequency_table,
+    top_bottom_values,
+    correlation_matrix,
+    time_series_counts,
+)
+from core.feature_gate import render_tier_selector, render_locked_feature, feature_unlocked
+from config.tier_config import row_limit_for
 from config.branding_config import branding
 
 st.set_page_config(page_title=branding["app_name"], layout="wide")
@@ -118,6 +131,8 @@ if not _check_password():
     st.stop()
 
 builder = ReportBuilder(branding)
+account_tier = render_tier_selector(branding)
+tier_row_limit = row_limit_for(account_tier)
 
 # ---------------------------
 # HEADER
@@ -156,6 +171,16 @@ if uploaded_file:
         df = pd.read_csv(uploaded_file)
     else:
         df = pd.read_excel(uploaded_file)
+
+    # Tier row-limit gate — datasets beyond the active plan's limit are
+    # truncated for processing, with an upgrade prompt shown to the user.
+    if tier_row_limit is not None and len(df) > tier_row_limit:
+        st.warning(
+            f"This dataset has {len(df):,} rows, which exceeds the {account_tier} plan limit of "
+            f"{tier_row_limit:,} rows. Only the first {tier_row_limit:,} rows will be processed. "
+            f"Upgrade your plan to process the full dataset."
+        )
+        df = df.head(tier_row_limit)
 
     # ---------------------------
     # STEP 2: CONFIGURE
@@ -247,7 +272,21 @@ if uploaded_file:
                 ]
             })
 
-            report_file = builder.build_report(df, cleaned_df, log_df, quality_df)
+            # Shared analysis used to drive the dashboard, the Excel Executive
+            # Summary sheet and the downloadable PDF report — computed once so
+            # all three surfaces stay in sync and charts aren't re-rendered.
+            date_cols = detect_date_columns(cleaned_df)
+            quality_breakdown_df = builder.build_quality_breakdown(cleaned_df)
+            risk_summary = builder.build_risk_summary(quality_breakdown_df)
+            chart_assets = builder.build_chart_assets(df, cleaned_df, quality_breakdown_df, date_cols=date_cols)
+
+            report_file = builder.build_report(
+                df, cleaned_df, log_df, quality_df,
+                quality_breakdown_df=quality_breakdown_df,
+                chart_assets=chart_assets,
+            )
+            pdf_report_bytes = build_pdf_report(branding, df, cleaned_df, risk_summary, chart_assets)
+            pdf_file_name = report_file.rsplit(".", 1)[0] + ".pdf"
 
         st.success("Report generated successfully.")
 
@@ -306,18 +345,188 @@ if uploaded_file:
             st.plotly_chart(fig_rows, use_container_width=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
+        if feature_unlocked(account_tier, "advanced_dashboards"):
+            # ---------------------------
+            # PREMIUM CHART GALLERY (auto-generated)
+            # ---------------------------
+            st.markdown("#### Premium Chart Gallery")
+            st.caption(
+                "High-quality charts generated automatically from your cleaned dataset — the same "
+                "visuals are embedded in the Excel Executive Summary and the downloadable PDF report."
+            )
+            gallery_cols = st.columns(2)
+            for idx, (card, _) in enumerate(chart_assets):
+                with gallery_cols[idx % 2]:
+                    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+                    st.markdown(f"##### {card.title}")
+                    st.caption(card.description)
+                    st.plotly_chart(card.figure, use_container_width=True, key=f"gallery_{card.key}")
+                    st.markdown('</div>', unsafe_allow_html=True)
+
+            # ---------------------------
+            # EXTENDED DASHBOARD ANALYSIS (interactive drill-down)
+            # ---------------------------
+            num_cols = numeric_columns(cleaned_df)
+            cat_cols = categorical_columns(cleaned_df, date_cols)
+
+            st.markdown("#### Distribution Analysis")
+            dist1, dist2 = st.columns(2)
+
+            with dist1:
+                st.markdown('<div class="section-card">', unsafe_allow_html=True)
+                st.markdown("##### Numerical Distribution")
+                if num_cols:
+                    selected_num_col = st.selectbox("Select a numeric column", num_cols, key="dist_numeric")
+                    fig_hist = px.histogram(
+                        cleaned_df, x=selected_num_col,
+                        color_discrete_sequence=[branding["primary_colour"]]
+                    )
+                    fig_hist.update_layout(height=360, margin=dict(l=20, r=20, t=30, b=20))
+                    st.plotly_chart(fig_hist, use_container_width=True)
+                else:
+                    st.info("No numeric columns available for distribution analysis.")
+                st.markdown('</div>', unsafe_allow_html=True)
+
+            with dist2:
+                st.markdown('<div class="section-card">', unsafe_allow_html=True)
+                st.markdown("##### Categorical Frequency")
+                if cat_cols:
+                    selected_cat_col = st.selectbox("Select a categorical column", cat_cols, key="dist_categorical")
+                    freq_df = frequency_table(cleaned_df, selected_cat_col)
+                    fig_freq = px.bar(
+                        freq_df, x=str(selected_cat_col), y="Count",
+                        color_discrete_sequence=[branding["secondary_colour"]]
+                    )
+                    fig_freq.update_layout(height=360, margin=dict(l=20, r=20, t=30, b=80))
+                    st.plotly_chart(fig_freq, use_container_width=True)
+                else:
+                    st.info("No categorical columns available for frequency analysis.")
+                st.markdown('</div>', unsafe_allow_html=True)
+
+            # Trend analysis (only shown when a date-like column is detected)
+            if date_cols:
+                st.markdown("#### Trend Analysis")
+                st.markdown('<div class="section-card">', unsafe_allow_html=True)
+                selected_date_col = st.selectbox("Select a date column", date_cols, key="trend_date")
+                trend_df = time_series_counts(cleaned_df, selected_date_col)
+                if trend_df is not None and not trend_df.empty:
+                    fig_trend = px.line(
+                        trend_df, x="Date", y="Records",
+                        color_discrete_sequence=[branding["primary_colour"]]
+                    )
+                    fig_trend.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=20))
+                    st.plotly_chart(fig_trend, use_container_width=True)
+                else:
+                    st.info("Selected column does not contain enough valid date values for a trend chart.")
+                st.markdown('</div>', unsafe_allow_html=True)
+
+            # Correlation analysis (only shown with 2+ numeric columns)
+            corr_matrix = correlation_matrix(cleaned_df)
+            if corr_matrix is not None:
+                st.markdown("#### Correlation Analysis")
+                st.markdown('<div class="section-card">', unsafe_allow_html=True)
+                fig_corr = px.imshow(
+                    corr_matrix,
+                    text_auto=".2f",
+                    color_continuous_scale=["#D7F3F7", branding["secondary_colour"], branding["primary_colour"]],
+                    aspect="auto"
+                )
+                fig_corr.update_layout(height=420, margin=dict(l=20, r=20, t=30, b=20))
+                st.plotly_chart(fig_corr, use_container_width=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+
+            # Top / bottom analysis
+            st.markdown("#### Top / Bottom Analysis")
+            tb1, tb2 = st.columns(2)
+
+            with tb1:
+                st.markdown('<div class="section-card">', unsafe_allow_html=True)
+                st.markdown("##### Top Categories")
+                if cat_cols:
+                    selected_top_cat_col = st.selectbox("Select a categorical column", cat_cols, key="top_categorical")
+                    top_freq_df = frequency_table(cleaned_df, selected_top_cat_col, top_n=5)
+                    st.dataframe(top_freq_df, use_container_width=True, hide_index=True)
+                else:
+                    st.info("No categorical columns available for top-category analysis.")
+                st.markdown('</div>', unsafe_allow_html=True)
+
+            with tb2:
+                st.markdown('<div class="section-card">', unsafe_allow_html=True)
+                st.markdown("##### Highest / Lowest Values")
+                if num_cols:
+                    selected_top_num_col = st.selectbox("Select a numeric column", num_cols, key="top_numeric")
+                    top_vals, bottom_vals = top_bottom_values(cleaned_df, selected_top_num_col, n=5)
+                    hl1, hl2 = st.columns(2)
+                    with hl1:
+                        st.caption("Highest")
+                        st.dataframe(top_vals.reset_index(drop=True).to_frame(name=str(selected_top_num_col)), use_container_width=True)
+                    with hl2:
+                        st.caption("Lowest")
+                        st.dataframe(bottom_vals.reset_index(drop=True).to_frame(name=str(selected_top_num_col)), use_container_width=True)
+                else:
+                    st.info("No numeric columns available for highest/lowest value analysis.")
+                st.markdown('</div>', unsafe_allow_html=True)
+        else:
+            render_locked_feature(
+                "Advanced Dashboard Analysis",
+                "Distribution, trend, correlation and top/bottom analysis are part of the full reporting suite.",
+                required_tier="Pro",
+            )
+
         # Additional detail section
         st.markdown("#### Cleaned Data Preview")
         st.dataframe(cleaned_df.head(10), use_container_width=True)
 
+        # ---------------------------
+        # STEP 6: AI DATA INSIGHTS (NON-ADVISORY)
+        # ---------------------------
+        st.subheader("Step 6: Data Insights")
+        st.caption("Structured, descriptive observations generated directly from the data. Observational only — not advice.")
+
+        if feature_unlocked(account_tier, "ai_insights"):
+            insights = generate_insights(cleaned_df)
+
+            st.markdown('<div class="section-card">', unsafe_allow_html=True)
+            for category, lines in insights.items():
+                st.markdown(f"**{category}**")
+                for line in lines:
+                    st.markdown(f"- {line}")
+            st.markdown('</div>', unsafe_allow_html=True)
+        else:
+            render_locked_feature(
+                "AI Data Insights",
+                "Structured, non-advisory observations on data composition, patterns, anomalies, distributions and completeness.",
+                required_tier="Pro",
+            )
+
         # Download
-        st.subheader("Step 6: Download")
-        with open(report_file, "rb") as f:
-            st.download_button(
-                "Download Structured Excel Report",
-                data=f,
-                file_name=report_file,
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        st.subheader("Step 7: Download")
+        if feature_unlocked(account_tier, "export"):
+            dl1, dl2 = st.columns(2)
+            with dl1:
+                with open(report_file, "rb") as f:
+                    st.download_button(
+                        "Download Structured Excel Report",
+                        data=f,
+                        file_name=report_file,
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+            with dl2:
+                st.download_button(
+                    "Download Executive Summary (PDF)",
+                    data=pdf_report_bytes,
+                    file_name=pdf_file_name,
+                    mime="application/pdf"
+                )
+            st.caption(
+                "The Excel report contains the full multi-sheet workbook with an embedded chart gallery. "
+                "The PDF is a portable executive summary featuring the same premium charts."
+            )
+        else:
+            render_locked_feature(
+                "Report Export (Excel & PDF)",
+                "Download the full multi-sheet Excel report and a portable PDF executive summary, both featuring an embedded premium chart gallery.",
+                required_tier="Pro",
             )
 
 # ---------------------------
