@@ -137,25 +137,29 @@ tier_row_limit = row_limit_for(account_tier)
 # ---------------------------
 # HEADER
 # ---------------------------
-head1, head2 = st.columns([1, 4])
+with open("assets/logo/coltradata_logo.png", "rb") as logo_file:
+    logo_b64 = base64.b64encode(logo_file.read()).decode()
 
-with head1:
-    # Embed at full resolution and let CSS scale it down — st.image's
-    # width=N param has Streamlit downscale the source to N raw pixels,
-    # which then looks blurry when the browser stretches it back up on
-    # high-DPI/retina displays.
-    with open("assets/logo/coltradata_logo.png", "rb") as logo_file:
-        logo_b64 = base64.b64encode(logo_file.read()).decode()
-    st.markdown(
-        f'<img src="data:image/png;base64,{logo_b64}" style="width:220px; height:auto;" />',
-        unsafe_allow_html=True,
-    )
-
-with head2:
-    st.markdown(f"**{branding['tagline']}**")
-    st.caption("Generate structured cleaned datasets, validation reports and visual data summaries.")
-
-st.markdown("---")
+st.markdown(
+    f"""
+    <div style="display:flex; align-items:center; gap:20px; padding:8px 0 12px 0;">
+        <img src="data:image/png;base64,{logo_b64}"
+             style="width:200px; height:auto; display:block; flex-shrink:0; border:none; outline:none;" />
+        <div>
+            <h3 style="margin:0; color:{branding['primary_colour']}; letter-spacing:1px; font-size:1.15em;">
+                DATA <span style="padding:0 5px;">&bull;</span>
+                INSIGHTS <span style="padding:0 5px;">&bull;</span>
+                INTELLIGENCE
+            </h3>
+            <p style="margin:4px 0 0 0; color:#657286; font-size:0.9em; line-height:1.4;">
+                Generate structured cleaned datasets, validation reports and visual data summaries.
+            </p>
+        </div>
+    </div>
+    <hr style="margin:0 0 16px 0; border:none; border-top:1px solid #E6ECF0;" />
+    """,
+    unsafe_allow_html=True,
+)
 
 # ---------------------------
 # STEP 1: UPLOAD
