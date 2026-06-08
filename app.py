@@ -142,7 +142,7 @@ with open("assets/logo/coltradata_logo.png", "rb") as logo_file:
 
 st.markdown(
     f"""
-    <div style="display:flex; align-items:center; gap:20px; padding:8px 0 12px 0;">
+    <div style="display:flex; align-items:center; gap:20px; padding:32px 0 12px 0;">
         <img src="data:image/png;base64,{logo_b64}"
              style="width:200px; height:auto; display:block; flex-shrink:0; border:none; outline:none;" />
         <div>
