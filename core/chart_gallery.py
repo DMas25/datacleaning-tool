@@ -1,5 +1,4 @@
 import os
-import tempfile
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
@@ -57,28 +56,23 @@ def _premium_theme(fig: go.Figure, branding, height: int = 380) -> go.Figure:
 
 def render_chart_images(cards: List[ChartCard]) -> List[Tuple[ChartCard, bytes]]:
     """
-    Renders every chart card to PNG bytes in a single batched Kaleido session
-    (via plotly.io.write_images) — far faster than exporting one figure at a
-    time, since each export would otherwise spin up its own browser instance.
+    Renders each chart card to PNG bytes via pio.to_image(), which uses
+    kaleido 0.2.x's bundled Chromium — no system Chrome required, so this
+    works on Streamlit Cloud and other restricted environments.
     """
     if not cards:
         return []
 
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        paths = [os.path.join(tmp_dir, f"{card.key}.png") for card in cards]
-        pio.write_images(
-            fig=[card.figure for card in cards],
-            file=paths,
+    assets = []
+    for card in cards:
+        png_bytes = pio.to_image(
+            card.figure,
             format="png",
             width=CHART_IMAGE_WIDTH,
             height=CHART_IMAGE_HEIGHT,
             scale=CHART_IMAGE_SCALE,
         )
-
-        assets = []
-        for card, path in zip(cards, paths):
-            with open(path, "rb") as f:
-                assets.append((card, f.read()))
+        assets.append((card, png_bytes))
 
     return assets
 
