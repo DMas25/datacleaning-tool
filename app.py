@@ -142,17 +142,16 @@ with open("assets/logo/coltradata_logo.png", "rb") as logo_file:
 
 st.markdown(
     f"""
-    <div style="display:flex; align-items:center; gap:20px; padding:32px 0 12px 0;">
+    <div style="display:flex; align-items:center; gap:0; padding:32px 0 12px 0;">
         <img src="data:image/png;base64,{logo_b64}"
-             style="width:200px; height:auto; display:block; flex-shrink:0; border:none; outline:none;" />
-        <div>
-            <h3 style="margin:0; color:{branding['primary_colour']}; letter-spacing:1px; font-size:1.15em;">
-                DATA <span style="padding:0 5px;">&bull;</span>
-                INSIGHTS <span style="padding:0 5px;">&bull;</span>
-                INTELLIGENCE
+             style="width:234px; height:auto; display:block; flex-shrink:0; border:none; outline:none;" />
+        <div style="width:1.5px; height:68px; background:#C8D6DF; margin:0 22px; flex-shrink:0; align-self:center;"></div>
+        <div style="display:flex; flex-direction:column; align-items:center; max-width:340px;">
+            <h3 style="margin:0; color:{branding['primary_colour']}; letter-spacing:1.5px; font-size:1.05em; text-align:center; white-space:nowrap;">
+                DATA &nbsp;&bull;&nbsp; INSIGHTS &nbsp;&bull;&nbsp; INTELLIGENCE
             </h3>
-            <p style="margin:4px 0 0 0; color:#657286; font-size:0.9em; line-height:1.4;">
-                Generate structured cleaned datasets, validation reports and visual data summaries.
+            <p style="margin:6px 0 0 0; color:#657286; font-size:0.82em; line-height:1.5; text-align:center;">
+                Generate Structured Cleaned Datasets,<br/>Validation Reports And Visual Data Summaries.
             </p>
         </div>
     </div>
