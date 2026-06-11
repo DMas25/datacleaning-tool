@@ -1,0 +1,73 @@
+{
+  "_comment": "Centralised style tokens used by report_builder.py and pdf_report.py. Edit here — do not hardcode values in code.",
+
+  "colours": {
+    "primary":     "#1F4E79",
+    "secondary":   "#D9E1F2",
+    "accent":      "#2E86AB",
+    "header_fill": "#D9E1F2",
+    "neutral":     "#F2F2F2",
+    "light":       "#F8FAFC",
+    "success":     "#46D324",
+    "warning":     "#F59E0B",
+    "danger":      "#DC2626",
+    "body_text":   "#33414E",
+    "muted":       "#657286",
+    "border":      "#E6ECF0"
+  },
+
+  "excel": {
+    "title_font_size":        20,
+    "section_header_size":    12,
+    "table_header_size":      10,
+    "body_font_size":         10,
+    "note_font_size":         9,
+    "disclaimer_font_size":   9,
+    "header_row_height":      22,
+    "title_row_height":       20,
+    "toc_row_height":         16,
+    "default_col_width":      18,
+    "max_col_width":          28,
+    "tab_colours": {
+      "Report Summary":    "#1F4E79",
+      "Raw Data":          "#8DA9C4",
+      "Cleaned Data":      "#2E86AB",
+      "Cleaning Log":      "#4472C4",
+      "Quality Checks":    "#F59E0B",
+      "Processing Notes":  "#9CA3AF",
+      "Data Insights":     "#48C9B0",
+      "Executive Summary": "#1F4E79",
+      "Dashboard":         "#46D324"
+    }
+  },
+
+  "pdf": {
+    "page_size":           "A4",
+    "margin_mm":           20,
+    "bottom_margin_mm":    24,
+    "title_font_size":     22,
+    "tagline_font_size":   9.5,
+    "section_font_size":   11,
+    "body_font_size":      9.5,
+    "caption_font_size":   8.5,
+    "chart_title_size":    11,
+    "footer_font_size":    7.5,
+    "logo_width_mm":       40,
+    "kpi_col_widths_mm":   [34, 36, 34, 66]
+  },
+
+  "charts": {
+    "font_family":    "Segoe UI, Helvetica, Arial, sans-serif",
+    "font_size":      11,
+    "title_size":     14,
+    "tick_size":      10,
+    "export_width":   760,
+    "export_height":  400,
+    "export_scale":   2,
+    "bar_height":     380,
+    "donut_height":   360,
+    "histogram_height": 340,
+    "heatmap_height": 420,
+    "line_height":    380
+  }
+}

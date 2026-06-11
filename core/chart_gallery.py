@@ -44,12 +44,49 @@ def _premium_theme(fig: go.Figure, branding, height: int = 380) -> go.Figure:
     fig.update_layout(
         template="plotly_white",
         height=height,
-        margin=dict(l=30, r=30, t=60, b=50),
-        font=dict(family="Segoe UI, Helvetica, Arial, sans-serif", size=12, color="#33414E"),
-        title_font=dict(size=16, color=branding["primary_colour"]),
+        margin=dict(l=44, r=30, t=64, b=52),
+        font=dict(family="Segoe UI, Helvetica, Arial, sans-serif", size=11, color="#33414E"),
+        title_font=dict(
+            size=14,
+            color=branding["primary_colour"],
+            family="Segoe UI, Helvetica, Arial, sans-serif",
+        ),
         plot_bgcolor="#FFFFFF",
         paper_bgcolor="#FFFFFF",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1,
+            font=dict(size=10, color="#657286"),
+            bgcolor="rgba(0,0,0,0)",
+        ),
+        hoverlabel=dict(
+            bgcolor="white",
+            bordercolor="#E6ECF0",
+            font_size=11,
+            font_family="Segoe UI, Helvetica, Arial, sans-serif",
+        ),
+    )
+    fig.update_xaxes(
+        showgrid=False,
+        showline=True,
+        linecolor="#E6ECF0",
+        linewidth=1,
+        tickfont=dict(size=10, color="#657286"),
+        title_font=dict(size=11, color="#33414E"),
+        ticks="outside",
+        ticklen=4,
+        tickcolor="#E6ECF0",
+    )
+    fig.update_yaxes(
+        gridcolor="#F0F4F8",
+        gridwidth=1,
+        showline=False,
+        zeroline=False,
+        tickfont=dict(size=10, color="#657286"),
+        title_font=dict(size=11, color="#33414E"),
     )
     return fig
 
@@ -87,13 +124,14 @@ def build_chart_gallery(
     max_categorical: int = 3,
 ) -> List[ChartCard]:
     cards: List[ChartCard] = []
-    palette = [
+    palette = branding.get("chart_palette", [
         branding["primary_colour"],
-        branding["secondary_colour"],
-        "#7FB3D5",
+        branding.get("accent_colour", "#2E86AB"),
         "#48C9B0",
         "#F4D03F",
-    ]
+        "#E67E22",
+        branding["secondary_colour"],
+    ])
 
     # Missing values by column
     missing_by_col = cleaned_df.isnull().sum().sort_values(ascending=False)

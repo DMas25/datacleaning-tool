@@ -23,6 +23,10 @@ Search.code-search
 # Generated report output
 output/
 
+# Runtime-generated report files (written to working dir during session)
+ColtraDataAi_*.xlsx
+ColtraDataAi_*.pdf
+
 # Claude Code local session state
 .claude/
 

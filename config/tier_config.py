@@ -15,6 +15,7 @@ TIERS = {
         "features": {
             "advanced_dashboards": False,
             "ai_insights": False,
+            "ai_advisory": False,
             "export": False,
         },
         "blurb": "Data cleaning and a basic summary dashboard for datasets up to 5,000 rows.",
@@ -26,9 +27,12 @@ TIERS = {
         "features": {
             "advanced_dashboards": True,
             "ai_insights": True,
+            "ai_advisory": False,
             "export": True,
+            "export_pdf": False,
+            "export_branding": False,
         },
-        "blurb": "Full dashboards, AI data insights, and downloadable reports for larger datasets.",
+        "blurb": "Full dashboards, AI data insights, and Excel report downloads for larger datasets.",
     },
     "Enterprise": {
         "label": "Enterprise",
@@ -37,12 +41,15 @@ TIERS = {
         "features": {
             "advanced_dashboards": True,
             "ai_insights": True,
+            "ai_advisory": True,
             "export": True,
+            "export_pdf": True,
+            "export_branding": True,
             "api_access": True,
             "white_label": True,
             "bulk_upload": True,
         },
-        "blurb": "API access, bulk uploads, custom branding, export templates, and priority processing.",
+        "blurb": "API access, bulk uploads, PDF reports, custom branding, and priority processing.",
     },
 }
 
