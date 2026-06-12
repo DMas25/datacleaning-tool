@@ -23,10 +23,27 @@ def render_pricing_page() -> None:
 
 def render_pricing_cards(current_plan_key: str = "free") -> None:
     """Full pricing table — call from a modal or dedicated pricing page."""
-    st.markdown("## ColtraData AI Plans")
+    # Prevent price text from wrapping and allow the card grid to scroll
+    # horizontally on narrow viewports rather than crushing each column.
+    st.markdown(
+        """
+        <style>
+        div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] {
+            min-width: 160px;
+        }
+        div[data-testid="stHorizontalBlock"] {
+            overflow-x: auto;
+            flex-wrap: nowrap;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("## ColtraDataAi Plans")
     st.caption("Choose the plan that fits your data volume and workflow.")
 
-    cols = st.columns(len(PLAN_ORDER))
+    cols = st.columns(len(PLAN_ORDER), gap="small")
     for col, plan_key in zip(cols, PLAN_ORDER):
         plan = PLAN_CONFIG[plan_key]
         is_current = plan_key == current_plan_key
@@ -37,7 +54,12 @@ def render_pricing_cards(current_plan_key: str = "free") -> None:
             else:
                 st.markdown(f"**{plan['label']}**")
 
-            st.markdown(f"### {plan['price']}")
+            # Use HTML so the price never wraps mid-string
+            st.markdown(
+                f"<p style='font-size:1.5rem;font-weight:700;margin:4px 0;white-space:nowrap'>"
+                f"{plan['price']}</p>",
+                unsafe_allow_html=True,
+            )
             st.caption(plan["blurb"])
             st.markdown("---")
 
