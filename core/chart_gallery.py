@@ -92,24 +92,30 @@ def _premium_theme(fig: go.Figure, branding, height: int = 380) -> go.Figure:
 
 
 def render_chart_images(cards: List[ChartCard]) -> List[Tuple[ChartCard, bytes]]:
-    """
-    Renders each chart card to PNG bytes via pio.to_image(), which uses
-    kaleido 0.2.x's bundled Chromium — no system Chrome required, so this
-    works on Streamlit Cloud and other restricted environments.
+    """Render each chart card to PNG bytes using plotly.io.to_image().
+
+    Requires a static image renderer (kaleido or orca) to be installed.
+    Returns an empty list gracefully when no renderer is available so the
+    rest of the report pipeline continues without embedded chart images.
     """
     if not cards:
         return []
 
     assets = []
     for card in cards:
-        png_bytes = pio.to_image(
-            card.figure,
-            format="png",
-            width=CHART_IMAGE_WIDTH,
-            height=CHART_IMAGE_HEIGHT,
-            scale=CHART_IMAGE_SCALE,
-        )
-        assets.append((card, png_bytes))
+        try:
+            png_bytes = pio.to_image(
+                card.figure,
+                format="png",
+                width=CHART_IMAGE_WIDTH,
+                height=CHART_IMAGE_HEIGHT,
+                scale=CHART_IMAGE_SCALE,
+            )
+            assets.append((card, png_bytes))
+        except Exception:
+            # No static image renderer installed (kaleido not available).
+            # Skip this card; the dashboard still renders charts interactively.
+            pass
 
     return assets
 
