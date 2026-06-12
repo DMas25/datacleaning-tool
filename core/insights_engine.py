@@ -3,7 +3,8 @@ from typing import Dict, List
 import numpy as np
 import pandas as pd
 
-from core.data_validator import detect_outliers, detect_inconsistent_values
+from core.data_validator import detect_inconsistent_values
+from core.coltradata_refine_patch import intelligent_outliers
 
 # ---------------------------------------------------------------------------
 # Rules-based, non-advisory data insights.
@@ -122,13 +123,19 @@ def _anomalies(df: pd.DataFrame) -> List[str]:
             f"({round((duplicate_count / max(total_rows, 1)) * 100, 1)}% of records)."
         )
 
-    outliers_df = detect_outliers(df)
+    outliers_df = intelligent_outliers(df)
     for _, row in outliers_df.iterrows():
         pct = round((row["Issue Count"] / max(row["Total Rows"], 1)) * 100, 1)
-        observations.append(
-            f"Column '{row['Column']}' contains {int(row['Issue Count']):,} statistical outlier value(s) "
-            f"({pct}% of records), based on the interquartile range."
-        )
+        if row["Classification"] == "Valid Extreme Value":
+            observations.append(
+                f"Column '{row['Column']}' contains {int(row['Issue Count']):,} valid extreme value(s) "
+                f"({pct}% of records) — exact quantity × price multiples, not data errors."
+            )
+        else:
+            observations.append(
+                f"Column '{row['Column']}' contains {int(row['Issue Count']):,} statistical outlier value(s) "
+                f"({pct}% of records), based on the interquartile range."
+            )
 
     inconsistent_df = detect_inconsistent_values(df)
     for _, row in inconsistent_df.iterrows():

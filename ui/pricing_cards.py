@@ -12,6 +12,15 @@ _FEATURE_LABELS = {
 }
 
 
+def render_pricing_page() -> None:
+    """Convenience wrapper — reads the active plan from session and renders the full pricing table.
+
+    Designed to be dropped inside an st.expander() or a modal.
+    """
+    from utils.session_helpers import get_plan_key
+    render_pricing_cards(current_plan_key=get_plan_key())
+
+
 def render_pricing_cards(current_plan_key: str = "free") -> None:
     """Full pricing table — call from a modal or dedicated pricing page."""
     st.markdown("## ColtraData AI Plans")

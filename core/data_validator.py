@@ -66,7 +66,18 @@ def detect_inconsistent_values(df: pd.DataFrame, max_unique_ratio: float = 0.5) 
 def build_validation_issues(df: pd.DataFrame) -> pd.DataFrame:
     """Runs all validation checks and combines results into a single issues table
     in the same shape expected by ReportBuilder's quality/risk pipeline."""
-    frames = [detect_outliers(df), detect_inconsistent_values(df)]
+    from core.coltradata_refine_patch import intelligent_outliers
+
+    # Only True Outliers feed the risk pipeline; Valid Extreme Values are excluded
+    # because they are arithmetically consistent (qty × price = total) and not errors.
+    all_outliers  = intelligent_outliers(df)
+    true_outliers = (
+        all_outliers[all_outliers["Classification"] == "True Outlier"]
+        [["Column", "Issue Type", "Issue Count", "Total Rows"]]
+        .copy()
+    )
+
+    frames = [true_outliers, detect_inconsistent_values(df)]
     frames = [f for f in frames if not f.empty]
 
     if not frames:

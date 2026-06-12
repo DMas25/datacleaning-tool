@@ -5,6 +5,46 @@ from services.billing import checkout_url, payments_live
 from services.usage_tracker import runs_remaining, usage_summary
 
 
+def render_live_upgrade_banner() -> None:
+    """Main-area upgrade nudge — shown only to free and starter users.
+
+    Reads the active plan from session_state automatically.
+    Renders nothing for professional, premium, and enterprise plans.
+    """
+    from utils.session_helpers import get_plan_key
+
+    plan_key = get_plan_key()
+    if plan_key in ("professional", "premium", "enterprise"):
+        return
+
+    upgrade = next_plan(plan_key)
+    if upgrade is None:
+        return
+
+    plan         = get_plan(plan_key)
+    upgrade_plan = get_plan(upgrade)
+    url          = checkout_url(upgrade)
+
+    msg = (
+        f"You're on the **{plan['label']}** plan. "
+        f"Upgrade to **{upgrade_plan['label']}** ({upgrade_plan['price']}) "
+        f"to unlock {upgrade_plan['blurb'].rstrip('.')}."
+    )
+
+    if url:
+        col_msg, col_btn = st.columns([5, 1])
+        with col_msg:
+            st.info(msg)
+        with col_btn:
+            st.link_button(
+                f"Upgrade to {upgrade_plan['label']}",
+                url,
+                use_container_width=True,
+            )
+    else:
+        st.info(msg + " Paid plans launching soon.")
+
+
 def render_upgrade_banner(current_plan_key: str) -> None:
     """Sidebar or top-of-page nudge shown to free/starter users."""
     if current_plan_key in ("premium", "enterprise"):

@@ -5,6 +5,7 @@ PLAN_CONFIG = {
         "can_download_excel": False,
         "can_download_pdf": False,
         "can_view_advanced_insights": False,
+        "can_view_premium_charts": False,
         "can_brand_reports": False,
         "monthly_runs": 3,
         "max_rows_backend": 5000,
@@ -17,6 +18,7 @@ PLAN_CONFIG = {
         "can_download_excel": True,
         "can_download_pdf": False,
         "can_view_advanced_insights": False,
+        "can_view_premium_charts": False,
         "can_brand_reports": False,
         "monthly_runs": 20,
         "max_rows_backend": 25000,
@@ -29,6 +31,7 @@ PLAN_CONFIG = {
         "can_download_excel": True,
         "can_download_pdf": True,
         "can_view_advanced_insights": True,
+        "can_view_premium_charts": False,
         "can_brand_reports": False,
         "monthly_runs": 100,
         "max_rows_backend": 100000,
@@ -41,6 +44,7 @@ PLAN_CONFIG = {
         "can_download_excel": True,
         "can_download_pdf": True,
         "can_view_advanced_insights": True,
+        "can_view_premium_charts": True,
         "can_brand_reports": True,
         "monthly_runs": 300,
         "max_rows_backend": 250000,
@@ -53,6 +57,7 @@ PLAN_CONFIG = {
         "can_download_excel": True,
         "can_download_pdf": True,
         "can_view_advanced_insights": True,
+        "can_view_premium_charts": True,
         "can_brand_reports": True,
         "monthly_runs": None,
         "max_rows_backend": 1000000,
@@ -87,3 +92,19 @@ def next_plan(plan_key: str) -> str | None:
         return PLAN_ORDER[idx + 1] if idx + 1 < len(PLAN_ORDER) else None
     except ValueError:
         return None
+
+
+def get_next_paid_plan(plan_key: str) -> str | None:
+    """Return the next paid (non-free) plan above plan_key.
+
+    Skips 'free' so calling this from any plan always returns a purchasable tier.
+    Returns None if the user is already on the top-tier plan.
+    """
+    try:
+        idx = PLAN_ORDER.index(plan_key)
+    except ValueError:
+        idx = 0
+    for candidate in PLAN_ORDER[idx + 1:]:
+        if candidate != "free":
+            return candidate
+    return None

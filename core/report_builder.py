@@ -7,6 +7,7 @@ import os
 from core.data_validator import build_validation_issues
 from core.insights_engine import generate_insights, detect_date_columns
 from core.chart_gallery import ChartCard, build_chart_gallery, render_chart_images
+from core.coltradata_refine_patch import column_risk_levels, recommended_action
 
 
 class ReportBuilder:
@@ -495,7 +496,7 @@ class ReportBuilder:
             "medium_count": medium_count,
             "low_count": low_count,
             "top_issue": f"{top_issue_row['Issue Type']} ({top_issue_row['Column']})",
-            "avg_issue_pct": round(float(quality_df["Issue %"].mean() * 100), 2),
+            "avg_issue_pct": round(float(quality_df["Issue %"].mean()), 2),
         }
 
     def _build_column_quality_breakdown(self, cleaned_df):
@@ -870,11 +871,12 @@ class ReportBuilder:
         sheet.write(risk_header_row, 1, "Risk Level", self.table_header)
 
         risk_data_row = risk_header_row + 1
-        for i, (_, row) in enumerate(quality_breakdown_df.iterrows(), start=risk_data_row):
+        deduped_risks = column_risk_levels(quality_breakdown_df)
+        for i, (_, row) in enumerate(deduped_risks.iterrows(), start=risk_data_row):
             sheet.write(i, 0, row["Column"], self.body_format)
             sheet.write(i, 1, self._format_risk_level(row["Risk Level"]), self.body_format)
 
-        risk_last_row = risk_data_row + len(quality_breakdown_df) - 1
+        risk_last_row = risk_data_row + len(deduped_risks) - 1
         if risk_last_row >= risk_data_row:
             sheet.conditional_format(
                 risk_data_row, 1, risk_last_row, 1,
@@ -917,12 +919,6 @@ class ReportBuilder:
         for i, line in enumerate(bullet_lines, start=status_row + 2):
             sheet.write(i, 0, line, self.body_format)
 
-        recommended_actions = {
-            "Low": "Data is in good shape. Routine monitoring is sufficient.",
-            "Medium": "Review flagged columns and address before downstream use.",
-            "High": "Immediate cleaning required before downstream use.",
-        }
-
         action_row = status_row + 2 + len(bullet_lines) + 1
         sheet.write(action_row, 0, "Recommended Action", self.metric_label)
-        sheet.write(action_row + 1, 0, recommended_actions[overall_risk], self.body_format)
+        sheet.write(action_row + 1, 0, recommended_action(cleaned_df), self.body_format)

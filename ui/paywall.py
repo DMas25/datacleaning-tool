@@ -5,6 +5,27 @@ from services.billing import checkout_url, payments_live
 from services.entitlements import first_plan_with_feature
 
 
+def render_upgrade_cta_button(plan_key: str | None, key_suffix: str = "") -> None:
+    """Prominent primary upgrade button.
+
+    Renders a link button to the checkout page for *plan_key*.
+    Silently does nothing when plan_key is None (user is already at the top tier)
+    or when payments are not yet live.
+    """
+    if plan_key is None:
+        return
+    plan = get_plan(plan_key)
+    url  = checkout_url(plan_key)
+    label = f"Upgrade to {plan['label']} — {plan['price']}"
+    if url:
+        st.link_button(label, url, use_container_width=True, type="primary")
+    elif not payments_live():
+        st.caption(
+            f"**{plan['label']}** ({plan['price']}) — paid plans launching soon. "
+            "Activate your licence key in the sidebar once you have one."
+        )
+
+
 def paywall_card(title: str, body: str, button_text: str = "Upgrade") -> None:
     """Simple inline paywall card — use for quick guards throughout the app."""
     st.warning(f"**{title}**\n\n{body}")

@@ -15,12 +15,18 @@ def within_file_limit(plan_key: str, file_mb: float) -> bool:
 
 
 def validate_capacity(plan_name: str, row_count: int, file_size_mb: float) -> tuple[bool, str]:
-    """PDF-spec signature. Returns (ok, user-facing message)."""
+    """Returns (ok, user-facing upgrade message)."""
     plan = get_plan(plan_name)
     if row_count > plan["max_rows_backend"]:
-        return False, f"This file exceeds the processing capacity for the {plan['label']} plan."
+        return False, (
+            "Upgrade your plan to process this dataset in full. "
+            f"Advanced plans support significantly larger files and faster processing."
+        )
     if file_size_mb > plan["max_file_mb_backend"]:
-        return False, f"This file size exceeds the processing capacity for the {plan['label']} plan."
+        return False, (
+            "Upgrade your plan to upload larger files. "
+            f"Advanced plans support significantly larger uploads and faster processing."
+        )
     return True, ""
 
 

@@ -6,7 +6,7 @@ textColor = "#1A202C"
 font = "sans serif"
 
 [server]
-port = 8501
+port = 8502
 headless = true
 runOnSave = true
 maxUploadSize = 200
@@ -20,6 +20,3 @@ toolbarMode = "viewer"
 
 [browser]
 gatherUsageStats = false
-
-[data]
-maxMessageSize = 200

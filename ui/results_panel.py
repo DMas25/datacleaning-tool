@@ -19,7 +19,7 @@ from core.export_manager import generate_reports, build_chart_and_risk
 from core.feature_gate import feature_unlocked
 from services.entitlements import has_feature
 from services.subscription import get_user_plan_from_subscription
-from ui.paywall import paywall_card
+from ui.paywall import paywall_card, render_upgrade_cta_button
 from core.dashboard_builder import (
     get_numeric_columns,
     get_categorical_columns,
@@ -94,14 +94,27 @@ def render_results_panel(
     render_step_header(5, "Dashboard Results", branding=branding)
     _render_base_charts(df, cleaned_df, branding)
 
-    if has_feature(user_plan, "can_view_advanced_insights"):
+    # ── Premium chart gallery (Premium+) ─────────────────────────────────
+    st.subheader("Premium Chart Gallery")
+
+    if has_feature(user_plan, "can_view_premium_charts"):
         _render_premium_gallery(result, branding)
+    else:
+        paywall_card(
+            "Premium visual analytics are locked",
+            "Upgrade to Premium or above to unlock enhanced visual storytelling and premium charts.",
+        )
+        render_upgrade_cta_button("premium", key_suffix="charts_lock")
+
+    # ── Distribution & trend analysis (Professional+) ─────────────────────
+    if has_feature(user_plan, "can_view_advanced_insights"):
         _render_distribution_analysis(cleaned_df, result["date_cols"], branding)
     else:
         paywall_card(
             "Advanced Dashboard Analysis",
             "Distribution, trend, correlation and top/bottom analysis are part of the full reporting suite.",
         )
+        render_upgrade_cta_button("professional", key_suffix="dashboard_lock")
 
     st.markdown("#### Cleaned Data Preview")
     st.dataframe(cleaned_df.head(10), use_container_width=True)
@@ -114,6 +127,8 @@ def render_results_panel(
         branding,
     )
 
+    st.subheader("Advanced Data Insights")
+
     if has_feature(user_plan, "can_view_advanced_insights"):
         insights = generate_insights(cleaned_df)
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
@@ -124,17 +139,20 @@ def render_results_panel(
         st.markdown('</div>', unsafe_allow_html=True)
     else:
         paywall_card(
-            "AI Data Insights",
-            "Structured, non-advisory observations on data composition, patterns, anomalies, distributions and completeness.",
+            "Advanced insights are locked",
+            "Upgrade to Professional or above to unlock deeper diagnostics and richer analysis.",
         )
+        render_upgrade_cta_button("professional", key_suffix="insights_lock")
 
-    # ── AI Advisory (Enterprise) ──────────────────────────────────────────
+    # ── AI Advisory ───────────────────────────────────────────────────────
     render_section_divider(branding=branding)
     render_step_header(
         6, "AI Advisory",
         "Claude-powered interpretation of your cleaned data — patterns, anomalies, quality risks, and concrete next steps.",
         branding,
     )
+
+    st.subheader("AI Advisory")
 
     if has_feature(user_plan, "can_view_advanced_insights"):
         advisory = st.session_state.get(_AI_ADVISORY_KEY)
@@ -153,10 +171,10 @@ def render_results_panel(
             )
     else:
         paywall_card(
-            "AI Advisory",
-            "Claude-powered actionable insights that interpret your data — patterns, anomalies, quality risks, and concrete next steps.",
-            "Upgrade to Professional",
+            "Advanced insights are locked",
+            "Upgrade to Professional or above to unlock deeper diagnostics and richer analysis.",
         )
+        render_upgrade_cta_button("professional", key_suffix="advisory_lock")
 
     # ── Step 7: Download Reports ──────────────────────────────────────────
     render_section_divider(branding=branding)
@@ -166,50 +184,63 @@ def render_results_panel(
     can_export_pdf = has_feature(user_plan, "can_download_pdf")
     can_branding   = has_feature(user_plan, "can_brand_reports")
 
+    # ── Excel export ──────────────────────────────────────────────────────
+    st.subheader("Excel Report Export")
+
     if can_export:
-        dl_cols = st.columns(2) if can_export_pdf else [st.container()]
-        with dl_cols[0]:
-            with open(result["excel_path"], "rb") as f:
-                st.download_button(
-                    "Download Structured Excel Report",
-                    data=f,
-                    file_name=result["excel_path"],
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                )
-        if can_export_pdf:
-            with dl_cols[1]:
-                st.download_button(
-                    "Download Executive Summary (PDF)",
-                    data=result["pdf_bytes"],
-                    file_name=result["pdf_filename"],
-                    mime="application/pdf",
-                )
-
-        if can_branding:
-            st.caption(
-                "The Excel report contains the full multi-sheet workbook with embedded chart gallery. "
-                "The PDF is a portable executive summary featuring the same premium charts, "
-                "produced with your custom branding."
+        with open(result["excel_path"], "rb") as excel_file_bytes:
+            st.download_button(
+                label="Download cleaned Excel report",
+                data=excel_file_bytes,
+                file_name=result["excel_path"],
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True,
             )
-        elif can_export_pdf:
-            st.caption(
-                "The Excel report contains the full multi-sheet workbook with embedded chart gallery. "
-                "The PDF is a portable executive summary featuring the same premium charts."
-            )
-        else:
-            st.caption("The Excel report contains the full multi-sheet workbook with embedded chart gallery.")
-
-        if not can_export_pdf:
-            paywall_card(
-                "PDF Executive Summary",
-                "A portable PDF executive summary with premium charts.",
-                "Upgrade to Professional",
-            )
+        st.caption(
+            "Full multi-sheet workbook: cleaned data, quality log, summary statistics, "
+            "and an embedded premium chart gallery."
+        )
     else:
         paywall_card(
-            "Report Export (Excel & PDF)",
-            "Download the full multi-sheet Excel report and a portable PDF executive summary, both featuring an embedded premium chart gallery.",
+            "Excel report download is locked",
+            "Upgrade to Starter or above to download the full cleaned dataset and structured Excel report.",
         )
+        render_upgrade_cta_button("starter", key_suffix="excel_lock")
+
+    # ── PDF export ────────────────────────────────────────────────────────
+    st.subheader("PDF Report Export")
+
+    if can_export_pdf:
+        branding_note = " Produced with your custom branding." if can_branding else ""
+        st.download_button(
+            label="Download PDF summary report",
+            data=result["pdf_bytes"],
+            file_name=result["pdf_filename"],
+            mime="application/pdf",
+            use_container_width=True,
+        )
+        st.caption(
+            f"Portable executive summary with the same premium charts as the Excel report.{branding_note}"
+        )
+    else:
+        paywall_card(
+            "PDF reporting is locked",
+            "Upgrade to Professional or above to unlock downloadable PDF reporting.",
+        )
+        render_upgrade_cta_button("professional", key_suffix="pdf_lock")
+
+    # ── Branded report outputs ────────────────────────────────────────────
+    st.subheader("Branded Report Outputs")
+
+    if can_branding:
+        st.success("Branding is enabled on this plan. Client-ready branded outputs can be applied.")
+        # Place your logo / theme / report styling logic here
+    else:
+        paywall_card(
+            "Branded report outputs are locked",
+            "Upgrade to Premium or Enterprise to unlock branded reports and client-facing presentation outputs.",
+        )
+        render_upgrade_cta_button("premium", key_suffix="branding_lock")
 
 
 # ── Private helpers ───────────────────────────────────────────────────────────

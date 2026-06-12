@@ -3,6 +3,7 @@ import streamlit as st
 from config.tier_config import TIERS, get_tier
 from config.lemonsqueezy_config import get_checkout_url, is_payments_live
 from services.entitlements import has_feature
+from utils.session_helpers import set_plan_key
 
 # Map old capitalised tier names → new plan keys, and old feature names → new flags.
 _TIER_TO_PLAN: dict[str, str] = {
@@ -64,9 +65,13 @@ def _render_licence_form() -> None:
                 result = validate_licence_key(licence_key)
             if result["valid"]:
                 st.session_state.account_tier = result["tier"]
+                # Sync the canonical plan key so all feature gates see the
+                # correct entitlements immediately after licence activation.
+                set_plan_key(_TIER_TO_PLAN.get(result["tier"], "free"))
                 st.sidebar.success(f"Activated — {result['tier']} plan.")
             else:
                 st.session_state.account_tier = "Free"
+                set_plan_key("free")
                 st.sidebar.error(result["error"] or "Invalid or expired licence key.")
 
 
@@ -78,11 +83,6 @@ def _render_tier_badge() -> None:
     else:
         st.sidebar.success(f"Plan: **{tier['label']}** · {tier['price']}")
     st.sidebar.caption(tier["blurb"])
-    row_limit = tier["row_limit"]
-    if row_limit is not None:
-        st.sidebar.caption(f"Row limit: {row_limit:,} rows per upload")
-    else:
-        st.sidebar.caption("Row limit: Unlimited")
 
 
 def _render_upgrade_ctas() -> None:
@@ -126,7 +126,23 @@ def _render_dev_tier_override() -> None:
         )
         if tier_override != current:
             st.session_state.account_tier = tier_override
+            set_plan_key(_TIER_TO_PLAN.get(tier_override, "free"))
             st.rerun()
+
+
+def render_sidebar_subscription_panel() -> None:
+    """Single call that renders the complete sidebar subscription UI.
+
+    Combines licence activation, plan badge, run counter, and upgrade CTAs.
+    Reads branding from config internally — no arguments required.
+    Call this once per page load in place of render_tier_selector().
+    """
+    from config.branding_config import branding as _branding
+    from ui.upgrade_prompts import render_run_counter
+
+    render_tier_selector(_branding)
+    plan_key = _TIER_TO_PLAN.get(st.session_state.get("account_tier", "Free"), "free")
+    render_run_counter(plan_key)
 
 
 def render_locked_feature(title: str, description: str, required_tier: str = "Pro") -> None:
