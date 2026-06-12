@@ -1,22 +1,54 @@
-# ColtraDataAI
+# ColtraDataAi
 
-Automated data cleaning, structuring, validation, and dashboard reporting.
+**Turn messy spreadsheets into clean data and board-ready quality reports — in minutes, not afternoons.**
+
+Automated data cleaning, exact value recovery, validation, and dashboard reporting.
 Built by **Coltrane Ltd** · [support@coltradata.com](mailto:support@coltradata.com) · [coltradata.com](https://coltradata.com)
+
+<!-- TODO: add 15–30s demo GIF here (Streamlit screencast → GIF). One image sells this better than every word below. -->
+<!-- ![ColtraDataAi demo](assets/demo.gif) -->
+<!-- Brand spelling is ColtraDataAi (capital A, lowercase i) — matches the logo. Keep consistent in branding_config.py, landing page, and Lemon Squeezy product names. -->
 
 ---
 
 ## What it does
 
-Upload a CSV, XLSX, or XLS file and get:
+Upload a CSV, XLSX, or XLS file. ColtraDataAi cleans it, repairs what can be repaired with certainty, flags what can't, and hands back a professional multi-sheet report — with a transparent log of every operation applied.
 
-- Deduplicated, whitespace-trimmed, header-standardised data
-- Per-column quality breakdown and risk summary
-- Distribution, correlation, and trend dashboards (Pro/Enterprise)
-- AI-generated structured data insights (Pro/Enterprise)
-- Multi-sheet Excel workbook with embedded chart gallery (Pro/Enterprise)
-- One-page PDF executive summary (Pro/Enterprise)
+**Intelligent cleaning pipeline:**
 
-**Scope:** data cleaning and structuring only. No SQL, no advisory output, no business recommendations.
+- **Sentinel normalisation** — converts disguised missing values (`ERROR`, `UNKNOWN`, `N/A`, `-`, …) into true nulls before any analysis, so missingness counts are honest and numeric columns keep their types
+- **Exact arithmetic recovery** — repairs missing values mathematically where relationships allow (e.g. `total = quantity × price`); recovered, not imputed, with zero guesswork
+- **Reference-based field recovery** — fills missing categorical values only where the mapping is unambiguous (≥99% confidence); ambiguous cases are never guessed
+- **Intelligent outlier classification** — separates true anomalies from *valid extreme values* (large-but-legitimate records), so your best transactions aren't flagged as errors
+- **Standard hygiene** — deduplication, whitespace trimming, header standardisation
+
+**Reporting:**
+
+- Per-column quality breakdown with weighted risk scoring
+- Step-by-step cleaning log — every operation recorded, nothing silent
+- Conditional recommended actions (distinguishes "fixable by cleaning" from "fix at source")
+- Distribution, correlation, and trend dashboards
+- AI-generated structured data insights
+- Multi-sheet Excel workbook with embedded chart gallery
+- One-page PDF executive summary
+
+**Scope:** data cleaning and structuring only. No SQL, no advisory output, no business recommendations. Outputs are observational; users remain responsible for decisions made with them.
+
+---
+
+## Plans
+
+| Feature | Free | Pro (£29/mo) | Enterprise (£99/mo) |
+|---|:---:|:---:|:---:|
+| Cleaning pipeline + quality checks | ✅ | ✅ | ✅ |
+| Cleaning log + risk summary | ✅ | ✅ | ✅ |
+| Distribution / correlation / trend dashboards | — | ✅ | ✅ |
+| AI-generated data insights | — | ✅ | ✅ |
+| Multi-sheet Excel report with chart gallery | — | ✅ | ✅ |
+| One-page PDF executive summary | — | ✅ | ✅ |
+
+<!-- TODO: confirm the Free vs Pro split above matches tier_config.py before publishing -->
 
 ---
 
@@ -85,6 +117,10 @@ The app opens at `http://localhost:8501`.
 To test Pro/Enterprise features without a licence key, set `testing_mode = true` in
 `.streamlit/secrets.toml` — this reveals a **Dev: override tier** dropdown in the sidebar.
 
+> ⚠️ **If this repository ever becomes public**, move this dev-override note to an
+> internal doc. Documenting the tier bypass alongside the code that implements it
+> is fine in a private repo, unwise in a public one.
+
 ---
 
 ## Required secrets (`secrets.toml`)
@@ -123,7 +159,7 @@ The live URL will be something like `https://coltradata.streamlit.app`.
 
 ## Payment setup (Lemon Squeezy)
 
-ColtraDataAI uses **Lemon Squeezy** for hosted checkout and licence key delivery.
+ColtraDataAi uses **Lemon Squeezy** for hosted checkout and licence key delivery.
 No card details are handled in the app — customers are redirected to a LS-hosted page.
 
 ### Why Lemon Squeezy?
@@ -137,8 +173,8 @@ No card details are handled in the app — customers are redirected to a LS-host
 ### Setup steps (once your LS account is approved)
 
 1. **Create products** in the LS dashboard:
-   - Product: **ColtraDataAI Pro** — create a Monthly variant (£29/mo) and optionally an Annual variant
-   - Product: **ColtraDataAI Enterprise** — create a Monthly variant (£99/mo)
+   - Product: **ColtraDataAi Pro** — create a Monthly variant (£29/mo) and optionally an Annual variant
+   - Product: **ColtraDataAi Enterprise** — create a Monthly variant (£99/mo)
    - Enable **Licence Keys** for each product variant (Products → variant → Licence keys tab)
 
 2. **Copy variant IDs** — three-dot menu next to each variant → **Copy ID**
@@ -185,12 +221,13 @@ If you want to automate licence revocation, renewals, or future entitlement stor
 a LS webhook:
 
 1. LS dashboard → **Webhooks** → **Add webhook**
-2. Set the endpoint URL to your webhook handler (see below)
+2. Set the endpoint URL to your webhook handler
 3. Select events: `subscription_created`, `subscription_cancelled`, `licence_key_created`
 4. Copy the signing secret
 
-A minimal FastAPI webhook handler skeleton is at `core/webhook_handler_skeleton.py` (to be
-added in a future sprint). Until then, licence key validation alone is sufficient.
+A minimal FastAPI webhook handler (`core/webhook_handler_skeleton.py`) is **planned for a
+future sprint and does not yet exist in this repo**. Until then, licence key validation
+alone is sufficient.
 
 ---
 
@@ -267,7 +304,7 @@ Replace `<your-github-username>` with your actual GitHub username.
 - `secrets.toml` is gitignored — never commit it.
 - Licence key validation calls the LS public API (no bearer token needed).
 - All file processing is in-session; no data is written to disk beyond the generated
-  report file which is also session-scoped and cleaned up by Streamlit.
+  report file, which is also session-scoped and cleaned up by Streamlit.
 - Webhook signature verification (HMAC-SHA256) must be implemented before processing
   any LS webhook payloads in production.
 
