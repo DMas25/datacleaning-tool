@@ -3,13 +3,18 @@
 predeploy_check.py — Master pre-deploy safety orchestrator for ColtraDataAi.
 
 Steps:
-  1 — CP314 wheel validator  (always)
-  2 — Local env divergence   (always, advisory)
-  3 — Cloud simulation boot  (--full only)
+  1 — CP314 wheel validator       (always)
+  2 — Local env divergence        (always, advisory)
+  3 — Cloud simulation boot       (--full only)
+  4 — Lightweight runtime test    (--full only)
+  5 — Synthetic user flow         (--full only, HARD GATE)  upload→clean→export
+  6 — Edge-case test suite        (--full only, HARD GATE)  boundary conditions
+  7 — Large dataset benchmark     (--full only, advisory)   throughput + regression
+  8 — Staging environment check   (--full only, advisory)   API + secrets + config
 
 Usage:
     python scripts/predeploy_check.py               # steps 1 + 2
-    python scripts/predeploy_check.py --full        # + step 3 boot test
+    python scripts/predeploy_check.py --full        # + steps 3–8
     python scripts/predeploy_check.py --force       # run all, exit 0 regardless
     python scripts/predeploy_check.py --full --force
 
@@ -165,6 +170,113 @@ def step_cloud_sim() -> bool:
     return subprocess.run(cmd, cwd=ROOT).returncode == 0
 
 
+def step_runtime_test() -> bool:
+    """
+    Lightweight runtime boot test: start Streamlit headless and confirm it
+    stays alive for BOOT_SECONDS without crashing.
+
+    Logic: Streamlit is a long-running server — it will never exit on its own
+    during a successful boot.  TimeoutExpired therefore means PASS (still up);
+    an early exit means FAIL (startup crash).
+
+    communicate(timeout=N) is used instead of wait() so that stdout and stderr
+    are drained simultaneously — avoids pipe-buffer deadlock and gives us both
+    streams for the boot-signal check and failure output.
+    """
+    BOOT_SECONDS = 8
+    BOOT_PORT    = 8599   # avoid colliding with dev server on 8501/8502
+
+    print(
+        f"  Starting Streamlit (headless, port {BOOT_PORT}) "
+        f"— waiting {BOOT_SECONDS}s …"
+    )
+
+    try:
+        proc = subprocess.Popen(
+            [
+                sys.executable, "-m", "streamlit", "run", "app.py",
+                "--server.headless=true",
+                f"--server.port={BOOT_PORT}",
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=ROOT,
+        )
+
+        try:
+            stdout, stderr = proc.communicate(timeout=BOOT_SECONDS)
+            # communicate() returned → process exited before timeout (startup crash)
+            output = (stdout or "") + "\n" + (stderr or "")
+            print(
+                f"  {RED}✘  Streamlit exited early"
+                f" (code {proc.returncode}){RESET}"
+            )
+            if output.strip():
+                print(f"\n{DIM}{output.strip()[:600]}{RESET}\n")
+            return False
+
+        except subprocess.TimeoutExpired:
+            # Still alive — run HTTP health check BEFORE killing the process
+            health_ok    = False
+            health_label = "skipped (requests not available)"
+            try:
+                import requests as _requests
+                resp         = _requests.get(
+                    f"http://localhost:{BOOT_PORT}/healthz", timeout=3
+                )
+                health_ok    = resp.status_code == 200
+                health_label = f"HTTP {resp.status_code}"
+            except Exception as http_exc:
+                health_label = str(http_exc)
+
+            # Now kill cleanly and drain buffered output
+            proc.kill()
+            stdout, stderr = proc.communicate()
+            output = (stdout or "") + "\n" + (stderr or "")
+
+            # Confirm boot via signal strings Streamlit prints on successful start
+            boot_signals = (
+                "Local URL", "Network URL", "Running on", "You can now view"
+            )
+            if any(sig in output for sig in boot_signals):
+                print(
+                    f"  {GREEN}✔  Streamlit booted successfully"
+                    f" (boot signal confirmed){RESET}"
+                )
+            else:
+                print(
+                    f"  {GREEN}✔  Streamlit stayed alive {BOOT_SECONDS}s"
+                    f" (no startup crash){RESET}"
+                )
+
+            if health_ok:
+                print(
+                    f"  {GREEN}✔  Health check passed"
+                    f"  →  GET /healthz  {health_label}{RESET}"
+                )
+            else:
+                print(
+                    f"  {YELLOW}⚠  Health check did not return 200"
+                    f"  →  {health_label}{RESET}"
+                )
+
+            print(f"  {GREEN}{BOLD}✅  Runtime test passed (Streamlit booted successfully){RESET}")
+            return True
+
+    except FileNotFoundError:
+        print(
+            f"  {RED}✘  'streamlit' not found"
+            f" — is it installed in this environment?{RESET}"
+        )
+        return False
+    except Exception as exc:
+        print(f"  {RED}✘  Runtime test error: {exc}{RESET}")
+        return False
+
+
 # ── CI / GHA summary ──────────────────────────────────────────────────────────
 
 def _build_ci_summary(
@@ -239,10 +351,55 @@ def main() -> int:
         _header("Cloud simulation boot test", 3)
         sim_ok = step_cloud_sim()
         steps.append(("Cloud simulation boot", sim_ok))
+
+        # ── Step 4: Lightweight runtime test (--full) ─────────────────────────
+        _header("Lightweight runtime test", 4)
+        rt_ok = step_runtime_test()
+        steps.append(("Streamlit runtime boot (headless)", rt_ok))
+
+        # ── Steps 5–8: Synthetic pipeline tests ───────────────────────────────
+        try:
+            from scripts.synthetic_tests import (
+                run_user_flow_test,
+                run_edge_case_tests,
+                run_benchmark_test,
+                run_staging_validation,
+            )
+        except ImportError:
+            # Fallback: synthetic_tests.py lives alongside this file
+            import importlib.util as _ilu
+            _spec = _ilu.spec_from_file_location(
+                "synthetic_tests", SCRIPTS / "synthetic_tests.py"
+            )
+            _mod = _ilu.module_from_spec(_spec)
+            _spec.loader.exec_module(_mod)
+            run_user_flow_test     = _mod.run_user_flow_test
+            run_edge_case_tests    = _mod.run_edge_case_tests
+            run_benchmark_test     = _mod.run_benchmark_test
+            run_staging_validation = _mod.run_staging_validation
+
+        _header("Synthetic user flow  (upload → clean → export)  [HARD GATE]", 5)
+        flow_ok = run_user_flow_test()
+        steps.append(("Synthetic user flow (upload→clean→export)", flow_ok))
+
+        _header("Edge-case test suite  [HARD GATE]", 6)
+        edge_ok = run_edge_case_tests()
+        steps.append(("Edge-case tests (empty/null/mixed/stress)", edge_ok))
+
+        _header("Large dataset benchmark  (advisory)", 7)
+        bench_ok = run_benchmark_test()
+        steps.append(("Large dataset benchmark", bench_ok))
+
+        _header("Staging environment validation  (advisory)", 8)
+        staging_ok = run_staging_validation()
+        steps.append(("Staging environment validation", staging_ok))
+
     else:
         print(
-            f"\n  {DIM}Boot test skipped — re-run with --full to include it.{RESET}"
+            f"\n  {DIM}Extended tests skipped — re-run with --full to include them.{RESET}"
         )
+        print(f"  {DIM}  python scripts/predeploy_check.py --full{RESET}")
+        print(f"  {DIM}  python scripts/predeploy_check.py --full --force{RESET}")
 
     # ── Summary ───────────────────────────────────────────────────────────────
     all_ok = all(ok for _, ok in steps)

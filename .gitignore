@@ -34,3 +34,6 @@ ColtraDataAi_*.pdf
 # Stray run logs
 streamlit_run.log
 *.log
+
+# Pre-deploy benchmark history (machine-specific, not for version control)
+artifacts/benchmark_history.json
