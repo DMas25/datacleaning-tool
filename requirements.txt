@@ -1,13 +1,24 @@
 # ════════════════════════════════════════════════════════════════════════════
-# ColtraDataAi Requirements — Python 3.14 (Streamlit Cloud default)
+# ColtraDataAi Requirements — Streamlit Cloud (Python 3.14 runtime)
 # ════════════════════════════════════════════════════════════════════════════
 # IMPORTANT:
-# Must remain compatible with Python 3.14 (Streamlit Cloud default).
-# Avoid packages without cp314 wheels — they fall back to source builds
-# which fail on Streamlit Cloud (missing system headers / no build tools).
+# This app must remain compatible with Python 3.14 (current Streamlit Cloud default).
 #
-# Streamlit Cloud provisions the Python venv before cloning the repo,
-# so runtime.txt / .python-version cannot override the Python version.
+# Streamlit Cloud uses the `uv` installer and may ignore runtime.txt or
+# .python-version depending on provisioning order. In practice, the platform
+# Python version may not be reliably overridden.
+#
+# Therefore:
+# - ALL packages must have prebuilt cp314 wheels
+# - Avoid any package that triggers source builds (will fail in Cloud)
+#
+# If a package version fails:
+# → Check for cp314 wheel support on PyPI before pinning
+#
+# Strategy:
+# - Prefer version ranges (>=,<) over strict pins where safe
+# - Avoid system dependencies (no packages.txt unless absolutely required)
+# - Prioritise wheel-only installation paths
 # ════════════════════════════════════════════════════════════════════════════
 
 # Core Framework (pure-Python wheel — pin OK)
