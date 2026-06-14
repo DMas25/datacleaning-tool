@@ -17,17 +17,15 @@ def render_preview_panel(df: pd.DataFrame, branding: dict) -> None:
     p1, p2 = st.columns([2, 1])
 
     with p1:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown("#### Raw Data Preview")
-        st.dataframe(df.head(10), use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("#### Raw Data Preview")
+            st.dataframe(df.head(10), use_container_width=True)
 
     with p2:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown("#### File Summary")
-        st.metric("Rows",            f"{profile['rows']:,}")
-        st.metric("Columns",         profile["columns"])
-        st.metric("Missing Values",  f"{profile['missing_total']:,}")
-        st.metric("Duplicate Rows",  f"{profile['duplicate_total']:,}")
-        st.metric("Completeness",    f"{profile['completeness_pct']}%")
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("#### File Summary")
+            st.metric("Rows",            f"{profile['rows']:,}")
+            st.metric("Columns",         profile["columns"])
+            st.metric("Missing Values",  f"{profile['missing_total']:,}")
+            st.metric("Duplicate Rows",  f"{profile['duplicate_total']:,}")
+            st.metric("Completeness",    f"{profile['completeness_pct']}%")

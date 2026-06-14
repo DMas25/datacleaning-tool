@@ -1,0 +1,8 @@
+# Ignore local development-only files that shouldn't be deployed to Cloud
+secrets.toml
+localhost.toml
+local_*.toml
+
+# Ignore credentials
+.env
+.env.local

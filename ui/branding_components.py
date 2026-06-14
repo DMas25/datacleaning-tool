@@ -88,6 +88,31 @@ def inject_app_css(branding: dict) -> None:
             .stDownloadButton > button:hover {{
                 opacity: 0.88;
             }}
+
+            /* ── Expander — must not inherit primary button style ──────── */
+            [data-testid="stExpander"] summary,
+            [data-testid="stExpander"] summary:hover,
+            [data-testid="stExpander"] summary button,
+            [data-testid="stExpander"] summary button:hover {{
+                background-color: transparent !important;
+                color: inherit !important;
+                height: auto !important;
+                border-radius: 0 !important;
+                font-weight: 600 !important;
+                border: none !important;
+                box-shadow: none !important;
+                opacity: 1 !important;
+            }}
+
+            /* ── Streamlit bordered container — section-card styling ───── */
+            [data-testid="stVerticalBlockBorderWrapper"] {{
+                border-radius: 14px !important;
+                border: 1px solid #E6ECF0 !important;
+                border-left: 4px solid {primary} !important;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.04) !important;
+                margin-bottom: 1rem !important;
+                background: #FFFFFF !important;
+            }}
         </style>
         """,
         unsafe_allow_html=True,

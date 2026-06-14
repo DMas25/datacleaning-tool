@@ -136,9 +136,6 @@ if APP_MODE == "live":
 render_sidebar_subscription_panel()         # licence form · plan badge · run counter · upgrade CTAs
 render_live_upgrade_banner()                # main-area nudge for free / starter users
 
-with st.expander("View pricing plans", expanded=False):
-    render_pricing_page()                   # full 5-tier interactive pricing table
-
 # Derive routing keys used by upload capacity checks and legacy helpers.
 account_tier   = st.session_state.get("account_tier", "Free")
 user_plan      = get_plan_key()             # canonical plan key for all feature gates
@@ -148,6 +145,9 @@ tier_row_limit = row_limit_for(account_tier)
 # ── App header ────────────────────────────────────────────────────────────────
 
 render_header(branding)
+
+with st.expander("View pricing plans", expanded=False):
+    render_pricing_page()                   # full 5-tier interactive pricing table
 
 # ── Step 1: Upload ────────────────────────────────────────────────────────────
 # Capacity limits (rows + file size) are enforced here against user_plan.

@@ -131,12 +131,11 @@ def render_results_panel(
 
     if has_feature(user_plan, "can_view_advanced_insights"):
         insights = generate_insights(cleaned_df)
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        for category, lines in insights.items():
-            st.markdown(f"**{category}**")
-            for line in lines:
-                st.markdown(f"- {line}")
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            for category, lines in insights.items():
+                st.markdown(f"**{category}**")
+                for line in lines:
+                    st.markdown(f"- {line}")
     else:
         paywall_card(
             "Advanced insights are locked",
@@ -162,9 +161,8 @@ def render_results_panel(
             st.session_state[_AI_ADVISORY_KEY] = advisory
 
         if advisory:
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown(advisory)
-            st.markdown('</div>', unsafe_allow_html=True)
+            with st.container(border=True):
+                st.markdown(advisory)
         else:
             st.info(
                 "AI Advisory is unavailable — check that an Anthropic API key is configured in secrets.toml."
@@ -291,33 +289,31 @@ def _render_base_charts(df: pd.DataFrame, cleaned_df: pd.DataFrame, branding: di
     missing_by_col = missing_by_col[missing_by_col > 0]
 
     with d1:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown("#### Missing Values by Column")
-        if not missing_by_col.empty:
-            fig = px.bar(
-                x=missing_by_col.index,
-                y=missing_by_col.values,
-                labels={"x": "Column", "y": "Missing Values"},
-                color=missing_by_col.values,
-                color_continuous_scale=["#D7F3F7", branding["secondary_colour"], branding["primary_colour"]],
-            )
-            fig.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=80), coloraxis_showscale=False)
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("No missing values detected.")
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("#### Missing Values by Column")
+            if not missing_by_col.empty:
+                fig = px.bar(
+                    x=missing_by_col.index,
+                    y=missing_by_col.values,
+                    labels={"x": "Column", "y": "Missing Values"},
+                    color=missing_by_col.values,
+                    color_continuous_scale=["#D7F3F7", branding["secondary_colour"], branding["primary_colour"]],
+                )
+                fig.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=80), coloraxis_showscale=False)
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No missing values detected.")
 
     with d2:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown("#### Original vs Cleaned Rows")
-        rows_compare = pd.DataFrame({"Stage": ["Original", "Cleaned"], "Rows": [len(df), len(cleaned_df)]})
-        fig = px.bar(
-            rows_compare, x="Stage", y="Rows", color="Stage",
-            color_discrete_map={"Original": branding["secondary_colour"], "Cleaned": branding["primary_colour"]},
-        )
-        fig.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=20), showlegend=False)
-        st.plotly_chart(fig, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("#### Original vs Cleaned Rows")
+            rows_compare = pd.DataFrame({"Stage": ["Original", "Cleaned"], "Rows": [len(df), len(cleaned_df)]})
+            fig = px.bar(
+                rows_compare, x="Stage", y="Rows", color="Stage",
+                color_discrete_map={"Original": branding["secondary_colour"], "Cleaned": branding["primary_colour"]},
+            )
+            fig.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=20), showlegend=False)
+            st.plotly_chart(fig, use_container_width=True)
 
 
 def _render_premium_gallery(result: dict, branding: dict) -> None:
@@ -330,11 +326,10 @@ def _render_premium_gallery(result: dict, branding: dict) -> None:
     gallery_cols = st.columns(2)
     for idx, (card, _) in enumerate(result["chart_assets"]):
         with gallery_cols[idx % 2]:
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown(f"##### {card.title}")
-            st.caption(card.description)
-            st.plotly_chart(card.figure, use_container_width=True, key=f"gallery_{card.key}")
-            st.markdown('</div>', unsafe_allow_html=True)
+            with st.container(border=True):
+                st.markdown(f"##### {card.title}")
+                st.caption(card.description)
+                st.plotly_chart(card.figure, use_container_width=True, key=f"gallery_{card.key}")
 
 
 def _render_distribution_analysis(cleaned_df: pd.DataFrame, date_cols: list, branding: dict) -> None:
@@ -345,85 +340,79 @@ def _render_distribution_analysis(cleaned_df: pd.DataFrame, date_cols: list, bra
     dist1, dist2 = st.columns(2)
 
     with dist1:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown("##### Numerical Distribution")
-        if num_cols:
-            sel_num = st.selectbox("Select a numeric column", num_cols, key="dist_numeric")
-            fig = px.histogram(cleaned_df, x=sel_num, nbins=30, color_discrete_sequence=[branding["primary_colour"]])
-            fig.update_layout(height=360, margin=dict(l=20, r=20, t=30, b=20))
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("No numeric columns available.")
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("##### Numerical Distribution")
+            if num_cols:
+                sel_num = st.selectbox("Select a numeric column", num_cols, key="dist_numeric")
+                fig = px.histogram(cleaned_df, x=sel_num, nbins=30, color_discrete_sequence=[branding["primary_colour"]])
+                fig.update_layout(height=360, margin=dict(l=20, r=20, t=30, b=20))
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No numeric columns available.")
 
     with dist2:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown("##### Categorical Frequency")
-        if cat_cols:
-            sel_cat = st.selectbox("Select a categorical column", cat_cols, key="dist_categorical")
-            freq_df = get_frequency_table(cleaned_df, sel_cat, top_n=8)
-            fig = px.bar(freq_df, x=str(sel_cat), y="Count", color_discrete_sequence=[branding["secondary_colour"]])
-            fig.update_layout(height=360, margin=dict(l=20, r=20, t=30, b=80))
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("No categorical columns available.")
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("##### Categorical Frequency")
+            if cat_cols:
+                sel_cat = st.selectbox("Select a categorical column", cat_cols, key="dist_categorical")
+                freq_df = get_frequency_table(cleaned_df, sel_cat, top_n=8)
+                fig = px.bar(freq_df, x=str(sel_cat), y="Count", color_discrete_sequence=[branding["secondary_colour"]])
+                fig.update_layout(height=360, margin=dict(l=20, r=20, t=30, b=80))
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No categorical columns available.")
 
     # Trend analysis
     if date_cols:
         st.markdown("#### Trend Analysis")
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        sel_date = st.selectbox("Select a date column", date_cols, key="trend_date")
-        trend_df = get_time_series(cleaned_df, sel_date)
-        if trend_df is not None and not trend_df.empty:
-            fig = px.line(trend_df, x="Date", y="Records", color_discrete_sequence=[branding["primary_colour"]])
-            fig.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=20))
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("Selected column does not contain enough valid date values for a trend chart.")
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            sel_date = st.selectbox("Select a date column", date_cols, key="trend_date")
+            trend_df = get_time_series(cleaned_df, sel_date)
+            if trend_df is not None and not trend_df.empty:
+                fig = px.line(trend_df, x="Date", y="Records", color_discrete_sequence=[branding["primary_colour"]])
+                fig.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=20))
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("Selected column does not contain enough valid date values for a trend chart.")
 
     # Correlation heatmap
     corr = get_correlation_matrix(cleaned_df)
     if corr is not None:
         st.markdown("#### Correlation Analysis")
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        fig = px.imshow(
-            corr, text_auto=".2f",
-            color_continuous_scale=["#D7F3F7", branding["secondary_colour"], branding["primary_colour"]],
-            aspect="auto",
-        )
-        fig.update_layout(height=420, margin=dict(l=20, r=20, t=30, b=20))
-        st.plotly_chart(fig, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            fig = px.imshow(
+                corr, text_auto=".2f",
+                color_continuous_scale=["#D7F3F7", branding["secondary_colour"], branding["primary_colour"]],
+                aspect="auto",
+            )
+            fig.update_layout(height=420, margin=dict(l=20, r=20, t=30, b=20))
+            st.plotly_chart(fig, use_container_width=True)
 
     # Top / Bottom analysis
     st.markdown("#### Top / Bottom Analysis")
     tb1, tb2 = st.columns(2)
 
     with tb1:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown("##### Top Categories")
-        if cat_cols:
-            sel_top_cat = st.selectbox("Select a categorical column", cat_cols, key="top_categorical")
-            st.dataframe(get_frequency_table(cleaned_df, sel_top_cat, top_n=5), use_container_width=True, hide_index=True)
-        else:
-            st.info("No categorical columns available.")
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("##### Top Categories")
+            if cat_cols:
+                sel_top_cat = st.selectbox("Select a categorical column", cat_cols, key="top_categorical")
+                st.dataframe(get_frequency_table(cleaned_df, sel_top_cat, top_n=5), use_container_width=True, hide_index=True)
+            else:
+                st.info("No categorical columns available.")
 
     with tb2:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown("##### Highest / Lowest Values")
-        if num_cols:
-            sel_top_num = st.selectbox("Select a numeric column", num_cols, key="top_numeric")
-            top_vals, bottom_vals = get_top_bottom(cleaned_df, sel_top_num, n=5)
-            hl1, hl2 = st.columns(2)
-            with hl1:
-                st.caption("Highest")
-                st.dataframe(top_vals.reset_index(drop=True).to_frame(name=str(sel_top_num)), use_container_width=True)
-            with hl2:
-                st.caption("Lowest")
-                st.dataframe(bottom_vals.reset_index(drop=True).to_frame(name=str(sel_top_num)), use_container_width=True)
-        else:
-            st.info("No numeric columns available.")
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("##### Highest / Lowest Values")
+            if num_cols:
+                sel_top_num = st.selectbox("Select a numeric column", num_cols, key="top_numeric")
+                top_vals, bottom_vals = get_top_bottom(cleaned_df, sel_top_num, n=5)
+                hl1, hl2 = st.columns(2)
+                with hl1:
+                    st.caption("Highest")
+                    st.dataframe(top_vals.reset_index(drop=True).to_frame(name=str(sel_top_num)), use_container_width=True)
+                with hl2:
+                    st.caption("Lowest")
+                    st.dataframe(bottom_vals.reset_index(drop=True).to_frame(name=str(sel_top_num)), use_container_width=True)
+            else:
+                st.info("No numeric columns available.")

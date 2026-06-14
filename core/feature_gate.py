@@ -109,14 +109,20 @@ def _render_upgrade_ctas() -> None:
 
 
 def _render_dev_tier_override() -> None:
-    """Tier override dropdown — visible only when dev.testing_mode = true in secrets.toml."""
+    """Tier override dropdown — visible in desktop/local mode or when testing_mode = true."""
     try:
-        if not st.secrets.get("dev", {}).get("testing_mode", False):
+        dev_cfg = st.secrets.get("dev", {})
+        is_desktop = (
+            dev_cfg.get("testing_mode", False)
+            or dev_cfg.get("local_dev", False)
+            or dev_cfg.get("app_mode", "") == "desktop"
+        )
+        if not is_desktop:
             return
     except Exception:
         return
 
-    with st.sidebar.expander("Dev: override tier", expanded=False):
+    with st.sidebar.expander("Select Plan (Internal)", expanded=False):
         current = st.session_state.get("account_tier", "Free")
         tier_override = st.selectbox(
             "Force tier",
