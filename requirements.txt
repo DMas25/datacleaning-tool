@@ -1,9 +1,13 @@
 # ════════════════════════════════════════════════════════════════════════════
 # ColtraDataAi Requirements — Python 3.14 (Streamlit Cloud default)
 # ════════════════════════════════════════════════════════════════════════════
-# NOTE: Streamlit Cloud provisions the Python venv before cloning the repo,
-# so runtime.txt / .python-version are read too late to change the Python
-# version. All C-extension packages must have cp314 pre-built wheels.
+# IMPORTANT:
+# Must remain compatible with Python 3.14 (Streamlit Cloud default).
+# Avoid packages without cp314 wheels — they fall back to source builds
+# which fail on Streamlit Cloud (missing system headers / no build tools).
+#
+# Streamlit Cloud provisions the Python venv before cloning the repo,
+# so runtime.txt / .python-version cannot override the Python version.
 # ════════════════════════════════════════════════════════════════════════════
 
 # Core Framework (pure-Python wheel — pin OK)
