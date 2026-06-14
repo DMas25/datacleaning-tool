@@ -1,10 +1,11 @@
 # Secrets — never commit credentials
 .streamlit/secrets.toml
 
-# Python virtual environment
+# Python virtual environments
 .venv/
 venv/
 env/
+.test_venv/     # created by scripts/test_cloud_env.*
 
 # Python cache
 __pycache__/
