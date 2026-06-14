@@ -1,36 +1,36 @@
 # ════════════════════════════════════════════════════════════════════════════
-# ColtraDataAi Requirements — Python 3.11
+# ColtraDataAi Requirements — Python 3.14 (Streamlit Cloud default)
 # ════════════════════════════════════════════════════════════════════════════
-# STABILITY REQUIREMENTS (PINNED)
-# - No server packages (uvicorn, FastAPI, starlette, websockets)
-# - Cloud deployment via Streamlit Cloud (managed by platform)
-# - Desktop deployment via tkinter (stdlib)
+# NOTE: Streamlit Cloud provisions the Python venv before cloning the repo,
+# so runtime.txt / .python-version are read too late to change the Python
+# version. All C-extension packages must have cp314 pre-built wheels.
 # ════════════════════════════════════════════════════════════════════════════
 
-# Core Framework
+# Core Framework (pure-Python wheel — pin OK)
 streamlit==1.40.2
 
-# HTTP & Networking
+# HTTP & Networking (pure-Python — pin OK)
 requests==2.31.0
 
-# Data Processing & Analysis
-pandas==2.2.3
-numpy==1.26.4
-scipy==1.14.1
+# Data Processing — C extensions, need cp314 wheels.
+# Lower bounds set to the first release with Python 3.13/3.14 wheel support.
+pandas>=2.2.3
+numpy>=2.2.0
+scipy>=1.15.0
 
-# File I/O
+# File I/O (pure-Python — pin OK)
 xlrd==2.0.1
 openpyxl==3.1.5
 xlsxwriter==3.2.0
 
-# Visualization
-matplotlib==3.9.2
+# Visualization — C extensions, same wheel constraint.
+matplotlib>=3.10.0
 plotly==5.24.1
-Pillow==10.4.0
+Pillow>=11.0.0
 kaleido==0.2.1
 
-# Reporting & Export
-reportlab>=4.0.0,<4.1
+# Reporting & Export (pure-Python — range OK)
+reportlab>=4.0.0,<4.2
 
-# AI/ML (optional - for insights)
+# AI/ML (pure-Python — pin OK)
 anthropic==0.42.0
