@@ -9,8 +9,9 @@
 # Core Framework (pure-Python wheel — pin OK)
 streamlit==1.40.2
 
-# HTTP & Networking (pure-Python — pin OK)
-requests==2.31.0
+# HTTP & Networking — urllib3>=2.0 silences RequestsDependencyWarning
+requests>=2.31
+urllib3>=2.0,<3
 
 # Data Processing — C extensions, need cp314 wheels.
 # Lower bounds set to the first release with Python 3.13/3.14 wheel support.
