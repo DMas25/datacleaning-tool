@@ -1,8 +1,6 @@
 name: Pre-Deploy Safety Check
 
 # ── Triggers ──────────────────────────────────────────────────────────────────
-# Run whenever requirements.txt or any Python source file changes on master.
-# Also runs on all pull requests targeting master.
 on:
   push:
     branches: [master]
@@ -18,7 +16,7 @@ on:
       - "**/*.py"
 
 jobs:
-  # ── Job 1: CP314 wheel compatibility ────────────────────────────────────────
+  # ── Job 1: CP314 wheel compatibility ─────────────────────────────────────────
   cp314-wheel-check:
     name: CP314 Wheel Validator
     runs-on: ubuntu-latest
@@ -39,11 +37,11 @@ jobs:
       - name: Run CP314 wheel validator
         run: python scripts/check_cp314_wheels.py
 
-  # ── Job 2: Wheel-only install + import smoke test ────────────────────────────
+  # ── Job 2: Wheel-only install + import smoke test ─────────────────────────────
   cloud-install-sim:
     name: Cloud Install Simulation
     runs-on: ubuntu-latest
-    needs: cp314-wheel-check   # only run if wheel check passes
+    needs: cp314-wheel-check   # blocked until Job 1 passes
 
     steps:
       - name: Checkout repository
@@ -54,22 +52,27 @@ jobs:
         with:
           python-version: "3.14"
 
-      - name: Install requirements (wheel-only, mirrors uv on Streamlit Cloud)
+      - name: Install requirements (wheel-only — mirrors Streamlit Cloud uv)
+        id: install
         run: |
           pip install \
             --only-binary=:all: \
             --no-cache-dir \
-            -r requirements.txt
+            -r requirements.txt && echo "status=pass" >> $GITHUB_OUTPUT \
+            || echo "status=fail" >> $GITHUB_OUTPUT
 
       - name: Core import smoke test
+        id: imports
         run: |
           python -c "
           import streamlit, pandas, numpy, scipy, matplotlib, plotly
           import PIL, reportlab, anthropic, xlrd, openpyxl, xlsxwriter
           print('All core imports OK')
-          "
+          " && echo "status=pass" >> $GITHUB_OUTPUT \
+            || echo "status=fail" >> $GITHUB_OUTPUT
 
       - name: App module import test
+        id: app_imports
         run: |
           python -c "
           import sys
@@ -83,7 +86,56 @@ jobs:
           for m in mods:
               __import__(m)
           print('All app modules imported OK')
-          "
+          " && echo "status=pass" >> $GITHUB_OUTPUT \
+            || echo "status=fail" >> $GITHUB_OUTPUT
 
-      - name: Run full pre-deploy check
+      - name: Run pre-deploy orchestrator (generates job summary)
         run: python scripts/predeploy_check.py
+
+      - name: Write CI job summary
+        if: always()
+        env:
+          INSTALL_STATUS: ${{ steps.install.outputs.status }}
+          IMPORT_STATUS:  ${{ steps.imports.outputs.status }}
+          APP_STATUS:     ${{ steps.app_imports.outputs.status }}
+        run: |
+          python - <<'PYEOF'
+          import os, sys
+
+          install = os.getenv("INSTALL_STATUS", "fail")
+          imports = os.getenv("IMPORT_STATUS",  "fail")
+          app     = os.getenv("APP_STATUS",     "fail")
+
+          tick = lambda s: "✅ Pass" if s == "pass" else "❌ Fail"
+
+          rows = [
+              ("All dependencies have cp314 wheels",    "✅ Pass"),   # Job 1 must pass to reach here
+              ("Environment install succeeded",          tick(install)),
+              ("App import passed",                     tick(imports)),
+              ("App module imports passed",             tick(app)),
+          ]
+
+          all_ok = all(r[1] == "✅ Pass" for r in rows)
+          verdict = (
+              "✅ **READY FOR STREAMLIT CLOUD DEPLOYMENT**"
+              if all_ok else
+              "🚫 **Deployment blocked — fix requirements.txt before pushing**"
+          )
+
+          lines = [
+              "## 🛡️ ColtraDataAi Pre-Deploy Report",
+              "",
+              "| Check | Result |",
+              "|---|---|",
+          ]
+          for label, status in rows:
+              lines.append(f"| {label} | {status} |")
+          lines += ["", "---", verdict, ""]
+
+          summary_path = os.getenv("GITHUB_STEP_SUMMARY")
+          if summary_path:
+              with open(summary_path, "a") as f:
+                  f.write("\n".join(lines))
+          else:
+              print("\n".join(lines))
+          PYEOF
