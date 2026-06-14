@@ -1,14 +1,36 @@
-streamlit>=1.35.0
-requests>=2.31.0
-xlrd>=2.0.1
-pandas>=2.2.0
-numpy>=1.26.0
-matplotlib>=3.8.0
-plotly>=5.19.0
-openpyxl>=3.1.2
-xlsxwriter>=3.2.0
-scipy>=1.11.0
-Pillow>=10.0.0
+# ════════════════════════════════════════════════════════════════════════════
+# ColtraDataAi Requirements — Python 3.11
+# ════════════════════════════════════════════════════════════════════════════
+# STABILITY REQUIREMENTS (PINNED)
+# - No server packages (uvicorn, FastAPI, starlette, websockets)
+# - Cloud deployment via Streamlit Cloud (managed by platform)
+# - Desktop deployment via tkinter (stdlib)
+# ════════════════════════════════════════════════════════════════════════════
+
+# Core Framework
+streamlit==1.40.2
+
+# HTTP & Networking
+requests==2.31.0
+
+# Data Processing & Analysis
+pandas==2.2.3
+numpy==1.26.4
+scipy==1.14.1
+
+# File I/O
+xlrd==2.0.1
+openpyxl==3.1.5
+xlsxwriter==3.2.0
+
+# Visualization
+matplotlib==3.9.2
+plotly==5.24.1
+Pillow==10.4.0
 kaleido==0.2.1
-reportlab>=4.0.0
-anthropic>=0.40.0
+
+# Reporting & Export
+reportlab==4.1.6
+
+# AI/ML (optional - for insights)
+anthropic==0.42.0
