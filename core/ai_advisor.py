@@ -8,8 +8,8 @@ Tier matrix
 Plan           Model                      Max tokens  Summary depth  Insights
 ─────────────  ─────────────────────────  ──────────  ─────────────  ────────
 professional   claude-haiku-4-5-20251001  400         compact        3–5
-premium        claude-sonnet-4-6          700         standard       5–8
-enterprise     claude-opus-4-8            1200        full           8–12
+premium        claude-sonnet-4-6          900         standard       5–8
+enterprise     claude-opus-4-8            2800        full           8–12
 ───────────────────────────────────────────────────────────────────────────────
 
 Returns None gracefully on any failure so callers never need to handle errors.
@@ -30,8 +30,8 @@ _MODEL: dict[str, str] = {
 
 _MAX_TOKENS: dict[str, int] = {
     "professional": 400,
-    "premium":      700,
-    "enterprise":   1200,
+    "premium":      900,
+    "enterprise":   2800,
 }
 
 # How many numeric / categorical columns to include in the prompt context.

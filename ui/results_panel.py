@@ -37,7 +37,6 @@ from ui.branding_components import (
 
 _RESULT_KEY = "coltradata_result"
 _INPUT_SHAPE_KEY = "coltradata_input_shape"
-_AI_ADVISORY_KEY = "coltradata_ai_advisory"
 
 
 def render_results_panel(
@@ -55,13 +54,11 @@ def render_results_panel(
     # Invalidate stale cached result if the uploaded file changed
     if st.session_state.get(_INPUT_SHAPE_KEY) != df.shape:
         st.session_state.pop(_RESULT_KEY, None)
-        st.session_state.pop(_AI_ADVISORY_KEY, None)
 
     if st.button("Generate Clean Report"):
         st.session_state.pop(_RESULT_KEY, None)
-        st.session_state.pop(_AI_ADVISORY_KEY, None)
         with st.spinner("Processing dataset…"):
-            result = _run_processing(df, options, branding)
+            result = _run_processing(df, options, branding, user_plan)
         st.session_state[_RESULT_KEY] = result
         st.session_state[_INPUT_SHAPE_KEY] = df.shape
 
@@ -168,12 +165,7 @@ def render_results_panel(
             }
             st.caption(f"Model: {_model_labels.get(user_plan, 'AI analysis')}")
 
-            advisory = st.session_state.get(_AI_ADVISORY_KEY)
-            if advisory is None:
-                with st.spinner("Generating AI advisory…"):
-                    advisory = generate_ai_advisory(cleaned_df, plan_key=user_plan)
-                st.session_state[_AI_ADVISORY_KEY] = advisory
-
+            advisory = result.get("ai_advisory")
             if advisory:
                 with st.container(border=True):
                     st.markdown(advisory)
@@ -263,7 +255,9 @@ def _anthropic_key_configured() -> bool:
         return False
 
 
-def _run_processing(df: pd.DataFrame, options: CleaningOptions, branding: dict) -> dict:
+def _run_processing(
+    df: pd.DataFrame, options: CleaningOptions, branding: dict, user_plan: str,
+) -> dict:
     """Apply cleaning, build quality metrics, generate reports, return result dict."""
     cleaning_result      = apply_cleaning(df, options)
     cleaned_df           = cleaning_result.cleaned_df
@@ -276,6 +270,11 @@ def _run_processing(df: pd.DataFrame, options: CleaningOptions, branding: dict) 
         branding, df, cleaned_df, date_cols=date_cols
     )
 
+    ai_advisory = None
+    if has_feature(user_plan, "can_view_advanced_insights") and _anthropic_key_configured():
+        with st.spinner("Generating AI advisory…"):
+            ai_advisory = generate_ai_advisory(cleaned_df, plan_key=user_plan)
+
     export = generate_reports(
         branding=branding,
         raw_df=df,
@@ -285,6 +284,7 @@ def _run_processing(df: pd.DataFrame, options: CleaningOptions, branding: dict) 
         quality_breakdown_df=quality_breakdown_df,
         chart_assets=chart_assets,
         risk_summary=risk_summary,
+        ai_advisory=ai_advisory,
     )
 
     return {
@@ -295,6 +295,7 @@ def _run_processing(df: pd.DataFrame, options: CleaningOptions, branding: dict) 
         "date_cols":            date_cols,
         "chart_assets":         chart_assets,
         "risk_summary":         risk_summary,
+        "ai_advisory":          ai_advisory,
         "excel_path":           export.excel_path,
         "pdf_bytes":            export.pdf_bytes,
         "pdf_filename":         export.pdf_filename,

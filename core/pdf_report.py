@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import datetime
 from io import BytesIO
 
@@ -45,10 +46,48 @@ def _draw_page_footer(canvas, doc, branding: dict) -> None:
     canvas.restoreState()
 
 
-def build_pdf_report(branding: dict, raw_df, cleaned_df, risk_summary: dict, chart_assets) -> bytes:
+def _escape_xml(text: str) -> str:
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def _inline_markdown(text: str) -> str:
+    """Escape XML, then convert **bold** markers to ReportLab <b> tags."""
+    escaped = _escape_xml(text)
+    return re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", escaped)
+
+
+def _markdown_to_flowables(text: str, heading_style, bullet_style, body_style) -> list:
+    """Lightweight Markdown → ReportLab flowables for Claude's advisory output.
+
+    Handles **bold**, lines that are entirely a bold heading, and "- " bullets.
+    Not a general Markdown parser — just enough for the advisory prompt shapes.
+    """
+    flowables: list = []
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        heading_match = re.fullmatch(r"\*\*(.+?)\*\*:?", line)
+        if heading_match:
+            flowables.append(Paragraph(_escape_xml(heading_match.group(1)), heading_style))
+        elif line.startswith(("- ", "* ")):
+            flowables.append(Paragraph(f"•&nbsp;&nbsp;{_inline_markdown(line[2:].strip())}", bullet_style))
+        else:
+            flowables.append(Paragraph(_inline_markdown(line), body_style))
+    return flowables
+
+
+def build_pdf_report(
+    branding: dict,
+    raw_df, cleaned_df,
+    risk_summary: dict,
+    chart_assets,
+    ai_advisory: str | None = None,
+) -> bytes:
     """
     Builds a downloadable PDF executive summary: cover block, KPIs, data-quality
-    risk mix and the same premium chart gallery shown on the live dashboard.
+    risk mix, the same premium chart gallery shown on the live dashboard, and
+    (when provided) the Claude-generated AI Advisory section.
     """
     buffer = BytesIO()
     primary      = colors.HexColor(branding["primary_colour"])
@@ -118,6 +157,24 @@ def build_pdf_report(branding: dict, raw_df, cleaned_df, risk_summary: dict, cha
         spaceBefore=12,
         spaceAfter=2,
         fontName="Helvetica-Bold",
+    )
+    advisory_heading_style = ParagraphStyle(
+        "CDAdvisoryHeading",
+        parent=styles["Heading4"],
+        textColor=primary,
+        fontSize=10.5,
+        spaceBefore=10,
+        spaceAfter=3,
+        fontName="Helvetica-Bold",
+    )
+    advisory_bullet_style = ParagraphStyle(
+        "CDAdvisoryBullet",
+        parent=styles["BodyText"],
+        fontSize=10,
+        leading=14,
+        leftIndent=10,
+        spaceAfter=4,
+        textColor=colors.HexColor("#33414E"),
     )
 
     story = []
@@ -241,6 +298,18 @@ def build_pdf_report(branding: dict, raw_df, cleaned_df, risk_summary: dict, cha
             story.append(Paragraph(card.description, caption_style))
             story.append(Image(BytesIO(png_bytes), width=chart_width, height=chart_height))
             story.append(Spacer(1, 6))
+
+    # ── AI Advisory ──────────────────────────────────────────────────────────
+    if ai_advisory:
+        story.append(Paragraph("AI Advisory", section_style))
+        story.append(Paragraph(
+            "Claude-powered interpretation of the cleaned data — patterns, anomalies, "
+            "quality risks, and concrete next steps.",
+            caption_style,
+        ))
+        story.extend(_markdown_to_flowables(
+            ai_advisory, advisory_heading_style, advisory_bullet_style, body_style,
+        ))
 
     # ── Footer disclaimer ────────────────────────────────────────────────────
     story.append(Spacer(1, 14))

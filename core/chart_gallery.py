@@ -1,3 +1,4 @@
+import asyncio
 import os
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
@@ -5,7 +6,6 @@ from typing import List, Optional, Tuple
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import plotly.io as pio
 
 from core.dashboard_analytics import (
     numeric_columns,
@@ -91,33 +91,54 @@ def _premium_theme(fig: go.Figure, branding, height: int = 380) -> go.Figure:
     return fig
 
 
-def render_chart_images(cards: List[ChartCard]) -> List[Tuple[ChartCard, bytes]]:
-    """Render each chart card to PNG bytes using plotly.io.to_image().
+async def _render_all_async(cards: List[ChartCard]) -> List[Tuple[ChartCard, bytes]]:
+    """Render every card through one shared Kaleido browser session.
 
-    Requires a static image renderer (kaleido or orca) to be installed.
+    kaleido>=1.0 launches and tears down a fresh browser process per call
+    when used the old plotly.io.to_image() way — ~15-35s per chart. Reusing
+    one Kaleido() session for the whole batch amortises that startup cost
+    to a fraction of a second per chart instead.
+    """
+    import kaleido
+
+    assets: List[Tuple[ChartCard, bytes]] = []
+    k = kaleido.Kaleido(n=1)
+    try:
+        await k.open()
+        for card in cards:
+            try:
+                png_bytes = await k.calc_fig(
+                    card.figure,
+                    opts={
+                        "format": "png",
+                        "width": CHART_IMAGE_WIDTH,
+                        "height": CHART_IMAGE_HEIGHT,
+                        "scale": CHART_IMAGE_SCALE,
+                    },
+                )
+                assets.append((card, png_bytes))
+            except Exception:
+                # Skip this one card; the dashboard still renders it interactively.
+                pass
+    finally:
+        await k.close()
+
+    return assets
+
+
+def render_chart_images(cards: List[ChartCard]) -> List[Tuple[ChartCard, bytes]]:
+    """Render each chart card to PNG bytes using a single shared Kaleido session.
+
     Returns an empty list gracefully when no renderer is available so the
     rest of the report pipeline continues without embedded chart images.
     """
     if not cards:
         return []
 
-    assets = []
-    for card in cards:
-        try:
-            png_bytes = pio.to_image(
-                card.figure,
-                format="png",
-                width=CHART_IMAGE_WIDTH,
-                height=CHART_IMAGE_HEIGHT,
-                scale=CHART_IMAGE_SCALE,
-            )
-            assets.append((card, png_bytes))
-        except Exception:
-            # No static image renderer installed (kaleido not available).
-            # Skip this card; the dashboard still renders charts interactively.
-            pass
-
-    return assets
+    try:
+        return asyncio.run(_render_all_async(cards))
+    except Exception:
+        return []
 
 
 def build_chart_gallery(

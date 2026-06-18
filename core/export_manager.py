@@ -36,6 +36,7 @@ def generate_reports(
     chart_assets:          List[Tuple[ChartCard, bytes]],
     risk_summary:          Dict,
     dictionary_df:         Optional[pd.DataFrame] = None,
+    ai_advisory:           Optional[str] = None,
 ) -> ExportBundle:
     """
     Generate both the Excel workbook and PDF executive summary in one call.
@@ -52,7 +53,7 @@ def generate_reports(
         chart_assets=chart_assets,
     )
 
-    pdf_bytes = build_pdf_report(branding, raw_df, cleaned_df, risk_summary, chart_assets)
+    pdf_bytes = build_pdf_report(branding, raw_df, cleaned_df, risk_summary, chart_assets, ai_advisory)
     pdf_filename = excel_path.rsplit(".", 1)[0] + ".pdf"
 
     return ExportBundle(
