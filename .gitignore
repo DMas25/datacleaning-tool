@@ -1,5 +1,11 @@
 # Secrets — never commit credentials
 .streamlit/secrets.toml
+.env
+.env.local
+.env.*.local
+
+# Local runtime data (licence/subscription DB written by services/webhook_server.py)
+data/
 
 # Python virtual environments
 .venv/

@@ -10,7 +10,7 @@ PLAN_CONFIG = {
         "monthly_runs": 3,
         "max_rows_backend": 5000,
         "max_file_mb_backend": 10,
-        "blurb": "Data cleaning for small datasets. No exports.",
+        "blurb": "Clean small datasets and explore your data quality — no card required.",
     },
     "starter": {
         "label": "Starter",
@@ -23,7 +23,7 @@ PLAN_CONFIG = {
         "monthly_runs": 20,
         "max_rows_backend": 25000,
         "max_file_mb_backend": 25,
-        "blurb": "Excel exports and larger datasets for growing teams.",
+        "blurb": "Process larger datasets and export clean results to Excel.",
     },
     "professional": {
         "label": "Professional",
@@ -36,7 +36,7 @@ PLAN_CONFIG = {
         "monthly_runs": 100,
         "max_rows_backend": 100000,
         "max_file_mb_backend": 75,
-        "blurb": "Full reports, AI insights, and PDF downloads.",
+        "blurb": "Generate full reports and AI-powered insights to make faster decisions.",
     },
     "premium": {
         "label": "Premium",
@@ -49,7 +49,7 @@ PLAN_CONFIG = {
         "monthly_runs": 300,
         "max_rows_backend": 250000,
         "max_file_mb_backend": 150,
-        "blurb": "Branded reports, high-volume processing, and priority support.",
+        "blurb": "Scale high-volume data processing with premium charts and branded outputs.",
     },
     "enterprise": {
         "label": "Enterprise",
@@ -62,7 +62,7 @@ PLAN_CONFIG = {
         "monthly_runs": None,
         "max_rows_backend": 1000000,
         "max_file_mb_backend": 300,
-        "blurb": "Unlimited runs, API access, custom branding, and dedicated support.",
+        "blurb": "Unlimited runs, API access, custom integrations, and dedicated support.",
     },
 }
 

@@ -38,7 +38,7 @@ def _draw_page_footer(canvas, doc, branding: dict) -> None:
     canvas.line(20 * mm, rule_y, page_w - 20 * mm, rule_y)
 
     # Footer text — branding line left, page number right
-    canvas.setFont("Helvetica", 7.5)
+    canvas.setFont("Helvetica", 8.5)
     canvas.setFillColor(colors.HexColor("#9CA3AF"))
     canvas.drawString(20 * mm, footer_y, branding.get("footer_line", branding["app_name"]))
     canvas.drawRightString(page_w - 20 * mm, footer_y, f"Page {doc.page}")
@@ -68,28 +68,18 @@ def build_pdf_report(branding: dict, raw_df, cleaned_df, risk_summary: dict, cha
 
     styles = getSampleStyleSheet()
 
-    title_style = ParagraphStyle(
-        "CDTitle",
-        parent=styles["Title"],
-        textColor=primary,
-        fontSize=22,
-        leading=28,
-        spaceAfter=2,
-        fontName="Helvetica-Bold",
-    )
     tagline_style = ParagraphStyle(
         "CDTagline",
         parent=styles["Normal"],
         textColor=colors.HexColor("#657286"),
-        fontSize=9.5,
+        fontSize=11,
         spaceAfter=4,
-        letterSpacing=1.2,
     )
     meta_style = ParagraphStyle(
         "CDMeta",
         parent=styles["Normal"],
         textColor=colors.HexColor("#33414E"),
-        fontSize=9,
+        fontSize=10.5,
         spaceAfter=14,
     )
     section_style = ParagraphStyle(
@@ -97,8 +87,8 @@ def build_pdf_report(branding: dict, raw_df, cleaned_df, risk_summary: dict, cha
         parent=styles["Heading2"],
         textColor=colors.white,
         backColor=primary,
-        fontSize=11,
-        leading=15,
+        fontSize=12,
+        leading=16,
         spaceBefore=14,
         spaceAfter=6,
         leftIndent=6,
@@ -108,23 +98,23 @@ def build_pdf_report(branding: dict, raw_df, cleaned_df, risk_summary: dict, cha
     body_style = ParagraphStyle(
         "CDBody",
         parent=styles["BodyText"],
-        fontSize=9.5,
-        leading=14,
+        fontSize=10.5,
+        leading=15,
         textColor=colors.HexColor("#33414E"),
     )
     caption_style = ParagraphStyle(
         "CDCaption",
         parent=styles["Italic"],
-        fontSize=8.5,
+        fontSize=9.5,
         textColor=colors.HexColor("#657286"),
         spaceAfter=8,
-        leading=12,
+        leading=13,
     )
     chart_title_style = ParagraphStyle(
         "CDChartTitle",
         parent=styles["Heading4"],
         textColor=primary,
-        fontSize=11,
+        fontSize=12,
         spaceBefore=12,
         spaceAfter=2,
         fontName="Helvetica-Bold",
@@ -133,15 +123,16 @@ def build_pdf_report(branding: dict, raw_df, cleaned_df, risk_summary: dict, cha
     story = []
 
     # ── Cover block ──────────────────────────────────────────────────────────
+    # Logo carries the brand name on its own — no typed app-name title beside
+    # it, so it can run larger without crowding the page (was 40mm).
     logo_path = branding.get("logo_path", "assets/logo/coltradata_logo.png")
     if os.path.exists(logo_path):
         reader = ImageReader(logo_path)
         iw, ih = reader.getSize()
-        logo_width = 40 * mm
+        logo_width = 56 * mm
         story.append(Image(logo_path, width=logo_width, height=logo_width * ih / iw))
-        story.append(Spacer(1, 8))
+        story.append(Spacer(1, 10))
 
-    story.append(Paragraph(branding["app_name"], title_style))
     story.append(Paragraph(branding["tagline"], tagline_style))
     story.append(Paragraph(
         f"Executive Summary &nbsp;&nbsp;·&nbsp;&nbsp; "

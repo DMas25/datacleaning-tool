@@ -218,7 +218,7 @@ def build_chart_gallery(
                 textinfo="label+value",
                 sort=False,
             )])
-            fig.update_layout(title="Column Risk Mix")
+            fig.update_layout(title="Column Risk Mix", showlegend=False)
             _premium_theme(fig, branding, height=360)
             cards.append(ChartCard(
                 "risk_mix",

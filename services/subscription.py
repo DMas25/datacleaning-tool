@@ -29,53 +29,26 @@ from config.plans import PLAN_CONFIG
 from utils.session_helpers import get_plan_key, set_plan_key
 
 # LemonSqueezy variant ID → plan key.
-# Fill these in once your LS account is approved and variant IDs are known.
-VARIANT_PLAN_MAP: dict[str, str] = {
-    # "123456": "starter",
-    # "123457": "professional",
-    # "123458": "premium",
-    # "123459": "enterprise",
-}
+# Defined centrally in config/lemonsqueezy_config.py — imported here for convenience.
+from config.lemonsqueezy_config import VARIANT_PLAN_MAP
 
 _DEFAULT_PLAN = "free"
 
 
 def load_customer_plan_from_store(customer_email: str) -> str:
-    """Look up the active plan for *customer_email* from your backend data store.
+    """Look up the active plan for *customer_email* from the local subscription DB.
 
-    Replace the stub body with one of the following once your auth layer is wired up:
-
-    ── Supabase ──────────────────────────────────────────────────────────────────
-    from supabase import create_client
-    client = create_client(st.secrets["supabase"]["url"], st.secrets["supabase"]["key"])
-    row = client.table("subscriptions").select("plan").eq("email", customer_email).single().execute()
-    return row.data["plan"] if row.data else "free"
-
-    ── Firebase Firestore ────────────────────────────────────────────────────────
-    import firebase_admin; from firebase_admin import firestore
-    db  = firestore.client()
-    doc = db.collection("subscriptions").document(customer_email).get()
-    return doc.to_dict().get("plan", "free") if doc.exists else "free"
-
-    ── Airtable ──────────────────────────────────────────────────────────────────
-    from pyairtable import Table
-    tbl    = Table(st.secrets["airtable"]["api_key"], st.secrets["airtable"]["base_id"], "Subscriptions")
-    records = tbl.all(formula=f"{{Email}}='{customer_email}'")
-    return records[0]["fields"].get("Plan", "free") if records else "free"
-
-    ── SQL (SQLAlchemy) ──────────────────────────────────────────────────────────
-    from sqlalchemy import create_engine, text
-    engine = create_engine(st.secrets["database"]["url"])
-    with engine.connect() as conn:
-        result = conn.execute(text("SELECT plan FROM subscriptions WHERE email = :e"), {"e": customer_email})
-        row = result.fetchone()
-    return row[0] if row else "free"
-
-    ── JSON file (testing only — not for production) ─────────────────────────────
-    import json, pathlib
-    data = json.loads(pathlib.Path("data/subscriptions.json").read_text())
-    return data.get(customer_email, "free")
+    The local SQLite database is populated automatically by the webhook server
+    (services/webhook_server.py) every time a LemonSqueezy payment event fires.
+    No manual data entry required once the webhook is configured.
     """
+    try:
+        from services.licence_manager import get_by_email
+        row = get_by_email(customer_email)
+        if row and row.get("status") == "active" and row.get("plan") in PLAN_CONFIG:
+            return row["plan"]
+    except Exception:
+        pass
     return _DEFAULT_PLAN
 
 

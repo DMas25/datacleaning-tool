@@ -64,11 +64,11 @@ def _render_licence_form() -> None:
             with st.sidebar.spinner("Validating…"):
                 result = validate_licence_key(licence_key)
             if result["valid"]:
-                st.session_state.account_tier = result["tier"]
-                # Sync the canonical plan key so all feature gates see the
-                # correct entitlements immediately after licence activation.
-                set_plan_key(_TIER_TO_PLAN.get(result["tier"], "free"))
-                st.sidebar.success(f"Activated — {result['tier']} plan.")
+                plan_key = result.get("plan") or _TIER_TO_PLAN.get(result["tier"], "free")
+                tier_display = result["tier"]
+                st.session_state.account_tier = tier_display
+                set_plan_key(plan_key)
+                st.sidebar.success(f"Activated — {tier_display} plan.")
             else:
                 st.session_state.account_tier = "Free"
                 set_plan_key("free")

@@ -16,16 +16,28 @@ def check_password(branding: dict) -> bool:
     if st.session_state.get("authenticated"):
         return True
 
+    _inject_login_css(branding)
     _render_login_header(branding)
 
-    _, mid, _ = st.columns([1, 2, 1])
+    _, mid, _ = st.columns([1, 1.4, 1])
     with mid:
-        st.markdown("##### Sign in to continue")
+        st.markdown(
+            f"""
+            <div style="background:#FFFFFF;border:1px solid #DCE6EE;border-radius:16px;
+                        box-shadow:0 4px 28px rgba(31,78,121,0.10);padding:2rem 2rem 1.6rem 2rem;
+                        margin-top:0.5rem;">
+                <div style="font-size:1.05rem;font-weight:700;color:{branding['primary_colour']};
+                            margin-bottom:1.1rem;letter-spacing:0.01em;">
+                    Sign in to continue
+                </div>
+            """,
+            unsafe_allow_html=True,
+        )
         pwd = st.text_input(
             "Password",
             type="password",
             label_visibility="collapsed",
-            placeholder="Enter password",
+            placeholder="Enter your password",
         )
         if st.button("Sign in", use_container_width=True, type="primary"):
             configured = _get_configured_password()
@@ -39,7 +51,17 @@ def check_password(branding: dict) -> bool:
                 st.rerun()
             else:
                 st.error("Incorrect password. Please try again.")
+        st.markdown(
+            f"""
+            <div style="margin-top:1rem;text-align:center;font-size:0.75rem;color:#9CA3AF;">
+                Access restricted to authorised users only.
+            </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
+    _render_login_features(branding)
     return False
 
 
@@ -102,16 +124,110 @@ def render_footer(branding: dict) -> None:
 
 # ── Private helpers ───────────────────────────────────────────────────────────
 
-def _render_login_header(branding: dict) -> None:
+def _inject_login_css(branding: dict) -> None:
+    primary = branding["primary_colour"]
     st.markdown(
         f"""
-        <div style="max-width:420px;margin:80px auto 0 auto;text-align:center;">
-            <div style="font-size:38px;font-weight:800;color:{branding['primary_colour']};margin-bottom:4px;">
-                {branding['app_name']}
-            </div>
-            <div style="font-size:12px;letter-spacing:.26em;color:#657286;text-transform:uppercase;margin-bottom:36px;">
+        <style>
+            /* Hide sidebar on the login page */
+            [data-testid="stSidebar"] {{ display: none !important; }}
+            [data-testid="collapsedControl"] {{ display: none !important; }}
+
+            /* Remove the app-wide left border from column containers on login */
+            [data-testid="stVerticalBlockBorderWrapper"] {{
+                border-left: none !important;
+                border: none !important;
+                box-shadow: none !important;
+                background: transparent !important;
+                border-radius: 0 !important;
+                margin-bottom: 0 !important;
+            }}
+
+            /* Tighten the top padding on the login page */
+            .block-container {{
+                padding-top: 0 !important;
+                max-width: 860px !important;
+                margin: 0 auto !important;
+            }}
+
+            /* Style the sign-in button */
+            .stButton > button {{
+                border-radius: 10px;
+                height: 46px;
+                background-color: {primary};
+                color: white;
+                font-weight: 600;
+                border: none;
+            }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _render_login_header(branding: dict) -> None:
+    primary = branding["primary_colour"]
+    logo_path = branding.get("logo_path", "assets/logo/coltradata_logo.png")
+    logo_b64 = _encode_logo(logo_path)
+
+    if logo_b64:
+        brand_html = (
+            f'<img src="data:image/png;base64,{logo_b64}" '
+            f'style="height:52px;width:auto;display:block;margin:0 auto 8px auto;" />'
+        )
+    else:
+        brand_html = (
+            f'<div style="font-size:2.4rem;font-weight:800;color:{primary};'
+            f'letter-spacing:-0.5px;line-height:1;">{branding["app_name"]}</div>'
+        )
+
+    st.markdown(
+        f"""
+        <div style="text-align:center;padding:56px 0 32px 0;">
+            {brand_html}
+            <div style="font-size:11.5px;letter-spacing:.28em;color:#657286;
+                        text-transform:uppercase;margin-top:10px;">
                 {branding['tagline']}
             </div>
+            <div style="font-size:0.87rem;color:#657286;margin-top:10px;line-height:1.6;">
+                Structured data cleaning, validation reports &amp; visual summaries —<br/>
+                built for teams who need clean data, fast.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _render_login_features(branding: dict) -> None:
+    primary = branding["primary_colour"]
+    features = [
+        ("📂", "Upload any CSV or Excel", "Handles messy real-world files with missing values, duplicates, and mixed types."),
+        ("✅", "Instant cleaning & validation", "Automated rules detect and fix common data quality issues in seconds."),
+        ("📊", "Reports & visual summaries", "Export cleaned datasets with PDF validation reports and chart galleries."),
+    ]
+    cols = st.columns(3)
+    for col, (icon, title, desc) in zip(cols, features):
+        with col:
+            st.markdown(
+                f"""
+                <div style="background:#FFFFFF;border:1px solid #E6ECF0;border-radius:14px;
+                            padding:1.4rem 1.2rem;text-align:center;margin-top:1.6rem;
+                            box-shadow:0 2px 10px rgba(0,0,0,0.04);">
+                    <div style="font-size:1.7rem;margin-bottom:0.55rem;">{icon}</div>
+                    <div style="font-size:0.9rem;font-weight:700;color:{primary};
+                                margin-bottom:0.4rem;">{title}</div>
+                    <div style="font-size:0.78rem;color:#657286;line-height:1.55;">{desc}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+    st.markdown(
+        f"""
+        <div style="text-align:center;margin-top:2.8rem;font-size:0.73rem;color:#9CA3AF;">
+            &copy; 2026 {branding.get('company', 'Coltrane Ltd')} &nbsp;&mdash;&nbsp;
+            <a href="mailto:{branding['contact_email']}"
+               style="color:{primary};text-decoration:none;">{branding['contact_email']}</a>
         </div>
         """,
         unsafe_allow_html=True,

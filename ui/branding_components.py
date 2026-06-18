@@ -123,24 +123,19 @@ def render_step_header(step: int, title: str, subtitle: str = "", branding: dict
     """Numbered circular-badge step header with optional subtitle caption."""
     primary = branding["primary_colour"] if branding else "#1F4E79"
     sub_html = (
-        f'<div style="font-size:0.83rem;color:#657286;margin-top:3px;line-height:1.4;">{subtitle}</div>'
+        f'<span style="display:block;font-size:0.83rem;color:#657286;margin-top:3px;line-height:1.4;">{subtitle}</span>'
         if subtitle else ""
     )
+    # Use <span> for all inner elements — Streamlit 1.57's markdown parser treats
+    # nested <div> closing tags as block boundaries and emits extras as literal text.
     st.markdown(
-        f"""
-        <div style="display:flex;align-items:flex-start;gap:13px;margin:1.1rem 0 0.35rem 0;">
-            <div style="min-width:30px;height:30px;border-radius:50%;
-                        background:{primary};color:white;font-weight:700;font-size:13px;
-                        display:flex;align-items:center;justify-content:center;flex-shrink:0;
-                        box-shadow:0 2px 6px rgba(31,78,121,0.25);">
-                {step}
-            </div>
-            <div style="padding-top:3px;">
-                <div style="font-size:1.05rem;font-weight:700;color:{primary};line-height:1.3;">{title}</div>
-                {sub_html}
-            </div>
-        </div>
-        """,
+        f'<div style="display:flex;align-items:flex-start;gap:13px;margin:1.1rem 0 0.35rem 0;">'
+        f'<span style="min-width:30px;height:30px;border-radius:50%;background:{primary};color:white;'
+        f'font-weight:700;font-size:13px;display:inline-flex;align-items:center;justify-content:center;'
+        f'flex-shrink:0;box-shadow:0 2px 6px rgba(31,78,121,0.25);">{step}</span>'
+        f'<span style="padding-top:3px;display:inline-block;">'
+        f'<span style="font-size:1.05rem;font-weight:700;color:{primary};line-height:1.3;display:block;">{title}</span>'
+        f'{sub_html}</span></div>',
         unsafe_allow_html=True,
     )
 
@@ -152,12 +147,10 @@ def render_kpi_row(metrics: List[Tuple[str, str]], branding: dict = None) -> Non
     for col, (label, value) in zip(cols, metrics):
         with col:
             st.markdown(
-                f"""
-                <div class="metric-card">
-                    <div class="kpi-value" style="color:{primary};">{value}</div>
-                    <div class="kpi-label">{label}</div>
-                </div>
-                """,
+                f'<div class="metric-card">'
+                f'<span class="kpi-value" style="color:{primary};display:block;">{value}</span>'
+                f'<span class="kpi-label" style="display:block;">{label}</span>'
+                f'</div>',
                 unsafe_allow_html=True,
             )
 
@@ -171,15 +164,10 @@ def render_risk_kpi(risk_level: str) -> None:
     b = bg_map.get(risk_level, "#F9FAFB")
     e = border_map.get(risk_level, "#E6ECF0")
     st.markdown(
-        f"""
-        <div style="background:{b};border:1px solid {e};border-radius:12px;
-                    padding:0.9rem 1rem;text-align:center;
-                    box-shadow:0 2px 6px rgba(0,0,0,0.04);">
-            <div style="font-size:1.4rem;font-weight:800;color:{c};line-height:1.2;">{risk_level}</div>
-            <div style="font-size:0.72rem;color:{c};text-transform:uppercase;
-                        letter-spacing:0.07em;margin-top:5px;opacity:0.75;">Overall Risk</div>
-        </div>
-        """,
+        f'<div style="background:{b};border:1px solid {e};border-radius:12px;padding:0.9rem 1rem;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,0.04);">'
+        f'<span style="font-size:1.4rem;font-weight:800;color:{c};line-height:1.2;display:block;">{risk_level}</span>'
+        f'<span style="font-size:0.72rem;color:{c};text-transform:uppercase;letter-spacing:0.07em;margin-top:5px;opacity:0.75;display:block;">Overall Risk</span>'
+        f'</div>',
         unsafe_allow_html=True,
     )
 
@@ -189,14 +177,11 @@ def render_section_divider(label: str = "", branding: dict = None) -> None:
     primary = branding["primary_colour"] if branding else "#1F4E79"
     if label:
         st.markdown(
-            f"""
-            <div style="display:flex;align-items:center;gap:12px;margin:1.4rem 0 0.7rem 0;">
-                <div style="height:1px;flex:1;background:#E6ECF0;"></div>
-                <span style="font-size:0.73rem;font-weight:700;color:{primary};
-                             text-transform:uppercase;letter-spacing:0.11em;">{label}</span>
-                <div style="height:1px;flex:1;background:#E6ECF0;"></div>
-            </div>
-            """,
+            f'<div style="display:flex;align-items:center;gap:12px;margin:1.4rem 0 0.7rem 0;">'
+            f'<span style="height:1px;flex:1;background:#E6ECF0;display:inline-block;"></span>'
+            f'<span style="font-size:0.73rem;font-weight:700;color:{primary};text-transform:uppercase;letter-spacing:0.11em;">{label}</span>'
+            f'<span style="height:1px;flex:1;background:#E6ECF0;display:inline-block;"></span>'
+            f'</div>',
             unsafe_allow_html=True,
         )
     else:
@@ -210,15 +195,12 @@ def render_chart_section_header(title: str, caption: str = "", branding: dict = 
     """Compact section label above individual chart cards."""
     primary = branding["primary_colour"] if branding else "#1F4E79"
     cap_html = (
-        f'<p style="margin:2px 0 0 0;color:#657286;font-size:0.8rem;">{caption}</p>'
+        f'<span style="display:block;margin:2px 0 0 0;color:#657286;font-size:0.8rem;">{caption}</span>'
         if caption else ""
     )
     st.markdown(
-        f"""
-        <div style="margin-bottom:0.4rem;">
-            <span style="font-size:0.95rem;font-weight:700;color:{primary};">{title}</span>
-            {cap_html}
-        </div>
-        """,
+        f'<div style="margin-bottom:0.4rem;">'
+        f'<span style="font-size:0.95rem;font-weight:700;color:{primary};">{title}</span>'
+        f'{cap_html}</div>',
         unsafe_allow_html=True,
     )

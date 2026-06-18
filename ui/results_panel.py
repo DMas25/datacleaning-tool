@@ -58,6 +58,8 @@ def render_results_panel(
         st.session_state.pop(_AI_ADVISORY_KEY, None)
 
     if st.button("Generate Clean Report"):
+        st.session_state.pop(_RESULT_KEY, None)
+        st.session_state.pop(_AI_ADVISORY_KEY, None)
         with st.spinner("Processing dataset…"):
             result = _run_processing(df, options, branding)
         st.session_state[_RESULT_KEY] = result
@@ -88,7 +90,7 @@ def render_results_panel(
     with kpi_cols[4]:
         render_risk_kpi(risk_summary["overall_risk"])
 
-    st.markdown("<div style='margin-top:0.5rem;'></div>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Step 5: Dashboard Results ─────────────────────────────────────────
     render_step_header(5, "Dashboard Results", branding=branding)
@@ -144,35 +146,42 @@ def render_results_panel(
         render_upgrade_cta_button("professional", key_suffix="insights_lock")
 
     # ── AI Advisory ───────────────────────────────────────────────────────
-    render_section_divider(branding=branding)
-    render_step_header(
-        6, "AI Advisory",
-        "Claude-powered interpretation of your cleaned data — patterns, anomalies, quality risks, and concrete next steps.",
-        branding,
-    )
-
-    st.subheader("AI Advisory")
-
-    if has_feature(user_plan, "can_view_advanced_insights"):
-        advisory = st.session_state.get(_AI_ADVISORY_KEY)
-        if advisory is None:
-            with st.spinner("Generating AI advisory…"):
-                advisory = generate_ai_advisory(cleaned_df)
-            st.session_state[_AI_ADVISORY_KEY] = advisory
-
-        if advisory:
-            with st.container(border=True):
-                st.markdown(advisory)
-        else:
-            st.info(
-                "AI Advisory is unavailable — check that an Anthropic API key is configured in secrets.toml."
-            )
-    else:
-        paywall_card(
-            "Advanced insights are locked",
-            "Upgrade to Professional or above to unlock deeper diagnostics and richer analysis.",
+    # Only render this section if the Anthropic key is actually configured.
+    # When the key is absent/placeholder, skip silently — no error shown.
+    _ai_key_live = _anthropic_key_configured()
+    if _ai_key_live or not has_feature(user_plan, "can_view_advanced_insights"):
+        render_section_divider(branding=branding)
+        render_step_header(
+            6, "AI Advisory",
+            "Claude-powered interpretation of your cleaned data — patterns, anomalies, quality risks, and concrete next steps.",
+            branding,
         )
-        render_upgrade_cta_button("professional", key_suffix="advisory_lock")
+
+        st.subheader("AI Advisory")
+
+        if has_feature(user_plan, "can_view_advanced_insights"):
+            _model_labels = {
+                "professional": "Haiku · fast analysis",
+                "premium":      "Sonnet · enhanced analysis",
+                "enterprise":   "Opus · comprehensive analysis",
+            }
+            st.caption(f"Model: {_model_labels.get(user_plan, 'AI analysis')}")
+
+            advisory = st.session_state.get(_AI_ADVISORY_KEY)
+            if advisory is None:
+                with st.spinner("Generating AI advisory…"):
+                    advisory = generate_ai_advisory(cleaned_df, plan_key=user_plan)
+                st.session_state[_AI_ADVISORY_KEY] = advisory
+
+            if advisory:
+                with st.container(border=True):
+                    st.markdown(advisory)
+        else:
+            paywall_card(
+                "Advanced insights are locked",
+                "Upgrade to Professional or above to unlock deeper diagnostics and richer analysis.",
+            )
+            render_upgrade_cta_button("professional", key_suffix="advisory_lock")
 
     # ── Step 7: Download Reports ──────────────────────────────────────────
     render_section_divider(branding=branding)
@@ -242,6 +251,15 @@ def render_results_panel(
 
 
 # ── Private helpers ───────────────────────────────────────────────────────────
+
+def _anthropic_key_configured() -> bool:
+    """Return True only when a real (non-placeholder) Anthropic API key is present."""
+    try:
+        key = st.secrets["anthropic"]["api_key"]
+        return bool(key) and not key.startswith("sk-ant-REPLACE")
+    except Exception:
+        return False
+
 
 def _run_processing(df: pd.DataFrame, options: CleaningOptions, branding: dict) -> dict:
     """Apply cleaning, build quality metrics, generate reports, return result dict."""

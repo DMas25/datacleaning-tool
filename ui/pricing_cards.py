@@ -3,87 +3,279 @@ import streamlit as st
 from config.plans import PLAN_CONFIG, PLAN_ORDER
 from services.billing import checkout_url, payments_live
 
-
-_FEATURE_LABELS = {
-    "can_download_excel": "Excel export",
-    "can_download_pdf": "PDF reports",
-    "can_view_advanced_insights": "Advanced AI insights",
-    "can_brand_reports": "Custom branding",
+_SUPPORT_TIERS: dict[str, list[str]] = {
+    "free":         ["Email support (48–72h)"],
+    "starter":      ["Email support (24–48h)"],
+    "professional": ["Priority email support (12–24h)"],
+    "premium":      ["Priority support (same-day response)"],
+    "enterprise":   ["Dedicated support + SLA (&lt;4h)", "Onboarding &amp; consulting available"],
 }
+
+_CTA_LABELS: dict[str, str] = {
+    "starter":      "Upgrade to Starter",
+    "professional": "Get Professional",
+    "premium":      "Scale with Premium",
+}
+
+_ENTERPRISE_FEATURES = [
+    "Unlimited runs",
+    "API access",
+    "Custom integrations",
+    "Branded report outputs",
+    "Dedicated support + SLA",
+]
+
+_FEATURE_BULLETS: list[tuple[str, str]] = [
+    ("can_download_excel",         "Excel export"),
+    ("can_download_pdf",           "PDF reports"),
+    ("can_view_advanced_insights", "AI insights &amp; analytics"),
+    ("can_view_premium_charts",    "Premium chart gallery"),
+    ("can_brand_reports",          "Branded client reports"),
+]
 
 
 def render_pricing_page() -> None:
-    """Convenience wrapper — reads the active plan from session and renders the full pricing table.
-
-    Designed to be dropped inside an st.expander() or a modal.
-    """
     from utils.session_helpers import get_plan_key
     render_pricing_cards(current_plan_key=get_plan_key())
 
 
 def render_pricing_cards(current_plan_key: str = "free") -> None:
-    """Full pricing table — call from a modal or dedicated pricing page."""
-    # Prevent price text from wrapping and allow the card grid to scroll
-    # horizontally on narrow viewports rather than crushing each column.
+    """Full conversion-optimised pricing table."""
+    _inject_pricing_css()
+
+    st.markdown("## ColtraDataAi Plans")
+    st.caption("Trusted for structured data processing and reporting.")
+
+    cols = st.columns(len(PLAN_ORDER), gap="small")
+    for col, plan_key in zip(cols, PLAN_ORDER):
+        plan       = PLAN_CONFIG[plan_key]
+        is_current = plan_key == current_plan_key
+        featured   = plan_key == "professional"
+
+        with col:
+            _render_card(plan_key, plan, is_current, featured)
+
+    _render_reassurance_row()
+
+
+# ── Private helpers ───────────────────────────────────────────────────────────
+
+def _render_card(
+    plan_key: str,
+    plan: dict,
+    is_current: bool,
+    featured: bool,
+) -> None:
+    card_class = "pricing-card pricing-card--featured" if featured else "pricing-card"
+    price_display = "Custom pricing" if plan_key == "enterprise" else plan["price"]
+
+    # ── Badges ────────────────────────────────────────────────────────────────
+    badges_html = ""
+    if featured:
+        badges_html += '<span class="badge badge--popular">Most Popular</span>'
+    if is_current:
+        badges_html += '<span class="badge badge--current">Your plan</span>'
+    badges_section = (
+        f'<div class="card-badges">{badges_html}</div>'
+        if badges_html else
+        '<div class="card-badges-empty"></div>'
+    )
+
+    # ── Feature bullets ───────────────────────────────────────────────────────
+    runs = plan["monthly_runs"]
+    runs_label = "Unlimited runs/month" if runs is None else f"{runs} runs/month"
+
+    bullets = (
+        f'<li>{runs_label}</li>'
+        f'<li>{plan["max_rows_backend"]:,} rows</li>'
+        f'<li>{plan["max_file_mb_backend"]} MB file size</li>'
+    )
+
+    if plan_key == "enterprise":
+        for feat in _ENTERPRISE_FEATURES:
+            bullets += f"<li>{feat}</li>"
+    else:
+        for feat_key, label in _FEATURE_BULLETS:
+            if plan.get(feat_key):
+                bullets += f"<li>{label}</li>"
+
+    for line in _SUPPORT_TIERS.get(plan_key, []):
+        bullets += f'<li class="support-line">{line}</li>'
+
+    # ── Assemble full card HTML ───────────────────────────────────────────────
+    html = (
+        f'<div class="{card_class}">'
+        f'{badges_section}'
+        f'<p class="card-name">{plan["label"]}</p>'
+        f'<p class="card-price">{price_display}</p>'
+        f'<p class="card-blurb">{plan["blurb"]}</p>'
+        f'<hr class="card-rule" />'
+        f'<ul class="card-features">{bullets}</ul>'
+        f'</div>'
+    )
+    st.markdown(html, unsafe_allow_html=True)
+
+    # ── CTA button (must be a Streamlit widget, rendered outside the HTML) ────
+    if plan_key == "enterprise":
+        st.link_button(
+            "Contact Sales",
+            "mailto:sales@coltradata.ai",
+            use_container_width=True,
+        )
+    elif is_current:
+        st.button(
+            "Current Plan",
+            disabled=True,
+            use_container_width=True,
+            key=f"_pricing_current_{plan_key}",
+        )
+    elif plan_key == "free":
+        pass
+    else:
+        url   = checkout_url(plan_key)
+        label = _CTA_LABELS.get(plan_key, f"Get {plan['label']}")
+        if url:
+            st.link_button(label, url, use_container_width=True, type="primary")
+        elif payments_live():
+            st.button(
+                label,
+                disabled=True,
+                use_container_width=True,
+                key=f"_pricing_btn_{plan_key}",
+            )
+        else:
+            st.caption("Coming soon")
+
+
+def _render_reassurance_row() -> None:
+    st.markdown("<br>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3)
+    items = [
+        ("Cancel anytime", c1),
+        ("No long-term contracts", c2),
+        ("Secure checkout via Lemon Squeezy", c3),
+    ]
+    for text, col in items:
+        with col:
+            st.markdown(
+                f'<p style="text-align:center;font-size:0.8rem;color:#657286;">{text}</p>',
+                unsafe_allow_html=True,
+            )
+
+
+def _inject_pricing_css() -> None:
     st.markdown(
         """
         <style>
+        /* ── Responsive grid ────────────────────────────────── */
         div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] {
-            min-width: 160px;
+            min-width: 150px;
         }
         div[data-testid="stHorizontalBlock"] {
             overflow-x: auto;
             flex-wrap: nowrap;
         }
+
+        /* ── Base card ──────────────────────────────────────── */
+        .pricing-card {
+            background: #FFFFFF;
+            border: 1px solid #E6ECF0;
+            border-radius: 14px;
+            padding: 1.1rem 1rem 1rem 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* ── Featured (Professional) card ───────────────────── */
+        .pricing-card--featured {
+            border: 2px solid #1F4E79;
+            background: #F0F6FF;
+            box-shadow: 0 4px 18px rgba(31, 78, 121, 0.12);
+        }
+
+        /* ── Badge row ──────────────────────────────────────── */
+        .card-badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 0.55rem;
+            min-height: 22px;
+        }
+        .card-badges-empty {
+            min-height: 22px;
+            margin-bottom: 0.55rem;
+        }
+        .badge {
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 20px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .badge--popular {
+            background: #1F4E79;
+            color: #FFFFFF;
+        }
+        .badge--current {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        /* ── Plan name & price ──────────────────────────────── */
+        .card-name {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #1F4E79;
+            margin: 0 0 2px 0;
+        }
+        .card-price {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #111827;
+            margin: 0 0 4px 0;
+            white-space: nowrap;
+        }
+        .card-blurb {
+            font-size: 0.75rem;
+            color: #4B5563;
+            margin: 0 0 0 0;
+            line-height: 1.4;
+        }
+
+        /* ── Divider ─────────────────────────────────────────── */
+        .card-rule {
+            border: none;
+            border-top: 1px solid #E6ECF0;
+            margin: 0.65rem 0 0.5rem 0;
+        }
+
+        /* ── Feature list ───────────────────────────────────── */
+        .card-features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .card-features li {
+            font-size: 0.75rem;
+            color: #374151;
+            padding: 2px 0;
+            line-height: 1.45;
+        }
+        .card-features li::before {
+            content: "✓ ";
+            color: #1F4E79;
+            font-weight: 700;
+        }
+        .card-features li.support-line {
+            color: #6B7280;
+            font-style: italic;
+        }
+        .card-features li.support-line::before {
+            content: "◎ ";
+            color: #9CA3AF;
+            font-weight: normal;
+        }
         </style>
         """,
         unsafe_allow_html=True,
     )
-
-    st.markdown("## ColtraDataAi Plans")
-    st.caption("Choose the plan that fits your data volume and workflow.")
-
-    cols = st.columns(len(PLAN_ORDER), gap="small")
-    for col, plan_key in zip(cols, PLAN_ORDER):
-        plan = PLAN_CONFIG[plan_key]
-        is_current = plan_key == current_plan_key
-
-        with col:
-            if is_current:
-                st.success(f"**{plan['label']}** ✓ Current")
-            else:
-                st.markdown(f"**{plan['label']}**")
-
-            # Use HTML so the price never wraps mid-string
-            st.markdown(
-                f"<p style='font-size:1.5rem;font-weight:700;margin:4px 0;white-space:nowrap'>"
-                f"{plan['price']}</p>",
-                unsafe_allow_html=True,
-            )
-            st.caption(plan["blurb"])
-            st.markdown("---")
-
-            runs = plan["monthly_runs"]
-            st.caption(f"Runs/month: {'Unlimited' if runs is None else runs}")
-            st.caption(f"Rows: {plan['max_rows_backend']:,}")
-            st.caption(f"File size: {plan['max_file_mb_backend']} MB")
-
-            st.markdown("")
-            for feature_key, label in _FEATURE_LABELS.items():
-                icon = "✅" if plan.get(feature_key) else "—"
-                st.caption(f"{icon} {label}")
-
-            if not is_current:
-                url = checkout_url(plan_key)
-                if url:
-                    st.link_button(f"Get {plan['label']}", url, use_container_width=True)
-                elif plan_key != "free":
-                    if payments_live():
-                        st.button(
-                            f"Get {plan['label']}",
-                            disabled=True,
-                            use_container_width=True,
-                            key=f"_pricing_btn_{plan_key}",
-                        )
-                    else:
-                        st.caption("Coming soon")
