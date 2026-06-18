@@ -142,6 +142,7 @@ def render_results_panel(
         paywall_card(
             "Advanced insights are locked",
             "Upgrade to Professional or above to unlock deeper diagnostics and richer analysis.",
+            key="data_insights_lock",
         )
         render_upgrade_cta_button("professional", key_suffix="insights_lock")
 
@@ -180,6 +181,7 @@ def render_results_panel(
             paywall_card(
                 "Advanced insights are locked",
                 "Upgrade to Professional or above to unlock deeper diagnostics and richer analysis.",
+                key="ai_advisory_lock",
             )
             render_upgrade_cta_button("professional", key_suffix="advisory_lock")
 

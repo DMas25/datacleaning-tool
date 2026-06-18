@@ -26,10 +26,14 @@ def render_upgrade_cta_button(plan_key: str | None, key_suffix: str = "") -> Non
         )
 
 
-def paywall_card(title: str, body: str, button_text: str = "Upgrade") -> None:
-    """Simple inline paywall card — use for quick guards throughout the app."""
+def paywall_card(title: str, body: str, button_text: str = "Upgrade", key: str | None = None) -> None:
+    """Simple inline paywall card — use for quick guards throughout the app.
+
+    `key` disambiguates calls that share the same title (e.g. the same
+    locked-feature message shown in two different sections).
+    """
     st.warning(f"**{title}**\n\n{body}")
-    st.button(button_text, key=f"btn_{title}")
+    st.button(button_text, key=f"btn_{key or title}")
 
 
 def render_paywall(
