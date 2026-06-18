@@ -95,6 +95,20 @@ def render_header(branding: dict) -> None:
     )
 
 
+def render_legal_notices(legal: dict) -> None:
+    """Render expandable Privacy/GDPR/Cookies/Terms sections above the footer."""
+    with st.expander("Privacy, GDPR & Legal Notices", expanded=False):
+        st.markdown(f"*Last updated: {legal['last_updated']}*")
+        st.markdown("#### Privacy Policy")
+        st.markdown(legal["privacy_policy"])
+        st.markdown("#### GDPR Notice")
+        st.markdown(legal["gdpr_notice"])
+        st.markdown("#### Cookies")
+        st.markdown(legal["cookies_notice"])
+        st.markdown("#### Terms of Use Summary")
+        st.markdown(legal["terms_summary"])
+
+
 def render_footer(branding: dict) -> None:
     """Render the branded page footer with contact link and disclaimer."""
     st.markdown(
@@ -115,6 +129,9 @@ def render_footer(branding: dict) -> None:
                 legal, financial, tax, or compliance advice. Users remain responsible for reviewing
                 all outputs and obtaining professional guidance where required.
                 &copy; 2026 {branding.get('company', 'Coltrane Ltd')}. All rights reserved.
+            </div>
+            <div style="font-size:0.7rem;color:#B0B7C3;max-width:740px;margin:8px auto 0;line-height:1.5;">
+                {branding.get('legal_line', '')}
             </div>
         </div>
         """,

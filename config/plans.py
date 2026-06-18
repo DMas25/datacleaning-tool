@@ -53,7 +53,7 @@ PLAN_CONFIG = {
     },
     "enterprise": {
         "label": "Enterprise",
-        "price": "Custom",
+        "price": "£299/month",
         "can_download_excel": True,
         "can_download_pdf": True,
         "can_view_advanced_insights": True,

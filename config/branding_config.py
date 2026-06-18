@@ -36,6 +36,15 @@ branding = {
     # Footer branding line for PDF page footers and report cover sheets
     "footer_line": "ColtraDataAi  ·  Coltrane Ltd  ·  support@coltradata.com",
 
+    # UK trading-disclosure line (Companies (Trading Disclosures) Regulations 2008) —
+    # company name, place of registration, registered number, and registered office
+    # must appear on the website for a registered company.
+    "legal_line": (
+        "ColtraDataAi is a trading name of Coltrane Ltd, registered in England and Wales "
+        "· Company No. 09088932 · Registered office: Kemp House, 128 City Road, "
+        "London EC1V 2NX"
+    ),
+
     # Extended chart palette — used across all Plotly figures for consistent colour sequencing
     "chart_palette": [
         "#1F4E79",   # primary dark blue

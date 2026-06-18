@@ -36,7 +36,7 @@ TIERS = {
     },
     "Enterprise": {
         "label": "Enterprise",
-        "price": "£100+/month",
+        "price": "£299/month",
         "row_limit": None,
         "features": {
             "advanced_dashboards": True,

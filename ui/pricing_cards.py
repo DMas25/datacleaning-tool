@@ -8,13 +8,14 @@ _SUPPORT_TIERS: dict[str, list[str]] = {
     "starter":      ["Email support (24–48h)"],
     "professional": ["Priority email support (12–24h)"],
     "premium":      ["Priority support (same-day response)"],
-    "enterprise":   ["Dedicated support + SLA (&lt;4h)", "Onboarding &amp; consulting available"],
+    "enterprise":   ["Dedicated support + SLA (&lt;4h)"],
 }
 
 _CTA_LABELS: dict[str, str] = {
     "starter":      "Upgrade to Starter",
     "professional": "Get Professional",
     "premium":      "Scale with Premium",
+    "enterprise":   "Upgrade to Enterprise",
 }
 
 _ENTERPRISE_FEATURES = [
@@ -67,7 +68,7 @@ def _render_card(
     featured: bool,
 ) -> None:
     card_class = "pricing-card pricing-card--featured" if featured else "pricing-card"
-    price_display = "Custom pricing" if plan_key == "enterprise" else plan["price"]
+    price_display = plan["price"]
 
     # ── Badges ────────────────────────────────────────────────────────────────
     badges_html = ""
@@ -116,13 +117,7 @@ def _render_card(
     st.markdown(html, unsafe_allow_html=True)
 
     # ── CTA button (must be a Streamlit widget, rendered outside the HTML) ────
-    if plan_key == "enterprise":
-        st.link_button(
-            "Contact Sales",
-            "mailto:sales@coltradata.ai",
-            use_container_width=True,
-        )
-    elif is_current:
+    if is_current:
         st.button(
             "Current Plan",
             disabled=True,

@@ -8,12 +8,13 @@ import streamlit as st
 from PIL import Image
 
 from config.branding_config import branding
+from config.legal_config import legal
 from config.tier_config import row_limit_for
 from core.feature_gate import render_tier_selector, render_sidebar_subscription_panel
 from ui.upgrade_prompts import render_live_upgrade_banner
 from ui.pricing_cards import render_pricing_page
 from ui.branding_components import inject_app_css
-from ui.homepage import check_password, render_header, render_footer
+from ui.homepage import check_password, render_header, render_footer, render_legal_notices
 from ui.upload_panel import render_upload_panel
 from ui.cleaning_options import render_cleaning_options
 from ui.preview_panel import render_preview_panel
@@ -178,4 +179,5 @@ if df is not None:
 
 # ── Page footer ───────────────────────────────────────────────────────────────
 
+render_legal_notices(legal)
 render_footer(branding)

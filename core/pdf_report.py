@@ -258,6 +258,8 @@ def build_pdf_report(branding: dict, raw_df, cleaned_df, risk_summary: dict, cha
         f"Contact: {branding['contact_email']}  &nbsp;·&nbsp;  &copy; 2026 {branding.get('company', 'Coltrane Ltd')}. All rights reserved.",
         caption_style,
     ))
+    if branding.get("legal_line"):
+        story.append(Paragraph(branding["legal_line"], caption_style))
 
     footer_cb = lambda c, d: _draw_page_footer(c, d, branding)
     doc.build(story, onFirstPage=footer_cb, onLaterPages=footer_cb)
