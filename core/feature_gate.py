@@ -86,26 +86,42 @@ def _render_tier_badge() -> None:
 
 
 def _render_upgrade_ctas() -> None:
+    from config.plans import PLAN_ORDER, get_plan, get_next_paid_plan
+
     st.sidebar.markdown("---")
     tier_name = st.session_state.get("account_tier", "Free")
+    plan_key = _TIER_TO_PLAN.get(tier_name, "free")
 
-    if tier_name == "Enterprise":
+    if plan_key == "enterprise":
         return
 
     if not is_payments_live():
         st.sidebar.caption("Paid plans launching soon — activate your licence key above once you have one.")
         return
 
-    st.sidebar.markdown("**Upgrade your plan**")
+    current_idx = PLAN_ORDER.index(plan_key) if plan_key in PLAN_ORDER else 0
+    upgrade_options = [p for p in PLAN_ORDER[current_idx + 1:] if p != "free"]
+    if not upgrade_options:
+        return
 
-    if tier_name != "Professional":
-        pro_url = get_checkout_url("Professional")
-        if pro_url:
-            st.sidebar.link_button("Professional", pro_url, use_container_width=True)
+    recommended = get_next_paid_plan(plan_key) or upgrade_options[0]
 
-    ent_url = get_checkout_url("Enterprise")
-    if ent_url:
-        st.sidebar.link_button("Enterprise", ent_url, use_container_width=True)
+    with st.sidebar.container(border=True):
+        st.markdown("**Upgrade your plan**")
+        selected = st.selectbox(
+            "Choose a plan",
+            upgrade_options,
+            index=upgrade_options.index(recommended),
+            format_func=lambda key: f"{get_plan(key)['label']} · {get_plan(key)['price']}",
+            label_visibility="collapsed",
+            key="_upgrade_plan_select",
+        )
+        plan = get_plan(selected)
+        st.caption(plan["blurb"])
+
+        url = get_checkout_url(plan["label"])
+        if url:
+            st.link_button(f"Upgrade to {plan['label']} →", url, use_container_width=True, type="primary")
 
 
 def _render_dev_tier_override() -> None:
