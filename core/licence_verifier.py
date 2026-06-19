@@ -69,9 +69,10 @@ def validate_licence_key(licence_key: str) -> dict:
             "error": "Licence server timed out — please try again.",
         }
     except requests.RequestException as exc:
+        log.warning("Licence server request failed: %s", exc)
         return {
             "valid": False, "tier": "Free", "plan": "free",
-            "error": f"Could not reach licence server: {exc}",
+            "error": "Could not reach the licence server. Please check your connection and try again.",
         }
 
     if not data.get("valid"):

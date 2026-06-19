@@ -19,7 +19,9 @@ from core.export_manager import generate_reports, build_chart_and_risk
 from core.feature_gate import feature_unlocked
 from services.entitlements import has_feature
 from services.subscription import get_user_plan_from_subscription
+from services.usage_tracker import can_run, increment_run
 from ui.paywall import paywall_card, render_upgrade_cta_button
+from ui.upgrade_prompts import render_run_limit_trigger
 from core.dashboard_builder import (
     get_numeric_columns,
     get_categorical_columns,
@@ -56,9 +58,13 @@ def render_results_panel(
         st.session_state.pop(_RESULT_KEY, None)
 
     if st.button("Generate Clean Report"):
+        if not can_run(user_plan):
+            render_run_limit_trigger(user_plan)
+            st.stop()
         st.session_state.pop(_RESULT_KEY, None)
         with st.spinner("Processing dataset…"):
             result = _run_processing(df, options, branding, user_plan)
+        increment_run()
         st.session_state[_RESULT_KEY] = result
         st.session_state[_INPUT_SHAPE_KEY] = df.shape
 

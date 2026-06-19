@@ -98,10 +98,10 @@ def _render_upgrade_ctas() -> None:
 
     st.sidebar.markdown("**Upgrade your plan**")
 
-    if tier_name != "Pro":
-        pro_url = get_checkout_url("Pro")
+    if tier_name != "Professional":
+        pro_url = get_checkout_url("Professional")
         if pro_url:
-            st.sidebar.link_button("Pro", pro_url, use_container_width=True)
+            st.sidebar.link_button("Professional", pro_url, use_container_width=True)
 
     ent_url = get_checkout_url("Enterprise")
     if ent_url:

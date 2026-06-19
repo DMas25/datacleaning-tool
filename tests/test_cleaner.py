@@ -80,11 +80,22 @@ def test_null_handling_fill_placeholder():
 
 # ── Log structure ─────────────────────────────────────────────────────────────
 
-def test_log_has_five_steps():
+def test_log_has_nine_steps():
     df = _sample_df()
     result = apply_cleaning(df, CleaningOptions())
-    assert len(result.log_df) == 5
+    assert len(result.log_df) == 9
     assert list(result.log_df.columns) == ["Step", "Action", "Result"]
+    assert list(result.log_df["Action"]) == [
+        "File Loaded",
+        "Header Standardisation",
+        "Whitespace Trimming",
+        "Sentinel Normalisation",
+        "Numeric Coercion",
+        "Arithmetic Recovery",
+        "Item Recovery",
+        "Duplicate Removal",
+        "Missing Value Handling",
+    ]
 
 
 def test_log_skipped_step_marked():

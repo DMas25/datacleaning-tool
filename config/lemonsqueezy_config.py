@@ -10,7 +10,10 @@
 # Nothing in this file is secret — it contains only public IDs and URLs.
 # Keep secrets out of this file and in .streamlit/secrets.toml.
 
-STORE_SLUG = "TODO"  # e.g. "coltradata"  (your LS store subdomain)
+STORE_SLUG = "TODO"  # e.g. "coltradata" (your LS store subdomain).
+# NOTE: not currently referenced anywhere in the codebase (checkout URLs are
+# pasted directly into CHECKOUT_URLS below). Leave as "TODO" — fill in only
+# if/when a feature needs to build a store URL programmatically.
 
 # ── Variant IDs ────────────────────────────────────────────────────────────
 STARTER_VARIANT_ID      = "1790190"

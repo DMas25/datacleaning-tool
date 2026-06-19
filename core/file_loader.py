@@ -37,8 +37,8 @@ def load_file(uploaded_file) -> pd.DataFrame:
             df = pd.read_excel(uploaded_file, engine="openpyxl")
     except Exception as exc:
         st.error(
-            f"Could not read **{uploaded_file.name}**: {exc}\n\n"
-            "Please check the file is not password-protected, corrupted, or empty."
+            f"Could not read **{uploaded_file.name}**. "
+            "Please check the file isn't corrupted, password-protected, or in an unsupported format."
         )
         st.stop()
 

@@ -22,7 +22,7 @@
 # ════════════════════════════════════════════════════════════════════════════
 
 # Core Framework (pure-Python wheel — pin OK)
-streamlit==1.40.2
+streamlit==1.57.0
 
 # HTTP & Networking — urllib3>=2.0 silences RequestsDependencyWarning
 requests>=2.31
