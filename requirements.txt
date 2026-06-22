@@ -22,7 +22,11 @@
 # ════════════════════════════════════════════════════════════════════════════
 
 # Core Framework (pure-Python wheel — pin OK)
-streamlit==1.57.0
+# NOTE: deliberately pinned below local dev's version (1.57.0/1.58.0) —
+# Streamlit redesigned the file_uploader widget in later releases, dropping
+# the "Drag and drop file here" dropzone for a compact icon-button. 1.40.2
+# keeps the fuller, more premium-looking uploader on the deployed app.
+streamlit==1.40.2
 
 # HTTP & Networking — urllib3>=2.0 silences RequestsDependencyWarning
 requests>=2.31
