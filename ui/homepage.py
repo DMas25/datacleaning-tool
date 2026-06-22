@@ -65,6 +65,17 @@ def check_password(branding: dict) -> bool:
     return False
 
 
+def render_sign_out_button() -> None:
+    """Sidebar control letting an authenticated user end their session.
+
+    Clears all session state (auth flag, plan key, licence activation, etc.)
+    so the next rerun shows the login gate again — equivalent to a fresh visit.
+    """
+    if st.sidebar.button("Sign out", use_container_width=True):
+        st.session_state.clear()
+        st.rerun()
+
+
 def render_header(branding: dict) -> None:
     """Render the branded app header: logo | divider | tagline block."""
     logo_path = branding.get("logo_path", "assets/logo/coltradata_logo.png")

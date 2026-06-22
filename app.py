@@ -14,7 +14,7 @@ from core.feature_gate import render_tier_selector, render_sidebar_subscription_
 from ui.upgrade_prompts import render_live_upgrade_banner
 from ui.pricing_cards import render_pricing_page
 from ui.branding_components import inject_app_css
-from ui.homepage import check_password, render_header, render_footer, render_legal_notices
+from ui.homepage import check_password, render_header, render_footer, render_legal_notices, render_sign_out_button
 from ui.upload_panel import render_upload_panel
 from ui.cleaning_options import render_cleaning_options
 from ui.preview_panel import render_preview_panel
@@ -118,6 +118,8 @@ except Exception:
 
 if not check_password(branding):
     st.stop()
+
+render_sign_out_button()
 
 # SUBSCRIPTION LOGIC START
 # ── Live-mode plan resolution ─────────────────────────────────────────────────
