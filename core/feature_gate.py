@@ -106,17 +106,29 @@ def _render_upgrade_ctas() -> None:
 
     recommended = get_next_paid_plan(plan_key) or upgrade_options[0]
 
+    from config.branding_config import branding as _branding
+
     with st.sidebar.container(border=True):
-        st.markdown("**Upgrade your plan**")
+        st.markdown(
+            f"<span style='font-size:0.7rem;font-weight:700;letter-spacing:0.06em;"
+            f"text-transform:uppercase;color:{_branding['primary_colour']};opacity:0.75;'>"
+            f"Upgrade your plan</span>",
+            unsafe_allow_html=True,
+        )
         selected = st.selectbox(
             "Choose a plan",
             upgrade_options,
             index=upgrade_options.index(recommended),
-            format_func=lambda key: f"{get_plan(key)['label']} · {get_plan(key)['price']}",
+            format_func=lambda key: get_plan(key)["label"],
             label_visibility="collapsed",
             key="_upgrade_plan_select",
         )
         plan = get_plan(selected)
+        st.markdown(
+            f"<div style='font-size:1.35rem;font-weight:700;color:{_branding['primary_colour']};"
+            f"margin:0.1rem 0 0.25rem 0;'>{plan['price']}</div>",
+            unsafe_allow_html=True,
+        )
         st.caption(plan["blurb"])
 
         url = get_checkout_url(plan["label"])
