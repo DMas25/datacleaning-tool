@@ -67,6 +67,10 @@ def render_results_panel(
         increment_run()
         st.session_state[_RESULT_KEY] = result
         st.session_state[_INPUT_SHAPE_KEY] = df.shape
+        # Sidebar run counter is rendered earlier in the script (before this
+        # button handler runs), so it would otherwise show the stale count
+        # until some unrelated future rerun. Force one now to refresh it.
+        st.rerun()
 
     result = st.session_state.get(_RESULT_KEY)
     if result is None:
