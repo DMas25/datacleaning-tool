@@ -5,6 +5,116 @@ from services.billing import checkout_url, payments_live
 from services.usage_tracker import runs_remaining, usage_summary
 
 
+def render_targeted_upgrade_banner() -> None:
+    """Main-area upgrade nudge grounded in the user's actual usage history.
+
+    Page-load is the lowest-intent moment — no fresh same-session evidence
+    exists yet — so this is restricted to BANNER_TIER_SIGNALS only (long
+    horizon, low-volatility signals). Everything else (blocked intent,
+    high-frequency, follow-through) needs a same-session trigger site, not
+    this once-per-session call. The once-per-session gate itself lives at the
+    call site (app.py), not here, so this function is purely "evaluate and
+    render" with no session-state side effects of its own.
+
+    Falls back to render_live_upgrade_banner() when there's no email on file
+    or no behavioural signal strong enough to act on (e.g. brand-new users).
+    """
+    from services.licence_manager import (
+        get_user_behavior,
+        signal_shown_recently,
+        log_signal_shown,
+        sessions_without_prompt,
+        log_prompt_evaluation,
+        get_prompt_effectiveness,
+    )
+    from services.upgrade_messaging import build_message, COOLDOWN_HOURS, BANNER_TIER_SIGNALS
+    from utils.session_helpers import get_user_email
+
+    email = get_user_email()
+    if not email:
+        render_live_upgrade_banner()
+        return
+
+    behavior = get_user_behavior(email)
+
+    if behavior["total_runs"] == 0:
+        # Brand-new user — no behavioural history to ground a targeted nudge
+        # in, so don't let a behaviourally-empty message slip through.
+        render_live_upgrade_banner()
+        return
+
+    # If every matching signal has been cooldown-suppressed for the last 3
+    # sessions in a row, force the weakest matching one through anyway —
+    # otherwise a user can go indefinitely without ever seeing any
+    # monetisation messaging just because of unlucky cooldown timing.
+    force_fallback = sessions_without_prompt(email) >= 3
+
+    # Dynamic-priority engine: reorders candidates *within* their fixed
+    # behavioural-intent tier by historical conversion score (see
+    # upgrade_messaging.SIGNAL_TIERS / _reorder_by_effectiveness). At this
+    # call site BANNER_TIER_SIGNALS only ever contains one signal per tier
+    # (sustained_free_usage, dormancy live in different tiers), so there's
+    # nothing to reorder here yet — this only starts mattering once a
+    # same-session trigger site exposes multiple same-tier candidates at once.
+    effectiveness = get_prompt_effectiveness()
+
+    message = build_message(
+        behavior,
+        is_recent=lambda signal: signal_shown_recently(email, signal, COOLDOWN_HOURS),
+        runs_this_session=st.session_state.get("runs_this_session", 0),
+        follow_through_this_session=st.session_state.get("follow_through_this_session", False),
+        force_lowest_priority=force_fallback,
+        blocked_attempts_this_session=st.session_state.get("blocked_attempts_this_session", 0),
+        allowed_signals=BANNER_TIER_SIGNALS,
+        effectiveness=effectiveness,
+    )
+    if message is None:
+        log_prompt_evaluation(email, shown=False)
+        render_live_upgrade_banner()
+        return
+
+    log_signal_shown(email, message.signal, message.variant)
+    log_prompt_evaluation(email, shown=True)
+
+    url = checkout_url(next_plan(behavior["plan"])) if behavior["plan"] not in (
+        "professional", "premium", "enterprise"
+    ) else None
+
+    cta_html = (
+        f"""<a href="{url}" target="_blank" rel="noopener noreferrer" style="
+            display:inline-block;white-space:nowrap;flex-shrink:0;
+            background:#1F4E79;color:white;font-weight:600;font-size:0.85rem;
+            padding:0.45rem 1rem;border-radius:7px;text-decoration:none;
+        ">{message.cta} →</a>"""
+        if url
+        else f'<span style="color:#1F4E79;font-weight:600;font-size:0.85rem;">{message.cta}</span>'
+    )
+
+    reference_html = (
+        f'<div style="color:#5B7A99;font-size:0.78rem;margin-top:0.15rem;">{message.usage_reference}</div>'
+        if message.usage_reference
+        else ""
+    )
+
+    st.markdown(
+        f"""
+        <div style="
+            display:flex;align-items:center;justify-content:space-between;
+            background:#EFF6FF;border:1px solid #BFDBFE;border-left:4px solid #3B82F6;
+            border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.5rem;gap:1rem;
+        ">
+            <div style="flex:1;">
+                <div style="color:#1E3A5F;font-size:0.9rem;line-height:1.5;font-weight:600;">{message.headline}</div>
+                <div style="color:#1E3A5F;font-size:0.85rem;line-height:1.5;margin-top:0.15rem;">{message.supporting_message}</div>
+                {reference_html}
+            </div>
+            {cta_html}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render_live_upgrade_banner() -> None:
     """Main-area upgrade nudge — shown only to free and starter users.
 

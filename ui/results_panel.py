@@ -21,7 +21,13 @@ from core.feature_gate import feature_unlocked
 from services.entitlements import has_feature
 from services.subscription import get_user_plan_from_subscription
 from services.usage_tracker import can_run, increment_run
-from services.licence_manager import log_usage_event
+from services.licence_manager import (
+    log_usage_event,
+    get_runs_this_calendar_month,
+    milestone_already_shown,
+    log_milestone_shown,
+)
+from services.milestone_messaging import detect_milestone, build_milestone_message
 from utils.session_helpers import get_user_email
 from ui.paywall import paywall_card, render_upgrade_cta_button
 from ui.upgrade_prompts import render_run_limit_trigger
@@ -68,8 +74,15 @@ def render_results_panel(
         with st.spinner("Processing dataset…"):
             result = _run_processing(df, options, branding, user_plan)
         increment_run()
+        st.session_state["runs_this_session"] = st.session_state.get("runs_this_session", 0) + 1
         if get_user_email():
-            log_usage_event(get_user_email(), "run", user_plan)
+            email = get_user_email()
+            log_usage_event(email, "run", user_plan)
+            milestone = detect_milestone(get_runs_this_calendar_month(email))
+            if milestone and not milestone_already_shown(email, milestone):
+                msg = build_milestone_message(milestone)
+                st.toast(f"{msg.headline} {msg.supporting_message} ({msg.cta})", icon="🎉")
+                log_milestone_shown(email, milestone)
         st.session_state[_RESULT_KEY] = result
         st.session_state[_INPUT_SHAPE_KEY] = df.shape
         # Sidebar run counter is rendered earlier in the script (before this
@@ -185,6 +198,11 @@ def render_results_panel(
                 with st.container(border=True):
                     st.markdown(advisory)
         else:
+            if get_user_email():
+                log_usage_event(get_user_email(), "advisory_blocked", user_plan)
+                st.session_state["blocked_attempts_this_session"] = (
+                    st.session_state.get("blocked_attempts_this_session", 0) + 1
+                )
             paywall_card(
                 "Advanced insights are locked",
                 "Upgrade to Professional or above to unlock deeper diagnostics and richer analysis.",
@@ -214,11 +232,17 @@ def render_results_panel(
             )
         if excel_clicked and get_user_email():
             log_usage_event(get_user_email(), "export_excel", user_plan)
+            st.session_state["follow_through_this_session"] = True
         st.caption(
             "Full multi-sheet workbook: cleaned data, quality log, summary statistics, "
             "and an embedded premium chart gallery."
         )
     else:
+        if get_user_email():
+            log_usage_event(get_user_email(), "export_blocked", user_plan)
+            st.session_state["blocked_attempts_this_session"] = (
+                st.session_state.get("blocked_attempts_this_session", 0) + 1
+            )
         paywall_card(
             "Excel report download is locked",
             "Upgrade to Starter or above to download the full cleaned dataset and structured Excel report.",
@@ -239,10 +263,16 @@ def render_results_panel(
         )
         if pdf_clicked and get_user_email():
             log_usage_event(get_user_email(), "export_pdf", user_plan)
+            st.session_state["follow_through_this_session"] = True
         st.caption(
             f"Portable executive summary with the same premium charts as the Excel report.{branding_note}"
         )
     else:
+        if get_user_email():
+            log_usage_event(get_user_email(), "export_blocked", user_plan)
+            st.session_state["blocked_attempts_this_session"] = (
+                st.session_state.get("blocked_attempts_this_session", 0) + 1
+            )
         paywall_card(
             "PDF reporting is locked",
             "Upgrade to Professional or above to unlock downloadable PDF reporting.",
@@ -351,6 +381,7 @@ def _run_processing(
             ai_advisory = generate_ai_advisory(cleaned_df, plan_key=user_plan, risk_summary=risk_summary)
         if ai_advisory and get_user_email():
             log_usage_event(get_user_email(), "ai_advisory", user_plan)
+            st.session_state["follow_through_this_session"] = True
 
     export = generate_reports(
         branding=branding,

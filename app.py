@@ -13,7 +13,7 @@ from config.branding_config import branding
 from config.legal_config import legal
 from config.tier_config import row_limit_for
 from core.feature_gate import render_tier_selector, render_sidebar_subscription_panel
-from ui.upgrade_prompts import render_live_upgrade_banner
+from ui.upgrade_prompts import render_targeted_upgrade_banner
 from ui.pricing_cards import render_pricing_page
 from ui.branding_components import inject_app_css
 from ui.homepage import check_password, render_header, render_footer, render_legal_notices, render_sign_out_button
@@ -192,7 +192,15 @@ def _run_app() -> None:
     # SUBSCRIPTION UI ENTRY POINTS
     # ---------------------------------------------
     render_sidebar_subscription_panel()         # licence form · plan badge · run counter · upgrade CTAs
-    render_live_upgrade_banner()                # main-area nudge for free / starter users
+
+    # main-area nudge, grounded in actual usage history — evaluated once per
+    # session (page-load moment only). Restricted to banner-tier signals
+    # inside the function itself; the session gate lives here at the call
+    # site so the function stays a pure "evaluate and render" with no
+    # session-state side effects.
+    if not st.session_state.get("session_prompt_evaluated"):
+        render_targeted_upgrade_banner()
+        st.session_state["session_prompt_evaluated"] = True
 
     # Derive routing keys used by upload capacity checks and legacy helpers.
     account_tier   = st.session_state.get("account_tier", "Free")
