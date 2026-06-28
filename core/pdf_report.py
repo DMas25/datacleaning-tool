@@ -13,6 +13,8 @@ from reportlab.platypus import (
 )
 
 from core.chart_gallery import CHART_IMAGE_ASPECT
+from core.advisory_text import parse_advisory_blocks, strip_residual_markdown, split_advisory_sections
+from core.report_builder import ReportBuilder
 
 RISK_COLOURS = {
     "High":   colors.HexColor("#DC2626"),
@@ -57,23 +59,22 @@ def _inline_markdown(text: str) -> str:
 
 
 def _markdown_to_flowables(text: str, heading_style, bullet_style, body_style) -> list:
-    """Lightweight Markdown → ReportLab flowables for Claude's advisory output.
+    """Claude's advisory markdown → ReportLab flowables.
 
-    Handles **bold**, lines that are entirely a bold heading, and "- " bullets.
-    Not a general Markdown parser — just enough for the advisory prompt shapes.
+    Structure (headings/bullets/body) comes from the shared advisory_text
+    parser; inline **bold** is rendered as <b> tags and any residual markdown
+    symbols (stray **, '') are scrubbed so they never reach the reader.
     """
     flowables: list = []
-    for raw_line in text.splitlines():
-        line = raw_line.strip()
-        if not line:
-            continue
-        heading_match = re.fullmatch(r"\*\*(.+?)\*\*:?", line)
-        if heading_match:
-            flowables.append(Paragraph(_escape_xml(heading_match.group(1)), heading_style))
-        elif line.startswith(("- ", "* ")):
-            flowables.append(Paragraph(f"•&nbsp;&nbsp;{_inline_markdown(line[2:].strip())}", bullet_style))
+    for kind, content in parse_advisory_blocks(text):
+        if kind == "heading":
+            flowables.append(Paragraph(_escape_xml(content), heading_style))
+        elif kind == "bullet":
+            flowables.append(Paragraph(
+                f"•&nbsp;&nbsp;{strip_residual_markdown(_inline_markdown(content))}", bullet_style,
+            ))
         else:
-            flowables.append(Paragraph(_inline_markdown(line), body_style))
+            flowables.append(Paragraph(strip_residual_markdown(_inline_markdown(content)), body_style))
     return flowables
 
 
@@ -176,31 +177,51 @@ def build_pdf_report(
         spaceAfter=4,
         textColor=colors.HexColor("#33414E"),
     )
+    bottom_line_style = ParagraphStyle(
+        "CDBottomLine",
+        parent=styles["BodyText"],
+        fontSize=11,
+        leading=16,
+        textColor=colors.white,
+        backColor=primary,
+        borderPadding=(8, 10, 8, 10),
+        spaceAfter=4,
+    )
 
     story = []
 
     # ── Cover block ──────────────────────────────────────────────────────────
     # Logo carries the brand name on its own — no typed app-name title beside
-    # it, so it can run larger without crowding the page (was 40mm).
-    logo_path = branding.get("logo_path", "assets/logo/coltradata_logo.png")
-    if os.path.exists(logo_path):
-        reader = ImageReader(logo_path)
+    # it, so it can run larger without crowding the page (was 40mm). A custom
+    # branded logo (uploaded for this run) takes priority over the default.
+    logo_bytes = branding.get("logo_bytes")
+    logo_source = BytesIO(logo_bytes) if logo_bytes else branding.get("logo_path", "assets/logo/coltradata_logo.png")
+    if logo_bytes or os.path.exists(logo_source):
+        reader = ImageReader(logo_source)
         iw, ih = reader.getSize()
         logo_width = 56 * mm
-        story.append(Image(logo_path, width=logo_width, height=logo_width * ih / iw))
+        if logo_bytes:
+            logo_source.seek(0)
+        story.append(Image(logo_source, width=logo_width, height=logo_width * ih / iw))
         story.append(Spacer(1, 10))
 
     story.append(Paragraph(branding["tagline"], tagline_style))
     story.append(Paragraph(
-        f"Executive Summary &nbsp;&nbsp;·&nbsp;&nbsp; "
-        f"Generated {datetime.now().strftime('%d %B %Y, %H:%M')}",
+        f"Data Quality &amp; Intelligence Report &nbsp;&nbsp;·&nbsp;&nbsp; "
+        f"Generated {datetime.now().strftime('%d %B %Y, %H:%M')} "
+        f"&nbsp;&nbsp;·&nbsp;&nbsp; {branding.get('company', 'Coltrane Ltd')}",
         meta_style,
     ))
     story.append(HRFlowable(
         width="100%", thickness=1.5, color=primary, spaceAfter=14, spaceBefore=2,
     ))
 
-    # ── KPI summary table ────────────────────────────────────────────────────
+    # ── AI advisory, split into named sections (empty dict if none supplied) ──
+    ai_sections = split_advisory_sections(ai_advisory) if ai_advisory else {}
+
+    # ── Executive Summary ────────────────────────────────────────────────────
+    story.append(Paragraph("Executive Summary", section_style))
+
     missing_values = int(cleaned_df.isnull().sum().sum())
     rows_removed   = len(raw_df) - len(cleaned_df)
 
@@ -243,10 +264,27 @@ def build_pdf_report(
     ])
     kpi_table.setStyle(kpi_style)
     story.append(kpi_table)
-    story.append(Spacer(1, 10))
+    story.append(Spacer(1, 8))
 
-    # ── Data Quality Risk Mix ────────────────────────────────────────────────
-    story.append(Paragraph("Data Quality Risk Mix", section_style))
+    executive_bottom_line = ai_sections.get("Executive Bottom Line")
+    if not executive_bottom_line:
+        executive_bottom_line = ReportBuilder(branding).build_bottom_line(raw_df, cleaned_df, risk_summary)
+    story.append(Paragraph("<b>Bottom Line</b>", body_style))
+    story.extend(_markdown_to_flowables(
+        executive_bottom_line, advisory_heading_style, advisory_bullet_style, body_style,
+    ))
+    story.append(Spacer(1, 6))
+
+    # ── Data Quality Summary ─────────────────────────────────────────────────
+    story.append(Paragraph("Data Quality Summary", section_style))
+    story.append(Spacer(1, 4))
+
+    total_cells = len(cleaned_df) * len(cleaned_df.columns)
+    missing_pct = round(missing_values / total_cells * 100, 1) if total_cells else 0.0
+    story.append(Paragraph(
+        f"Missing values: {missing_values:,} of {total_cells:,} cells ({missing_pct}%).",
+        body_style,
+    ))
     story.append(Spacer(1, 4))
 
     risk_levels = ["High", "Medium", "Low"]
@@ -280,10 +318,15 @@ def build_pdf_report(
         f"Average issue rate across columns: {risk_summary['avg_issue_pct']}%.",
         caption_style,
     ))
+    if risk_summary.get("overall_risk") == "High" and risk_summary.get("structural_missingness"):
+        story.append(Paragraph(
+            "Risk is primarily driven by structurally expected missing data, not data corruption.",
+            caption_style,
+        ))
 
     # ── Premium Chart Gallery ────────────────────────────────────────────────
     if chart_assets:
-        story.append(Paragraph("Visual Highlights", section_style))
+        story.append(Paragraph("Visual Insights", section_style))
         story.append(Paragraph(
             "Premium charts generated automatically from the cleaned dataset, "
             "mirroring the live dashboard and embedded in the Excel Executive Summary.",
@@ -299,8 +342,22 @@ def build_pdf_report(
             story.append(Image(BytesIO(png_bytes), width=chart_width, height=chart_height))
             story.append(Spacer(1, 6))
 
+    # ── Key Data Insights ────────────────────────────────────────────────────
+    key_insights = ai_sections.get("Key Data Insights")
+    if key_insights:
+        story.append(Paragraph("Key Data Insights", section_style))
+        story.append(Paragraph(
+            "Business-focused patterns drawn from the cleaned dataset — what is happening, "
+            "and why it matters.",
+            caption_style,
+        ))
+        story.extend(_markdown_to_flowables(
+            key_insights, advisory_heading_style, advisory_bullet_style, body_style,
+        ))
+
     # ── AI Advisory ──────────────────────────────────────────────────────────
-    if ai_advisory:
+    ai_advisory_body = ai_sections.get("AI Advisory")
+    if ai_advisory_body:
         story.append(Paragraph("AI Advisory", section_style))
         story.append(Paragraph(
             "Claude-powered interpretation of the cleaned data — patterns, anomalies, "
@@ -308,8 +365,36 @@ def build_pdf_report(
             caption_style,
         ))
         story.extend(_markdown_to_flowables(
-            ai_advisory, advisory_heading_style, advisory_bullet_style, body_style,
+            ai_advisory_body, advisory_heading_style, advisory_bullet_style, body_style,
         ))
+
+    # ── Modelling & Analytics Readiness ──────────────────────────────────────
+    modelling_readiness = ai_sections.get("Modelling & Analytics Readiness")
+    if modelling_readiness:
+        story.append(Paragraph("Modelling &amp; Analytics Readiness", section_style))
+        story.extend(_markdown_to_flowables(
+            modelling_readiness, advisory_heading_style, advisory_bullet_style, body_style,
+        ))
+
+    # ── Top Priority Actions ─────────────────────────────────────────────────
+    top_actions = ai_sections.get("Top Priority Actions")
+    if top_actions:
+        story.append(Paragraph("Top Priority Actions", section_style))
+        story.extend(_markdown_to_flowables(
+            top_actions, advisory_heading_style, advisory_bullet_style, body_style,
+        ))
+
+    # ── Bottom Line Summary ──────────────────────────────────────────────────
+    story.append(Paragraph("Bottom Line Summary", section_style))
+    closing_summary = ai_sections.get("Bottom Line Summary")
+    if not closing_summary:
+        closing_summary = ReportBuilder(branding).build_bottom_line(raw_df, cleaned_df, risk_summary)
+    closing_lines = [line.strip() for line in closing_summary.splitlines() if line.strip()]
+    closing_html = "<br/>".join(
+        strip_residual_markdown(_inline_markdown(line.lstrip("-* ").strip()))
+        for line in closing_lines
+    )
+    story.append(Paragraph(closing_html, bottom_line_style))
 
     # ── Footer disclaimer ────────────────────────────────────────────────────
     story.append(Spacer(1, 14))

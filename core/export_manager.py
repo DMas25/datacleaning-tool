@@ -14,6 +14,29 @@ import pandas as pd
 from core.report_builder import ReportBuilder
 from core.pdf_report import build_pdf_report
 from core.chart_gallery import ChartCard
+from config.branding_config import branding as _CANONICAL_BRANDING
+
+# Fields that identify ColtraDataAi / Coltrane Ltd as the producing platform
+# and legal entity: the trading-disclosure registration line, the liability
+# disclaimer, the support contact, and the platform/company names themselves.
+# A "branded" run may swap the logo image, but it can never drop or rewrite
+# these — co-branding is supported, white-labelling the platform away is not.
+_PROTECTED_BRANDING_KEYS = (
+    "app_name", "company", "contact_email", "legal_line", "report_disclaimer", "footer_line",
+)
+
+
+def _enforce_protected_branding(branding: dict) -> dict:
+    """Returns a branding dict safe to hand to the report builders.
+
+    Re-asserts the protected keys from the canonical config so no caller —
+    including the client-facing branding/logo test form — can alter or
+    remove the ColtraDataAi / Coltrane Ltd legal and brand identity text.
+    """
+    safe = dict(branding)
+    for key in _PROTECTED_BRANDING_KEYS:
+        safe[key] = _CANONICAL_BRANDING[key]
+    return safe
 
 
 @dataclass
@@ -44,6 +67,7 @@ def generate_reports(
     Returns an ExportBundle containing paths / bytes ready for Streamlit
     download buttons.
     """
+    branding = _enforce_protected_branding(branding)
     builder = ReportBuilder(branding)
 
     excel_path = builder.build_report(
@@ -51,6 +75,7 @@ def generate_reports(
         dictionary_df=dictionary_df,
         quality_breakdown_df=quality_breakdown_df,
         chart_assets=chart_assets,
+        ai_advisory=ai_advisory,
     )
 
     pdf_bytes = build_pdf_report(branding, raw_df, cleaned_df, risk_summary, chart_assets, ai_advisory)

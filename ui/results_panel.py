@@ -5,6 +5,7 @@ Processing results are cached in st.session_state so interactive widgets
 """
 from __future__ import annotations
 
+import os
 from typing import Optional
 
 import pandas as pd
@@ -20,6 +21,8 @@ from core.feature_gate import feature_unlocked
 from services.entitlements import has_feature
 from services.subscription import get_user_plan_from_subscription
 from services.usage_tracker import can_run, increment_run
+from services.licence_manager import log_usage_event
+from utils.session_helpers import get_user_email
 from ui.paywall import paywall_card, render_upgrade_cta_button
 from ui.upgrade_prompts import render_run_limit_trigger
 from core.dashboard_builder import (
@@ -65,6 +68,8 @@ def render_results_panel(
         with st.spinner("Processing dataset…"):
             result = _run_processing(df, options, branding, user_plan)
         increment_run()
+        if get_user_email():
+            log_usage_event(get_user_email(), "run", user_plan)
         st.session_state[_RESULT_KEY] = result
         st.session_state[_INPUT_SHAPE_KEY] = df.shape
         # Sidebar run counter is rendered earlier in the script (before this
@@ -200,13 +205,15 @@ def render_results_panel(
 
     if can_export:
         with open(result["excel_path"], "rb") as excel_file_bytes:
-            st.download_button(
+            excel_clicked = st.download_button(
                 label="Download cleaned Excel report",
                 data=excel_file_bytes,
                 file_name=result["excel_path"],
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 use_container_width=True,
             )
+        if excel_clicked and get_user_email():
+            log_usage_event(get_user_email(), "export_excel", user_plan)
         st.caption(
             "Full multi-sheet workbook: cleaned data, quality log, summary statistics, "
             "and an embedded premium chart gallery."
@@ -223,13 +230,15 @@ def render_results_panel(
 
     if can_export_pdf:
         branding_note = " Produced with your custom branding." if can_branding else ""
-        st.download_button(
+        pdf_clicked = st.download_button(
             label="Download PDF summary report",
             data=result["pdf_bytes"],
             file_name=result["pdf_filename"],
             mime="application/pdf",
             use_container_width=True,
         )
+        if pdf_clicked and get_user_email():
+            log_usage_event(get_user_email(), "export_pdf", user_plan)
         st.caption(
             f"Portable executive summary with the same premium charts as the Excel report.{branding_note}"
         )
@@ -244,8 +253,10 @@ def render_results_panel(
     st.subheader("Branded Report Outputs")
 
     if can_branding:
-        st.success("Branding is enabled on this plan. Client-ready branded outputs can be applied.")
-        # Place your logo / theme / report styling logic here
+        if st.session_state.pop("_branding_just_applied", False):
+            st.success("Branded reports regenerated — the downloads above now use your custom logo.")
+        st.success("Branding is enabled on this plan. Upload a logo below to test client-ready branded outputs.")
+        _render_branding_test_form(result, df, branding)
     else:
         paywall_card(
             "Branded report outputs are locked",
@@ -255,6 +266,60 @@ def render_results_panel(
 
 
 # ── Private helpers ───────────────────────────────────────────────────────────
+
+def _render_branding_test_form(result: dict, raw_df: pd.DataFrame, branding: dict) -> None:
+    """Lets an Enterprise/Premium tester swap in a custom logo and regenerate
+    the Excel/PDF downloads with it, to verify the branded-output capability.
+
+    This is co-branding, not white-labelling: the logo image is the only
+    field that changes. The ColtraDataAi / Coltrane Ltd brand name, contact
+    details, liability disclaimer and statutory trading-disclosure line are
+    re-asserted from the canonical config by export_manager regardless of
+    what's supplied here — see _enforce_protected_branding().
+    """
+    with st.form("branding_test_form"):
+        custom_logo = st.file_uploader(
+            "Custom logo (PNG/JPG)", type=["png", "jpg", "jpeg"],
+            help="Upload a client or parent-company logo to test branded report generation.",
+        )
+        st.caption(
+            "Co-branding swaps the logo only. The ColtraDataAi / Coltrane Ltd name, contact "
+            "details and legal disclosures are fixed on every report regardless of plan."
+        )
+        apply_branding = st.form_submit_button("Apply branding & regenerate downloads")
+
+    if not apply_branding:
+        return
+
+    branded = dict(branding)
+    if custom_logo is not None:
+        branded["logo_bytes"] = custom_logo.getvalue()
+        branded["logo_ext"] = os.path.splitext(custom_logo.name)[1] or ".png"
+
+    with st.spinner("Regenerating branded reports…"):
+        export = generate_reports(
+            branding=branded,
+            raw_df=raw_df,
+            cleaned_df=result["cleaned_df"],
+            log_df=result["log_df"],
+            quality_df=result["quality_df"],
+            quality_breakdown_df=result["quality_breakdown_df"],
+            chart_assets=result["chart_assets"],
+            risk_summary=result["risk_summary"],
+            ai_advisory=result.get("ai_advisory"),
+        )
+
+    result["excel_path"]   = export.excel_path
+    result["pdf_bytes"]    = export.pdf_bytes
+    result["pdf_filename"] = export.pdf_filename
+    st.session_state[_RESULT_KEY] = result
+    st.session_state["_branding_just_applied"] = True
+    # The Excel/PDF download buttons render earlier in this script than this
+    # form, so without a rerun they'd keep showing the stale pre-branding
+    # files for the rest of this pass. Rerun so the top of the script picks
+    # up the freshly branded result before those buttons render again.
+    st.rerun()
+
 
 def _anthropic_key_configured() -> bool:
     """Return True only when a real (non-placeholder) Anthropic API key is present."""
@@ -283,7 +348,9 @@ def _run_processing(
     ai_advisory = None
     if has_feature(user_plan, "can_view_advanced_insights") and _anthropic_key_configured():
         with st.spinner("Generating AI advisory…"):
-            ai_advisory = generate_ai_advisory(cleaned_df, plan_key=user_plan)
+            ai_advisory = generate_ai_advisory(cleaned_df, plan_key=user_plan, risk_summary=risk_summary)
+        if ai_advisory and get_user_email():
+            log_usage_event(get_user_email(), "ai_advisory", user_plan)
 
     export = generate_reports(
         branding=branding,

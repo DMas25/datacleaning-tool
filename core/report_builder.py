@@ -4,10 +4,32 @@ import pandas as pd
 from datetime import datetime
 import os
 
+from PIL import Image as PILImage
+
 from core.data_validator import build_validation_issues
 from core.insights_engine import generate_insights, detect_date_columns
 from core.chart_gallery import ChartCard, build_chart_gallery, render_chart_images
 from core.coltradata_refine_patch import column_risk_levels, recommended_action
+from core.advisory_text import parse_advisory_blocks, to_plain_text, split_advisory_sections
+
+
+_LOGO_MAX_HEIGHT_PX = 56
+
+
+def _logo_fit_scale(image_source, max_height_px: int = _LOGO_MAX_HEIGHT_PX) -> float:
+    """Returns a uniform scale factor that caps the logo's rendered height.
+
+    A fixed scale factor (e.g. 0.45) only looks right for the source image
+    it was tuned against. A tall/portrait logo (icon stacked over a
+    wordmark, common for a parent company's brand mark) at the same factor
+    renders far taller in absolute pixels than a short/wide logo and spills
+    into the title row below it. Sizing to a fixed height keeps any logo,
+    regardless of native resolution or aspect ratio, within the same
+    vertical footprint on the cover sheet.
+    """
+    with PILImage.open(image_source) as img:
+        native_w, native_h = img.size
+    return max_height_px / native_h
 
 
 class ReportBuilder:
@@ -19,7 +41,7 @@ class ReportBuilder:
 
     def build_report(
         self, raw_df, cleaned_df, log_df, quality_df, dictionary_df=None,
-        quality_breakdown_df=None, chart_assets=None,
+        quality_breakdown_df=None, chart_assets=None, ai_advisory=None,
     ):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
         file_name = f"ColtraDataAi_Cleaned_Report_{timestamp}.xlsx"
@@ -35,7 +57,7 @@ class ReportBuilder:
             self._create_formats(workbook)
 
             # Build every sheet in the desired tab order
-            self._build_cover_sheet(workbook, writer, raw_df)
+            self._build_cover_sheet(workbook, writer, raw_df, has_ai_advisory=bool(ai_advisory))
             self._write_dataframe(writer, raw_df, "Raw Data")
             self._write_dataframe(writer, cleaned_df, "Cleaned Data")
             self._write_dataframe(writer, log_df, "Cleaning Log")
@@ -46,7 +68,13 @@ class ReportBuilder:
 
             self._build_processing_notes(workbook)
             self._build_insights_sheet(workbook, cleaned_df)
-            self._build_executive_summary_sheet(workbook, raw_df, cleaned_df, quality_breakdown_df, chart_assets)
+
+            if ai_advisory:
+                self._build_ai_advisory_sheet(workbook, ai_advisory)
+
+            self._build_executive_summary_sheet(
+                workbook, raw_df, cleaned_df, quality_breakdown_df, chart_assets, ai_advisory=ai_advisory,
+            )
             self._build_dashboard_sheet(workbook, raw_df, cleaned_df, quality_df, quality_breakdown_df)
 
             # Apply branded tab colours now that all sheets exist
@@ -176,6 +204,7 @@ class ReportBuilder:
             "Data Dictionary":  "#9CA3AF",
             "Processing Notes": "#9CA3AF",
             "Data Insights":    "#48C9B0",
+            "AI Advisory":      "#48C9B0",
             "Executive Summary": self.config["primary_colour"],
             "Dashboard":        self.config["success_colour"],
         }
@@ -188,7 +217,7 @@ class ReportBuilder:
         """Sets a taller row height for the header row so column labels breathe."""
         worksheet.set_row(row, height)
 
-    def _build_cover_sheet(self, workbook, writer, raw_df):
+    def _build_cover_sheet(self, workbook, writer, raw_df, has_ai_advisory=False):
         sheet = workbook.add_worksheet("Report Summary")
 
         # Column widths — narrow gutter, then label, then wide value area
@@ -196,33 +225,50 @@ class ReportBuilder:
         sheet.set_column("B:B", 22)
         sheet.set_column("C:H", 16)
 
-        # Logo — scaled to ~100 px wide, top-left
+        # Logo — capped to a fixed height, top-left, so it never overlaps the
+        # title row below regardless of the source image's aspect ratio. A
+        # custom branded logo (uploaded for this run) takes priority over
+        # the configured default.
+        logo_bytes = self.config.get("logo_bytes")
         logo_path = self.config.get("logo_path", "assets/logo/coltradata_logo.png")
-        if os.path.exists(logo_path):
-            sheet.insert_image("B2", logo_path, {"x_scale": 0.45, "y_scale": 0.45, "x_offset": 4})
+        if logo_bytes:
+            logo_ext = self.config.get("logo_ext", ".png")
+            logo_stream = BytesIO(logo_bytes)
+            scale = _logo_fit_scale(logo_stream)
+            logo_stream.seek(0)
+            sheet.insert_image("B2", f"logo{logo_ext}", {
+                "image_data": logo_stream, "x_scale": scale, "y_scale": scale, "x_offset": 4,
+            })
+        elif os.path.exists(logo_path):
+            scale = _logo_fit_scale(logo_path)
+            sheet.insert_image("B2", logo_path, {"x_scale": scale, "y_scale": scale, "x_offset": 4})
 
-        # Title and tagline (pushed down below logo)
-        sheet.set_row(8, 28)
-        sheet.merge_range("B9:H9", self.config["app_name"], self.title_format)
-        sheet.merge_range("B10:H10", self.config["tagline"], self.subtitle_format)
+        # Title and tagline — pushed down below logo with one full blank row
+        # of buffer (row 9) on top of the height cap, since a logo's visible
+        # mark can sit anywhere within its canvas (padding/whitespace varies
+        # per file) and a single fixed-height cap alone proved too tight for
+        # some real-world logos in testing.
+        sheet.set_row(9, 28)
+        sheet.merge_range("B10:H10", self.config["app_name"], self.title_format)
+        sheet.merge_range("B11:H11", self.config["tagline"], self.subtitle_format)
 
         # Key report metrics
-        sheet.set_row(12, 20)
-        sheet.write("B13", "Generated On", self.metric_label)
-        sheet.write("C13", datetime.now().strftime("%d %B %Y, %H:%M"), self.metric_value)
+        sheet.set_row(13, 20)
+        sheet.write("B14", "Generated On", self.metric_label)
+        sheet.write("C14", datetime.now().strftime("%d %B %Y, %H:%M"), self.metric_value)
 
-        sheet.write("B14", "Total Rows", self.metric_label)
-        sheet.write("C14", len(raw_df), self.metric_value)
+        sheet.write("B15", "Total Rows", self.metric_label)
+        sheet.write("C15", len(raw_df), self.metric_value)
 
-        sheet.write("B15", "Total Columns", self.metric_label)
-        sheet.write("C15", len(raw_df.columns), self.metric_value)
+        sheet.write("B16", "Total Columns", self.metric_label)
+        sheet.write("C16", len(raw_df.columns), self.metric_value)
 
-        sheet.write("B16", "Prepared By", self.metric_label)
-        sheet.write("C16", self.config["app_name"], self.metric_value)
+        sheet.write("B17", "Prepared By", self.metric_label)
+        sheet.write("C17", self.config["app_name"], self.metric_value)
 
         # Description block
         sheet.merge_range(
-            "B18:H21",
+            "B19:H22",
             "This workbook contains the original uploaded dataset, cleaned data output, "
             "processing log, quality checks, data insights, an executive summary with "
             "embedded charts, and a dashboard — all generated by ColtraDataAi.",
@@ -231,7 +277,7 @@ class ReportBuilder:
 
         # Non-advisory disclaimer
         sheet.merge_range(
-            "B23:H24",
+            "B24:H25",
             self.config.get(
                 "report_disclaimer",
                 "ColtraDataAi provides structured data cleaning, validation and dashboard "
@@ -240,11 +286,11 @@ class ReportBuilder:
             self.disclaimer_format,
         )
 
-        sheet.write("B26", "Contact", self.metric_label)
-        sheet.write("C26", self.config["contact_email"], self.metric_value)
+        sheet.write("B27", "Contact", self.metric_label)
+        sheet.write("C27", self.config["contact_email"], self.metric_value)
 
         # ── Workbook Contents (Table of Contents) ─────────────────────────────
-        toc_title_row = 28   # 0-indexed → row 29 in Excel
+        toc_title_row = 29   # 0-indexed → row 30 in Excel
         sheet.set_row(toc_title_row, 20)
         sheet.merge_range(toc_title_row, 1, toc_title_row, 7, "Workbook Contents", self.section_header)
 
@@ -272,6 +318,10 @@ class ReportBuilder:
             ("Executive Summary", "Premium chart gallery and top-line KPI summary"),
             ("Dashboard",         "Charts, completeness ratio, risk levels and status summary"),
         ]
+        if has_ai_advisory:
+            toc_entries.insert(7, (
+                "AI Advisory", "Claude-powered interpretation, patterns and recommended next steps",
+            ))
 
         for i, (sheet_name, description) in enumerate(toc_entries):
             r = toc_hdr_row + 1 + i
@@ -472,6 +522,7 @@ class ReportBuilder:
                 "low_count": 0,
                 "top_issue": "None",
                 "avg_issue_pct": 0,
+                "structural_missingness": False,
             }
 
         risk_counts = quality_df["Risk Level"].value_counts().to_dict()
@@ -497,7 +548,55 @@ class ReportBuilder:
             "low_count": low_count,
             "top_issue": f"{top_issue_row['Issue Type']} ({top_issue_row['Column']})",
             "avg_issue_pct": round(float(quality_df["Issue %"].mean()), 2),
+            "structural_missingness": self._is_structural_missingness(quality_df),
         }
+
+    def _is_structural_missingness(self, quality_df: pd.DataFrame) -> bool:
+        """True when High-risk columns are driven mainly by missing values.
+
+        Used to decide whether the report should state that risk is "structurally
+        expected missing data, not data corruption" rather than a true-quality fault
+        (format errors, duplicates, invalid types).
+        """
+        high_rows = quality_df[quality_df["Risk Level"] == "High"]
+        if high_rows.empty:
+            return False
+
+        missing_score = high_rows.loc[
+            high_rows["Issue Type"].str.lower() == "missing", "Weighted Score"
+        ].sum()
+        total_score = high_rows["Weighted Score"].sum()
+        return total_score > 0 and (missing_score / total_score) >= 0.5
+
+    def build_bottom_line(
+        self, raw_df: pd.DataFrame, cleaned_df: pd.DataFrame, risk_summary: Dict[str, object],
+    ) -> str:
+        """Deterministic 2–3 sentence fallback used when no AI advisory is available."""
+        overall_risk = risk_summary["overall_risk"]
+        rows_removed = len(raw_df) - len(cleaned_df)
+
+        if overall_risk == "High" and risk_summary.get("structural_missingness"):
+            risk_clause = (
+                "Risk is primarily driven by structurally expected missing data, not data "
+                "corruption."
+            )
+        elif overall_risk == "High":
+            risk_clause = "Risk is driven by genuine data quality faults that should be reviewed before use."
+        elif overall_risk == "Medium":
+            risk_clause = "A small number of fields need review before this data drives decisions."
+        else:
+            risk_clause = "Data quality is within tolerance across the dataset."
+
+        usability = (
+            "usable for reporting and exploratory analysis" if overall_risk != "High"
+            else "usable for reporting once the flagged fields are reviewed"
+        )
+
+        return (
+            f"After cleaning, {len(cleaned_df):,} of {len(raw_df):,} rows remain "
+            f"({rows_removed:,} removed) across {len(cleaned_df.columns)} columns. "
+            f"{risk_clause} This dataset is {usability}."
+        )
 
     def _build_column_quality_breakdown(self, cleaned_df):
         total_rows = len(cleaned_df)
@@ -640,6 +739,47 @@ class ReportBuilder:
                 row += 1
             row += 1
 
+    def _build_ai_advisory_sheet(self, workbook, ai_advisory: str) -> None:
+        sheet = workbook.add_worksheet("AI Advisory")
+        sheet.set_column("A:A", 4)
+        sheet.set_column("B:B", 110)
+
+        sheet.write("A1", "AI Advisory", self.section_header)
+        sheet.merge_range(
+            "A2:B2",
+            "Claude-powered interpretation of the cleaned data — patterns, anomalies, "
+            "quality risks, and concrete next steps.",
+            self.disclaimer_format,
+        )
+
+        # Key Data Insights and Executive/Bottom Line live on their own sheets/sections —
+        # this sheet covers the diagnostic + action sections of the advisory.
+        sections = split_advisory_sections(ai_advisory)
+        ordered = [
+            sections.get("AI Advisory"),
+            sections.get("Modelling & Analytics Readiness"),
+            sections.get("Top Priority Actions"),
+            sections.get("Bottom Line Summary"),
+        ]
+        section_titles = [
+            "AI Advisory", "Modelling & Analytics Readiness", "Top Priority Actions", "Bottom Line Summary",
+        ]
+        body = ai_advisory if not sections else "\n\n".join(
+            f"## {title}\n{content}" for title, content in zip(section_titles, ordered) if content
+        )
+
+        row = 4
+        for kind, content in parse_advisory_blocks(body):
+            text = to_plain_text(content)
+            if kind == "heading":
+                sheet.write(row, 0, text, self.section_header)
+            elif kind == "bullet":
+                sheet.write(row, 0, "-", self.note_format)
+                sheet.write(row, 1, text, self.body_format)
+            else:
+                sheet.merge_range(row, 0, row, 1, text, self.body_format)
+            row += 1
+
     def _build_processing_notes(self, workbook):
         sheet = workbook.add_worksheet("Processing Notes")
         sheet.set_column("A:A", 100)
@@ -661,7 +801,9 @@ class ReportBuilder:
         for idx, line in enumerate(notes, start=3):
             sheet.write(f"A{idx}", line, self.body_format if not line.startswith("-") else self.note_format)
 
-    def _build_executive_summary_sheet(self, workbook, raw_df, cleaned_df, quality_breakdown_df, chart_assets):
+    def _build_executive_summary_sheet(
+        self, workbook, raw_df, cleaned_df, quality_breakdown_df, chart_assets, ai_advisory=None,
+    ):
         sheet = workbook.add_worksheet("Executive Summary")
 
         # Two-column KPI layout: col A/B = left KPIs, col D/E = right KPIs
@@ -741,8 +883,24 @@ class ReportBuilder:
         sheet.write(risk_row, 3, "Top Issue", self.metric_label)
         sheet.merge_range(risk_row, 4, risk_row, 5, risk_summary["top_issue"], self.metric_value)
 
+        # Bottom line — AI-generated when available, deterministic fallback otherwise
+        bottom_line_row = risk_row + 2
+        ai_sections = split_advisory_sections(ai_advisory) if ai_advisory else {}
+        bottom_line = ai_sections.get("Executive Bottom Line") or self.build_bottom_line(
+            raw_df, cleaned_df, risk_summary,
+        )
+        sheet.write(bottom_line_row, 0, "Bottom Line", self.section_header)
+        sheet.merge_range(bottom_line_row + 1, 0, bottom_line_row + 1, 5, bottom_line, self.body_format)
+
+        if overall_risk == "High" and risk_summary.get("structural_missingness"):
+            sheet.merge_range(
+                bottom_line_row + 2, 0, bottom_line_row + 2, 5,
+                "Risk is primarily driven by structurally expected missing data, not data corruption.",
+                self.note_format,
+            )
+
         # Chart gallery
-        chart_start_row = risk_row + 3
+        chart_start_row = bottom_line_row + 4
         if not chart_assets:
             sheet.write(chart_start_row, 0, "No charts could be generated for this dataset.", self.note_format)
             return
