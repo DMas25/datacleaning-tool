@@ -27,6 +27,6 @@ settings = {
 
     # Logging
     "log_level":     "INFO",
-    "log_to_file":   False,
+    "log_to_file":   True,
     "log_file_path": "logs/coltradata.log",
 }

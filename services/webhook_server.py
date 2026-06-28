@@ -261,7 +261,17 @@ async def lemonsqueezy_webhook(
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "service": "ColtraDataAI webhook"}
+    """
+    Real HTTP health check (Streamlit itself can't expose arbitrary
+    routes, so this lives on the webhook server's FastAPI app instead).
+    Merges in core.health_check's fault-log-derived status so the same
+    "ok / degraded / safe_mode" signal app.py's safe mode gate uses is
+    visible to external uptime monitors too.
+    """
+    from core.health_check import get_health_status
+
+    app_health = get_health_status()
+    return {"service": "ColtraDataAI webhook", **app_health}
 
 
 # ── Sample payload (for testing) ──────────────────────────────────────────────
