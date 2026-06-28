@@ -3,7 +3,15 @@ import streamlit as st
 from config.tier_config import TIERS, get_tier
 from config.lemonsqueezy_config import get_checkout_url, is_payments_live
 from services.entitlements import has_feature
-from utils.session_helpers import set_plan_key
+from utils.session_helpers import set_plan_key, set_user_email
+
+_PROFESSIONS = ["Prefer not to say", "Owner / Founder", "Executive / Director", "Manager", "Analyst / Specialist", "Consultant", "Other"]
+_POSITIONS = ["Prefer not to say", "Owner / Executive", "Manager", "Analyst / Specialist", "Other"]
+_INDUSTRIES = [
+    "Prefer not to say", "Logistics & Supply Chain", "Healthcare", "Finance & Insurance",
+    "Retail & E-commerce", "Manufacturing", "Technology", "Education",
+    "Professional Services", "Other",
+]
 
 # Map old capitalised tier names → new plan keys, and old feature names → new flags.
 _TIER_TO_PLAN: dict[str, str] = {
@@ -54,6 +62,16 @@ def _render_licence_form() -> None:
             type="password",
             help="Enter the licence key you received after purchasing a plan.",
         )
+        with st.expander("Tell us about your business (optional)", expanded=False):
+            st.caption("Helps us improve the product. No names collected, ever.")
+            profession = st.selectbox("Profession", _PROFESSIONS, key="_profile_profession")
+            position_level = st.selectbox("Position in organisation", _POSITIONS, key="_profile_position")
+            industry = st.selectbox("Industry / business category", _INDUSTRIES, key="_profile_industry")
+            business_activity = st.text_input(
+                "Business activity",
+                placeholder="e.g. freight brokerage, outpatient clinic",
+                key="_profile_activity",
+            )
         submitted = st.form_submit_button("Activate Licence", use_container_width=True)
 
     if submitted:
@@ -68,11 +86,37 @@ def _render_licence_form() -> None:
                 tier_display = result["tier"]
                 st.session_state.account_tier = tier_display
                 set_plan_key(plan_key)
+                _record_profile_and_activation(licence_key, plan_key, profession, position_level, industry, business_activity)
                 st.sidebar.success(f"Activated — {tier_display} plan.")
             else:
                 st.session_state.account_tier = "Free"
                 set_plan_key("free")
                 st.sidebar.error(result["error"] or "Invalid or expired licence key.")
+
+
+def _record_profile_and_activation(
+    licence_key: str, plan_key: str, profession: str, position_level: str, industry: str, business_activity: str
+) -> None:
+    """Attach optional profile fields and log the activation event, keyed off the
+    subscriber row created by the webhook server — skipped for keys with no local row."""
+    from services.licence_manager import get_by_key, update_subscription_profile, log_usage_event
+
+    row = get_by_key(licence_key)
+    if not row:
+        return
+
+    email = row["email"]
+    set_user_email(email)
+
+    _BLANK = "Prefer not to say"
+    update_subscription_profile(
+        email,
+        profession="" if profession == _BLANK else profession,
+        position_level="" if position_level == _BLANK else position_level,
+        industry="" if industry == _BLANK else industry,
+        business_activity=business_activity,
+    )
+    log_usage_event(email, "activate", plan_key)
 
 
 def _render_tier_badge() -> None:

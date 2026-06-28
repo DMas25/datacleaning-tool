@@ -3,13 +3,18 @@
 Model, token budget, and prompt depth scale with the subscriber's plan to
 minimise API spend while still delivering value at every paid tier.
 
+Every tier returns the same fixed six-section structure (Executive Bottom
+Line, Key Data Insights, AI Advisory, Modelling & Analytics Readiness, Top
+Priority Actions, Bottom Line Summary) — see advisory_text.SECTION_TITLES.
+Tiers differ only in depth/length and token budget, not in structure.
+
 Tier matrix
 ───────────────────────────────────────────────────────────────────────────────
 Plan           Model                      Max tokens  Summary depth  Insights
 ─────────────  ─────────────────────────  ──────────  ─────────────  ────────
-professional   claude-haiku-4-5-20251001  400         compact        3–5
-premium        claude-sonnet-4-6          900         standard       5–8
-enterprise     claude-opus-4-8            2800        full           8–12
+professional   claude-haiku-4-5-20251001  1100        compact        2–3/section
+premium        claude-sonnet-4-6          1900        standard       4–6/section
+enterprise     claude-opus-4-8            3600        full           6–8/section
 ───────────────────────────────────────────────────────────────────────────────
 
 Returns None gracefully on any failure so callers never need to handle errors.
@@ -29,9 +34,9 @@ _MODEL: dict[str, str] = {
 }
 
 _MAX_TOKENS: dict[str, int] = {
-    "professional": 400,
-    "premium":      900,
-    "enterprise":   2800,
+    "professional": 1100,
+    "premium":      1900,
+    "enterprise":   3600,
 }
 
 # How many numeric / categorical columns to include in the prompt context.
@@ -43,37 +48,74 @@ _SUMMARY_DEPTH: dict[str, dict] = {
 }
 
 # ── Prompt templates per tier ─────────────────────────────────────────────────
+#
+# All tiers return the same fixed section structure (see advisory_text.
+# SECTION_TITLES) so the PDF and Excel report builders can split one Claude
+# response into the distinct, business-facing sections required by the
+# report spec. Tiers differ only in depth/length, not in structure.
+
+_PERSONA = (
+    "You are a senior data intelligence analyst, productised within a SaaS platform "
+    "called ColtraDataAi (by Coltrane Ltd). You write for two audiences at once: a CEO "
+    "who needs a confident, non-technical read, and a data team who needs precise, "
+    "trustworthy technical detail. Avoid academic language, hedging, and generic filler — "
+    "every line must be specific to this dataset."
+)
+
+_SECTION_SPEC = (
+    "Return your analysis as markdown using EXACTLY these top-level headings, in this "
+    "order, with no other top-level headings:\n\n"
+    "## Executive Bottom Line\n"
+    "2–3 plain-English sentences: is this dataset usable, and for what. If overall risk "
+    "is High and driven mainly by missing values rather than format/type errors or "
+    "duplicates, you MUST explicitly state: \"Risk is primarily driven by structurally "
+    "expected missing data, not data corruption.\"\n\n"
+    "## Key Data Insights\n"
+    "Business-focused bullets covering: dominant categories or behaviours, concentration "
+    "patterns (e.g. Pareto effects, heavy users), cost/value distribution patterns, time "
+    "trends or anomalies, and any cohort/segmentation signals. For each bullet, frame as "
+    "what is happening and why it matters.\n\n"
+    "## AI Advisory\n"
+    "### A. Data Quality Diagnosis\n"
+    "Structural vs true missingness, data type risks (e.g. categorical IDs misread as "
+    "numeric metrics — never treat IDs/codes as numeric metrics), and integrity risks "
+    "(joins, timestamps, relationships).\n"
+    "### B. Statistical & Pattern Analysis\n"
+    "Distribution shape (normal/skewed/heavy-tailed), outliers and what they mean, data "
+    "density and time coverage.\n"
+    "### C. Business Interpretation\n"
+    "What this dataset represents in its domain, and the key operational or commercial "
+    "signals it contains.\n\n"
+    "## Modelling & Analytics Readiness\n"
+    "State plainly whether this is ready for ML/analytics, what transformations are "
+    "required, leakage risks (be specific — this is critical), and a recommended "
+    "modelling approach (e.g. regression, clustering, time-series).\n\n"
+    "## Top Priority Actions\n"
+    "A numbered list of the top 5–7 actions, ranked by impact. Each line must follow this "
+    "exact format: \"<action> — <why it matters> (Effort: Low/Medium/High)\".\n\n"
+    "## Bottom Line Summary\n"
+    "One decisive closing statement: is the dataset Decision-ready, Model-ready, or Needs "
+    "refinement — and why.\n\n"
+    "Do not impute structurally missing categorical fields and do not treat ID/code "
+    "columns as numeric metrics in your analysis."
+)
 
 _PROMPT: dict[str, str] = {
     "professional": (
-        "You are a data analyst reviewing a freshly cleaned dataset. "
-        "Based only on the summary below, give 3–5 concise bullet-point insights. "
-        "Focus on: data quality issues, obvious anomalies, and the single most important next step. "
-        "Be brief and direct. Do not restate the numbers.\n\n"
+        f"{_PERSONA}\n\n{_SECTION_SPEC}\n\n"
+        "Keep this tier concise: 2–3 bullets per section, 5 actions in Top Priority "
+        "Actions, and one sentence per remaining heading where a list isn't requested.\n\n"
         "Dataset summary:\n{summary}"
     ),
     "premium": (
-        "You are a senior data advisor reviewing a dataset that a user has just cleaned. "
-        "Based on the statistical summary below, provide 5–8 actionable insights.\n\n"
-        "Focus on:\n"
-        "- What the data suggests about the underlying business or domain\n"
-        "- Patterns or anomalies worth investigating further\n"
-        "- Data quality risks that may affect downstream analysis\n"
-        "- Concrete next steps the user should consider\n\n"
-        "Be specific and practical. Use bullet points. Do not merely restate the numbers.\n\n"
+        f"{_PERSONA}\n\n{_SECTION_SPEC}\n\n"
+        "Standard depth: 4–6 bullets per section and 5–6 Top Priority Actions.\n\n"
         "Dataset summary:\n{summary}"
     ),
     "enterprise": (
-        "You are a principal data scientist and business intelligence advisor. "
-        "A dataset has just been cleaned and you have been given a full statistical profile. "
-        "Provide 8–12 comprehensive insights structured under these headings:\n\n"
-        "**Data Quality Assessment** — completeness, consistency, reliability risks\n"
-        "**Business & Domain Signals** — what the data reveals about the business context\n"
-        "**Statistical Patterns** — distributions, correlations, outliers worth noting\n"
-        "**Modelling & Analytics Readiness** — suitability for ML/BI, feature engineering hints\n"
-        "**Recommended Next Steps** — prioritised actions, ranked by impact\n\n"
-        "Be authoritative, specific, and commercially aware. "
-        "Cite column names and figures where relevant. Do not pad with generic advice.\n\n"
+        f"{_PERSONA}\n\n{_SECTION_SPEC}\n\n"
+        "Full depth: 6–8 bullets per section, 6–7 Top Priority Actions, and cite specific "
+        "column names and figures throughout. Be authoritative and commercially aware.\n\n"
         "Dataset summary:\n{summary}"
     ),
 }
@@ -81,8 +123,14 @@ _PROMPT: dict[str, str] = {
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
-def generate_ai_advisory(df: pd.DataFrame, plan_key: str = "professional") -> str | None:
+def generate_ai_advisory(
+    df: pd.DataFrame, plan_key: str = "professional", risk_summary: dict | None = None,
+) -> str | None:
     """Return markdown advisory from Claude scaled to the subscriber's plan tier.
+
+    risk_summary, when provided, is the deterministic risk classification already
+    computed by ReportBuilder — folding it into the prompt keeps Claude's narrative
+    consistent with the risk figures the report renders elsewhere.
 
     Returns None on any failure — missing key, API error, unconfigured plan.
     """
@@ -106,7 +154,14 @@ def generate_ai_advisory(df: pd.DataFrame, plan_key: str = "professional") -> st
         import anthropic
 
         summary = _build_data_summary(df, depth)
-        prompt  = prompt_tpl.format(summary=summary)
+        if risk_summary:
+            summary += (
+                f"\n\nDeterministic risk classification (treat as ground truth — do not "
+                f"contradict it): Overall risk = {risk_summary.get('overall_risk')}. "
+                f"Top issue = {risk_summary.get('top_issue')}. "
+                f"Structural missingness driven = {risk_summary.get('structural_missingness', False)}."
+            )
+        prompt = prompt_tpl.format(summary=summary)
 
         client   = anthropic.Anthropic(api_key=api_key)
         response = client.messages.create(
@@ -123,6 +178,131 @@ def generate_ai_advisory(df: pd.DataFrame, plan_key: str = "professional") -> st
 
     except Exception:
         return None
+
+
+# ── Internal usage/strategy insights (admin-only, no customer data) ───────────
+#
+# Distinct from generate_ai_advisory: this analyses aggregated, anonymised
+# subscriber telemetry (industry mix, conversion timing, tenure, feature
+# usage) for Coltrane Ltd's own strategic/marketing decisions — never shown
+# to customers. Same Anthropic client pattern, dedicated persona and prompt.
+
+_INTERNAL_PERSONA = (
+    "You are a senior growth and data analyst advising the Coltrane Ltd leadership team "
+    "on ColtraDataAi's product strategy. You work only from aggregated, anonymised "
+    "subscriber telemetry — no names, no individual records. Your job is to surface "
+    "patterns that inform strategic decisions, KPI tracking, and marketing/promotion "
+    "targeting. Be specific and quantitative; never speculate beyond the provided "
+    "numbers; explicitly flag when a sample is too small to generalise."
+)
+
+_INTERNAL_SECTION_SPEC = (
+    "Return your analysis as markdown using EXACTLY these top-level headings, in this "
+    "order, with no other top-level headings:\n\n"
+    "## Executive Summary\n"
+    "## Customer Segments\n"
+    "Industry, profession, and position-in-organisation mix — which segments dominate "
+    "and which are under-represented.\n\n"
+    "## Conversion & Onboarding\n"
+    "Signup-to-first-use timing — how fast subscribers activate value, and where the "
+    "funnel is slow.\n\n"
+    "## Engagement & Tenure\n"
+    "Usage frequency, subscriber age/tenure, and which features (exports, AI advisory) "
+    "are actually adopted vs ignored.\n\n"
+    "## Marketing & Promotion Opportunities\n"
+    "Concrete targeting ideas grounded in the segment and conversion data above.\n\n"
+    "## Strategic Recommendations & Risks\n"
+    "Ranked, actionable recommendations and any data-quality caveats (e.g. small "
+    "sample size, high 'Not provided' rates) that limit confidence."
+)
+
+_INTERNAL_PROMPT = (
+    f"{_INTERNAL_PERSONA}\n\n{_INTERNAL_SECTION_SPEC}\n\n"
+    "Aggregated subscriber telemetry:\n{summary}"
+)
+
+
+def generate_internal_insights(stats: dict, plan_key: str = "enterprise") -> str | None:
+    """Return a markdown strategic narrative from Claude for internal/admin use only.
+
+    `stats` is the dict returned by services.licence_manager.get_usage_analytics() —
+    counts, breakdowns and medians only, never individual subscriber rows.
+
+    Returns None on any failure — missing key, API error — so callers never need
+    to handle exceptions.
+    """
+    try:
+        api_key = st.secrets["anthropic"]["api_key"]
+    except Exception:
+        return None
+
+    if not api_key or api_key.startswith("sk-ant-REPLACE"):
+        return None
+
+    model      = _MODEL.get(plan_key, _MODEL["enterprise"])
+    max_tokens = _MAX_TOKENS.get(plan_key, _MAX_TOKENS["enterprise"])
+
+    try:
+        import anthropic
+
+        summary = _build_usage_summary(stats)
+        prompt  = _INTERNAL_PROMPT.format(summary=summary)
+
+        client   = anthropic.Anthropic(api_key=api_key)
+        response = client.messages.create(
+            model=model,
+            max_tokens=max_tokens,
+            messages=[{"role": "user", "content": prompt}],
+        )
+
+        for block in reversed(response.content):
+            if block.type == "text":
+                return block.text
+
+        return None
+
+    except Exception:
+        return None
+
+
+def _build_usage_summary(stats: dict) -> str:
+    """Compact text summary of aggregated usage analytics for the internal prompt."""
+    parts: list[str] = []
+
+    parts.append(f"Active subscribers: {stats.get('active_subscribers', 0):,}")
+    parts.append(f"Total report runs (all time): {stats.get('total_runs', 0):,}")
+
+    def _fmt_breakdown(title: str, breakdown: dict) -> None:
+        if not breakdown:
+            return
+        total = sum(breakdown.values()) or 1
+        items = ", ".join(f"{k} ({v}, {round(v / total * 100, 1)}%)" for k, v in breakdown.items())
+        parts.append(f"{title}: {items}")
+
+    _fmt_breakdown("Industry breakdown", stats.get("industry_breakdown", {}))
+    _fmt_breakdown("Profession breakdown", stats.get("profession_breakdown", {}))
+    _fmt_breakdown("Position-in-organisation breakdown", stats.get("position_breakdown", {}))
+    _fmt_breakdown("Plan breakdown", stats.get("plan_breakdown", {}))
+    _fmt_breakdown("Feature usage breakdown (event counts)", stats.get("feature_usage_breakdown", {}))
+
+    median_conv = stats.get("median_conversion_days")
+    n_conv      = len(stats.get("conversion_times_days", []))
+    if median_conv is not None:
+        parts.append(f"Median signup-to-first-use time: {median_conv} days (n={n_conv})")
+    else:
+        parts.append("Median signup-to-first-use time: no data yet")
+
+    median_tenure = stats.get("median_tenure_days")
+    n_tenure      = len(stats.get("tenure_days", []))
+    if median_tenure is not None:
+        parts.append(f"Median subscriber tenure: {median_tenure} days (n={n_tenure})")
+
+    runs_trend = stats.get("runs_last_30_days", {})
+    if runs_trend:
+        total_30d = sum(runs_trend.values())
+        parts.append(f"Runs in last 30 days: {total_30d:,} across {len(runs_trend)} active day(s)")
+
+    return "\n".join(parts)
 
 
 # ── Private helpers ───────────────────────────────────────────────────────────

@@ -72,7 +72,36 @@ CREATE TABLE IF NOT EXISTS webhook_log (
     payload     TEXT,
     received_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS usage_events (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    email       TEXT NOT NULL,
+    event_type  TEXT NOT NULL,
+    plan        TEXT,
+    occurred_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_usage_email ON usage_events (email);
+CREATE INDEX IF NOT EXISTS idx_usage_type ON usage_events (event_type);
 """
+
+# Nullable profile/telemetry columns added after the original subscriptions
+# table shipped — SQLite has no "ADD COLUMN IF NOT EXISTS", so each is added
+# conditionally based on PRAGMA table_info.
+_PROFILE_COLUMNS = {
+    "profession": "TEXT",
+    "position_level": "TEXT",
+    "industry": "TEXT",
+    "business_activity": "TEXT",
+    "first_used_at": "TEXT",
+}
+
+
+def _ensure_profile_columns(con: sqlite3.Connection) -> None:
+    existing = {row["name"] for row in con.execute("PRAGMA table_info(subscriptions)")}
+    for column, col_type in _PROFILE_COLUMNS.items():
+        if column not in existing:
+            con.execute(f"ALTER TABLE subscriptions ADD COLUMN {column} {col_type}")
 
 
 @contextmanager
@@ -83,6 +112,7 @@ def _conn():
     con.row_factory = sqlite3.Row
     try:
         con.executescript(_SCHEMA)
+        _ensure_profile_columns(con)
         yield con
         con.commit()
     except Exception:
@@ -236,3 +266,117 @@ def log_webhook_event(event_type: str, payload: str) -> None:
             "INSERT INTO webhook_log (event_type, payload, received_at) VALUES (?, ?, ?)",
             (event_type, payload, _now()),
         )
+
+
+# ── Client profile (no names; role/industry categorisation only) ──────────────
+def update_subscription_profile(
+    email: str,
+    *,
+    profession: str = "",
+    position_level: str = "",
+    industry: str = "",
+    business_activity: str = "",
+) -> None:
+    """Attach optional, name-free demographic/industry data to a subscriber."""
+    with _conn() as con:
+        con.execute(
+            """UPDATE subscriptions
+               SET profession         = COALESCE(NULLIF(?, ''), profession),
+                   position_level     = COALESCE(NULLIF(?, ''), position_level),
+                   industry           = COALESCE(NULLIF(?, ''), industry),
+                   business_activity  = COALESCE(NULLIF(?, ''), business_activity),
+                   updated_at         = ?
+               WHERE email = ?""",
+            (profession, position_level, industry, business_activity, _now(), email.lower().strip()),
+        )
+
+
+# ── Usage event logging (internal analytics; no PII beyond email) ─────────────
+def log_usage_event(email: str, event_type: str, plan: str = "") -> None:
+    """Record a behavioral event (activate/run/export_excel/export_pdf/ai_advisory)."""
+    if not email:
+        return
+    email = email.lower().strip()
+    now = _now()
+    with _conn() as con:
+        con.execute(
+            "INSERT INTO usage_events (email, event_type, plan, occurred_at) VALUES (?, ?, ?, ?)",
+            (email, event_type, plan, now),
+        )
+        if event_type == "run":
+            con.execute(
+                "UPDATE subscriptions SET first_used_at = COALESCE(first_used_at, ?) WHERE email = ?",
+                (now, email),
+            )
+
+
+def get_usage_analytics() -> dict:
+    """Aggregated, anonymised usage/demographic stats for the internal dashboard.
+
+    Returns only counts/medians — never individual subscriber rows.
+    """
+    with _conn() as con:
+        def _breakdown(column: str) -> dict:
+            rows = con.execute(
+                f"""SELECT COALESCE(NULLIF({column}, ''), 'Not provided') AS k, COUNT(*) AS n
+                    FROM subscriptions WHERE status = 'active' GROUP BY k ORDER BY n DESC""",
+            ).fetchall()
+            return {r["k"]: r["n"] for r in rows}
+
+        industry_breakdown = _breakdown("industry")
+        profession_breakdown = _breakdown("profession")
+        position_breakdown = _breakdown("position_level")
+        plan_breakdown = _breakdown("plan")
+
+        feature_rows = con.execute(
+            "SELECT event_type, COUNT(*) AS n FROM usage_events GROUP BY event_type ORDER BY n DESC"
+        ).fetchall()
+        feature_usage_breakdown = {r["event_type"]: r["n"] for r in feature_rows}
+
+        conversion_rows = con.execute(
+            """SELECT julianday(first_used_at) - julianday(created_at) AS days
+               FROM subscriptions
+               WHERE first_used_at IS NOT NULL AND status = 'active'"""
+        ).fetchall()
+        conversion_times_days = [round(r["days"], 2) for r in conversion_rows if r["days"] is not None]
+
+        tenure_rows = con.execute(
+            "SELECT julianday('now') - julianday(created_at) AS days FROM subscriptions WHERE status = 'active'"
+        ).fetchall()
+        tenure_days = [round(r["days"], 2) for r in tenure_rows if r["days"] is not None]
+
+        active_subscribers = con.execute(
+            "SELECT COUNT(*) AS n FROM subscriptions WHERE status = 'active'"
+        ).fetchone()["n"]
+
+        total_runs = feature_usage_breakdown.get("run", 0)
+
+        trend_rows = con.execute(
+            """SELECT substr(occurred_at, 1, 10) AS day, COUNT(*) AS n
+               FROM usage_events
+               WHERE event_type = 'run' AND occurred_at >= datetime('now', '-30 days')
+               GROUP BY day ORDER BY day"""
+        ).fetchall()
+        runs_last_30_days = {r["day"]: r["n"] for r in trend_rows}
+
+    def _median(values: list[float]) -> float | None:
+        if not values:
+            return None
+        s = sorted(values)
+        mid = len(s) // 2
+        return s[mid] if len(s) % 2 else (s[mid - 1] + s[mid]) / 2
+
+    return {
+        "active_subscribers": active_subscribers,
+        "total_runs": total_runs,
+        "industry_breakdown": industry_breakdown,
+        "profession_breakdown": profession_breakdown,
+        "position_breakdown": position_breakdown,
+        "plan_breakdown": plan_breakdown,
+        "feature_usage_breakdown": feature_usage_breakdown,
+        "conversion_times_days": conversion_times_days,
+        "median_conversion_days": _median(conversion_times_days),
+        "tenure_days": tenure_days,
+        "median_tenure_days": _median(tenure_days),
+        "runs_last_30_days": runs_last_30_days,
+    }
