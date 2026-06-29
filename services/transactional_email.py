@@ -32,19 +32,25 @@ def send_email(cfg: dict, to_email: str, subject: str, body: str) -> bool:
     user = cfg["smtp_user"]
     password = cfg["smtp_password"]
     from_name = cfg.get("from_name", "ColtraDataAi")
+    from_email = cfg.get("from_email", user)
 
     msg = EmailMessage()
     msg["Subject"] = subject
-    msg["From"] = f"{from_name} <{user}>"
+    msg["From"] = f"{from_name} <{from_email}>"
     msg["To"] = to_email
     msg.set_content(body)
 
     try:
         context = ssl.create_default_context()
-        with smtplib.SMTP(host, port, timeout=10) as server:
-            server.starttls(context=context)
-            server.login(user, password)
-            server.send_message(msg)
+        if port == 465:
+            with smtplib.SMTP_SSL(host, port, timeout=10, context=context) as server:
+                server.login(user, password)
+                server.send_message(msg)
+        else:
+            with smtplib.SMTP(host, port, timeout=10) as server:
+                server.starttls(context=context)
+                server.login(user, password)
+                server.send_message(msg)
         return True
     except Exception:
         logger.exception("Failed to send transactional email to %s", to_email)
