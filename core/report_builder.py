@@ -249,7 +249,7 @@ class ReportBuilder:
         # per file) and a single fixed-height cap alone proved too tight for
         # some real-world logos in testing.
         sheet.set_row(9, 28)
-        sheet.merge_range("B10:H10", self.config["app_name"], self.title_format)
+        sheet.merge_range("B10:H10", "Data Analytics Report", self.title_format)
         sheet.merge_range("B11:H11", self.config["tagline"], self.subtitle_format)
 
         # Key report metrics
