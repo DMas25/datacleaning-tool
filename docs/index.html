@@ -27,7 +27,7 @@
 
     /* Nav */
     nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-bottom: 1px solid var(--secondary); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 68px; box-shadow: 0 2px 12px rgba(31,78,121,0.07); }
-    nav img { height: 40px; }
+    nav img { height: 50px; }
     .nav-links { display: flex; gap: 2rem; align-items: center; }
     .nav-links a { text-decoration: none; color: var(--primary); font-weight: 500; font-size: 0.95rem; transition: color 0.2s; }
     .nav-links a:hover { color: var(--accent); }
@@ -141,19 +141,71 @@
 
     /* Footer */
     footer { background: #0d1e2e; color: rgba(255,255,255,0.6); padding: 2.5rem 2rem; text-align: center; }
-    footer img { height: 32px; opacity: 0.7; margin-bottom: 1rem; }
+    footer img { height: 40px; opacity: 0.7; margin-bottom: 1rem; }
     footer p { font-size: 0.82rem; line-height: 1.8; }
     footer a { color: rgba(255,255,255,0.5); text-decoration: none; }
     footer a:hover { color: var(--white); }
     .footer-links { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 1rem; flex-wrap: wrap; }
 
+    /* Login nav button */
+    .btn-login { background: transparent; color: var(--primary); border: 2px solid var(--primary); }
+    .btn-login:hover { background: var(--primary); color: var(--white); }
+
+    /* FAQ */
+    .faq-list { max-width: 760px; margin: 0 auto; }
+    .faq-item { border-bottom: 1px solid var(--secondary); }
+    .faq-q { width: 100%; background: none; border: none; text-align: left; padding: 1.25rem 0; font-size: 1rem; font-weight: 600; color: var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 1rem; font-family: inherit; }
+    .faq-q:hover { color: var(--accent); }
+    .faq-icon { font-size: 1.4rem; font-weight: 300; flex-shrink: 0; transition: transform 0.2s; line-height: 1; }
+    .faq-q.open .faq-icon { transform: rotate(45deg); }
+    .faq-a { display: none; padding: 0 0 1.25rem; }
+    .faq-a.open { display: block; }
+    .faq-a p { font-size: 0.95rem; color: var(--muted); line-height: 1.65; }
+    .faq-a a { color: var(--accent); }
+
+    /* Chatbot */
+    .chat-toggle { position: fixed; bottom: 1.5rem; right: 1.5rem; width: 56px; height: 56px; background: var(--primary); color: var(--white); border: none; border-radius: 50%; font-size: 1.4rem; cursor: pointer; box-shadow: 0 4px 20px rgba(31,78,121,0.4); z-index: 1000; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .chat-toggle:hover { background: var(--accent); transform: scale(1.08); }
+    .chat-window { position: fixed; bottom: 5rem; right: 1.5rem; width: 320px; max-height: 460px; background: var(--white); border: 1px solid var(--secondary); border-radius: 16px; box-shadow: 0 8px 32px rgba(31,78,121,0.18); z-index: 999; flex-direction: column; overflow: hidden; display: none; }
+    .chat-window.open { display: flex; }
+    .chat-header { background: var(--primary); color: var(--white); padding: 0.9rem 1.25rem; font-weight: 700; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+    .chat-close-btn { background: none; border: none; color: rgba(255,255,255,0.8); font-size: 1.2rem; cursor: pointer; line-height: 1; padding: 0; }
+    .chat-close-btn:hover { color: var(--white); }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; min-height: 180px; }
+    .chat-msg { max-width: 85%; padding: 0.6rem 0.9rem; border-radius: 10px; font-size: 0.88rem; line-height: 1.5; }
+    .chat-msg.bot { background: var(--secondary); color: var(--text); align-self: flex-start; border-bottom-left-radius: 3px; }
+    .chat-msg.user { background: var(--primary); color: var(--white); align-self: flex-end; border-bottom-right-radius: 3px; }
+    .chat-msg a { color: inherit; text-decoration: underline; }
+    .chat-chips { padding: 0 0.75rem 0.75rem; display: flex; flex-wrap: wrap; gap: 0.4rem; flex-shrink: 0; }
+    .chat-chip { background: var(--secondary); color: var(--primary); border: none; padding: 0.3rem 0.7rem; border-radius: 100px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+    .chat-chip:hover { background: var(--primary); color: var(--white); }
+    .chat-input-row { display: flex; border-top: 1px solid var(--secondary); flex-shrink: 0; }
+    .chat-input { flex: 1; border: none; padding: 0.75rem 1rem; font-size: 0.88rem; outline: none; font-family: inherit; color: var(--text); }
+    .chat-send-btn { background: var(--primary); color: var(--white); border: none; padding: 0.75rem 1rem; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
+    .chat-send-btn:hover { background: var(--accent); }
+
+    /* Cookie consent */
+    .cookie-banner { position: fixed; bottom: 0; left: 0; right: 0; background: #0d1e2e; color: rgba(255,255,255,0.9); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; z-index: 2000; font-size: 0.88rem; box-shadow: 0 -4px 20px rgba(0,0,0,0.3); }
+    .cookie-banner a { color: #7dd3fc; }
+    .cookie-btns { display: flex; gap: 0.75rem; flex-shrink: 0; }
+    .cookie-accept { background: var(--accent); color: var(--white); border: none; padding: 0.55rem 1.25rem; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.88rem; font-family: inherit; transition: background 0.2s; }
+    .cookie-accept:hover { background: var(--primary); }
+    .cookie-decline { background: transparent; color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.3); padding: 0.55rem 1.25rem; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.88rem; font-family: inherit; transition: all 0.2s; }
+    .cookie-decline:hover { border-color: rgba(255,255,255,0.7); color: var(--white); }
+    .cookie-visible .chat-toggle { bottom: 5.5rem; }
+    .cookie-visible .chat-window { bottom: 7.5rem; }
+
     /* Responsive */
     @media (max-width: 768px) {
       nav { padding: 0 1rem; }
-      .nav-links a:not(:last-child) { display: none; }
+      .nav-links a:not(:last-child):not(.btn-login) { display: none; }
       section { padding: 3.5rem 1.25rem; }
       .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
       .demo-list { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .chat-window { right: 0.75rem; left: 0.75rem; width: auto; }
+      .cookie-banner { padding: 1rem; }
     }
   </style>
 </head>
@@ -167,7 +219,9 @@
     <a href="#demo">Demo</a>
     <a href="#samples">Sample Report</a>
     <a href="#pricing">Pricing</a>
+    <a href="#faq">FAQ</a>
     <a href="#about">About</a>
+    <a href="https://dmas25-datacleaning-tool-app-fklacc.streamlit.app/" class="btn btn-login">Log In</a>
     <a href="https://dmas25-datacleaning-tool-app-fklacc.streamlit.app/" class="btn btn-primary">Start Free</a>
   </div>
 </nav>
@@ -460,6 +514,51 @@
   </div>
 </section>
 
+<!-- FAQ -->
+<section id="faq">
+  <div class="container">
+    <div class="text-center">
+      <div class="section-label">Got Questions?</div>
+      <h2 class="section-title">Frequently Asked Questions</h2>
+      <p class="section-subtitle">Everything you need to know about ColtraDataA<i>i</i>.</p>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFAQ(this)">What file formats does ColtraDataA<i>i</i> support?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>ColtraDataA<i>i</i> supports Excel files (.xlsx, .xls) and CSV files (.csv). File size limits depend on your plan: 10 MB (Free), 25 MB (Starter), 75 MB (Professional), 150 MB (Premium), and 300 MB (Enterprise).</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFAQ(this)">Do I need any technical skills to use it?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>None at all. If you can upload a file and click a button, you can use ColtraDataA<i>i</i>. The platform handles all the technical work — cleaning, analysing, and reporting — automatically.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFAQ(this)">Is my data secure?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>Yes. Your files are processed securely and are not permanently stored or shared with any third party. We are GDPR-compliant. See our <a href="privacy.html">Privacy Policy</a> for full details.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFAQ(this)">Can I try ColtraDataA<i>i</i> before buying?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>Yes. Our Free plan gives you 3 cleaning runs per month with up to 5,000 rows — no credit card required. You can also download sample reports from our <a href="#samples">Sample Outputs</a> section without signing up at all.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFAQ(this)">How does the AI Advisory work?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>After cleaning and analysing your data, ColtraDataA<i>i</i>'s AI engine generates plain-English recommendations specific to your dataset — highlighting trends, anomalies, risks, and opportunities relevant to your business context.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFAQ(this)">What does a Professional report include?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>A Professional-tier PDF report includes an executive summary, data quality analysis, visual charts, advanced analytics, AI-powered advisory recommendations, and a modelling readiness assessment. You can see a real example in our <a href="#samples">Sample Outputs</a> section.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFAQ(this)">Can I cancel my subscription at any time?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>Yes, absolutely. There are no lock-in contracts. You can cancel, upgrade, or downgrade your plan at any time. For billing queries contact <a href="mailto:support@coltradata.com">support@coltradata.com</a>.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFAQ(this)">How do I upgrade my plan?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>Select your new plan from the <a href="#pricing">Pricing section</a> above and complete the checkout. Upgrades take effect immediately. Contact <a href="mailto:support@coltradata.com">support@coltradata.com</a> if you need any assistance.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- Closing CTA -->
 <section class="closing">
   <div class="container">
@@ -467,7 +566,7 @@
     <p>Join organisations and professionals using ColtraDataA<i>i</i> to make faster, smarter, and more confident decisions.</p>
     <div class="closing-ctas">
       <a href="https://dmas25-datacleaning-tool-app-fklacc.streamlit.app/" class="btn-hero-primary">🚀 Start Free Trial Today</a>
-      <a href="https://dmas25-datacleaning-tool-app-fklacc.streamlit.app/" class="btn-hero-outline">📊 Upload Your First Dataset</a>
+      <a href="https://dmas25-datacleaning-tool-app-fklacc.streamlit.app/" class="btn-hero-outline">🔑 Log In to Your Account</a>
     </div>
   </div>
 </section>
@@ -478,6 +577,9 @@
   <div class="footer-links">
     <a href="#features">Features</a>
     <a href="#pricing">Pricing</a>
+    <a href="#faq">FAQ</a>
+    <a href="privacy.html">Privacy Policy</a>
+    <a href="privacy.html#cookies">Cookie Policy</a>
     <a href="mailto:support@coltradata.com">support@coltradata.com</a>
   </div>
   <p>
@@ -486,6 +588,123 @@
     &copy; 2026 ColtraDataAi &nbsp;·&nbsp; All Rights Reserved
   </p>
 </footer>
+
+<!-- Chatbot widget -->
+<button class="chat-toggle" onclick="toggleChat()" aria-label="Open chat assistant">💬</button>
+<div class="chat-window" id="chatWindow">
+  <div class="chat-header">
+    <span>💬 ColtraDataA<i>i</i> Assistant</span>
+    <button class="chat-close-btn" onclick="toggleChat()" aria-label="Close chat">✕</button>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-msg bot">Hi! I'm the ColtraDataA<i>i</i> assistant. Ask me anything about plans, features, or how it works. 👋</div>
+  </div>
+  <div class="chat-chips" id="chatChips">
+    <button class="chat-chip" onclick="sendChip('What plans are available?')">Plans &amp; Pricing</button>
+    <button class="chat-chip" onclick="sendChip('What file formats are supported?')">File formats</button>
+    <button class="chat-chip" onclick="sendChip('Is my data secure?')">Data security</button>
+    <button class="chat-chip" onclick="sendChip('How do I get started?')">Get started</button>
+  </div>
+  <div class="chat-input-row">
+    <input class="chat-input" id="chatInput" type="text" placeholder="Ask a question…" onkeydown="if(event.key==='Enter') sendMessage()" />
+    <button class="chat-send-btn" onclick="sendMessage()" aria-label="Send">➤</button>
+  </div>
+</div>
+
+<!-- Cookie consent banner -->
+<div class="cookie-banner" id="cookieBanner" style="display:none;">
+  <span>We use essential cookies to keep the site running, and optional analytics cookies to improve your experience. <a href="privacy.html#cookies">Learn more</a></span>
+  <div class="cookie-btns">
+    <button class="cookie-accept" onclick="setCookieConsent('accepted')">Accept All</button>
+    <button class="cookie-decline" onclick="setCookieConsent('essential')">Essential Only</button>
+  </div>
+</div>
+
+<script>
+  // FAQ accordion
+  function toggleFAQ(btn) {
+    const item = btn.closest('.faq-item');
+    const answer = item.querySelector('.faq-a');
+    const isOpen = btn.classList.contains('open');
+    document.querySelectorAll('.faq-q.open').forEach(q => {
+      q.classList.remove('open');
+      q.closest('.faq-item').querySelector('.faq-a').classList.remove('open');
+    });
+    if (!isOpen) { btn.classList.add('open'); answer.classList.add('open'); }
+  }
+
+  // Chatbot
+  function toggleChat() {
+    document.getElementById('chatWindow').classList.toggle('open');
+  }
+
+  const botRules = [
+    { k: ['plan','price','cost','pricing','tier','much','starter','professional','premium','enterprise','subscription'], a: 'We offer 5 plans:<br>• Free – £0/mo (3 runs, 5k rows)<br>• Starter – £9/mo (20 runs, 25k rows)<br>• Professional – £29/mo (100 runs, 100k rows)<br>• Premium – £59/mo (300 runs, 250k rows)<br>• Enterprise – £299/mo (unlimited)<br><br><a href="#pricing">See full plan details →</a>' },
+    { k: ['free','trial','no card','signup','sign up','register'], a: 'Our Free plan lets you try ColtraDataAi with 3 cleaning runs/month and up to 5,000 rows — no credit card required. <a href="https://dmas25-datacleaning-tool-app-fklacc.streamlit.app/">Start free →</a>' },
+    { k: ['file','format','excel','csv','upload','xlsx','xls','size','mb'], a: 'ColtraDataAi accepts Excel (.xlsx, .xls) and CSV (.csv) files. Size limits: 10 MB (Free) · 25 MB (Starter) · 75 MB (Professional) · 150 MB (Premium) · 300 MB (Enterprise).' },
+    { k: ['secure','privacy','data','gdpr','safe','store','stored','share'], a: 'Your data is processed securely and never permanently stored or shared with third parties. We are GDPR-compliant. <a href="privacy.html">Read our Privacy Policy →</a>' },
+    { k: ['cancel','refund','contract','lock','downgrade'], a: 'No lock-in contracts. Cancel, upgrade, or downgrade at any time. For billing help email <a href="mailto:support@coltradata.com">support@coltradata.com</a>.' },
+    { k: ['how','start','begin','work','use','step','process'], a: 'Three steps: 1) Upload your Excel or CSV file, 2) ColtraDataAi cleans and analyses it automatically, 3) Download your PDF or Excel report. No coding needed!' },
+    { k: ['contact','support','help','email','team'], a: 'Our support team is at <a href="mailto:support@coltradata.com">support@coltradata.com</a> — we typically reply within 24 hours.' },
+    { k: ['ai','advisory','recommendation','insight','intelligence'], a: "After cleaning your data, ColtraDataAi's AI engine generates plain-English recommendations specific to your dataset — highlighting trends, anomalies, risks, and opportunities." },
+    { k: ['report','pdf','download','export'], a: 'Starter+ plans include Excel export. Professional, Premium, and Enterprise plans include full PDF reports with executive summaries, charts, AI insights, and quality analysis.' },
+    { k: ['feature','what','capability','include','does it'], a: 'ColtraDataAi offers: ✓ Automated data cleaning ✓ Advanced analytics ✓ AI-powered insights ✓ Interactive dashboards ✓ Professional PDF &amp; Excel reports ✓ Branded reporting (Premium+)' },
+    { k: ['sample','example','demo','video'], a: 'You can <a href="#demo">watch the 2-minute demo</a> or <a href="#samples">download sample reports</a> — no sign-up needed.' },
+    { k: ['login','log in','sign in','account'], a: 'Already have an account? <a href="https://dmas25-datacleaning-tool-app-fklacc.streamlit.app/">Log in here →</a>' },
+  ];
+
+  function getBotReply(msg) {
+    const lower = msg.toLowerCase();
+    for (const rule of botRules) {
+      if (rule.k.some(kw => lower.includes(kw))) return rule.a;
+    }
+    return 'Good question! Check our <a href="#faq">FAQ section</a> or email <a href="mailto:support@coltradata.com">support@coltradata.com</a> — we\'re happy to help.';
+  }
+
+  function appendMsg(text, type) {
+    const msgs = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = 'chat-msg ' + type;
+    div.innerHTML = text;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function sendChip(text) {
+    document.getElementById('chatChips').style.display = 'none';
+    sendText(text);
+  }
+
+  function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    document.getElementById('chatChips').style.display = 'none';
+    sendText(text);
+  }
+
+  function sendText(text) {
+    appendMsg(text, 'user');
+    setTimeout(() => appendMsg(getBotReply(text), 'bot'), 420);
+  }
+
+  // Cookie consent
+  function setCookieConsent(val) {
+    localStorage.setItem('cookieConsent', val);
+    document.getElementById('cookieBanner').style.display = 'none';
+    document.body.classList.remove('cookie-visible');
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    if (!localStorage.getItem('cookieConsent')) {
+      setTimeout(() => {
+        document.getElementById('cookieBanner').style.display = 'flex';
+        document.body.classList.add('cookie-visible');
+      }, 1200);
+    }
+  });
+</script>
 
 </body>
 </html>
