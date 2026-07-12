@@ -3,6 +3,7 @@ branding = {
     "company":          "Coltrane Ltd",
     "version":          "2.0",
     "tagline":          "DATA. INSIGHTS. INTELLIGENCE.",
+    "platform_line":    "Navigate the DataMaze.",
     "contact_email":    "support@coltradata.com",
 
     # Core palette

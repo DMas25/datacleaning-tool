@@ -98,12 +98,15 @@ def render_header(branding: dict) -> None:
         <div style="display:flex;align-items:center;gap:0;padding:32px 0 12px 0;">
             {img_tag}
             <div style="width:1.5px;height:68px;background:#C8D6DF;margin:0 22px;flex-shrink:0;align-self:center;"></div>
-            <div style="display:flex;flex-direction:column;align-items:center;max-width:340px;">
+            <div style="display:flex;flex-direction:column;align-items:center;max-width:360px;">
                 <h3 style="margin:0;color:{branding['primary_colour']};letter-spacing:1.5px;font-size:1.05em;text-align:center;white-space:nowrap;">
                     DATA &nbsp;&bull;&nbsp; INSIGHTS &nbsp;&bull;&nbsp; INTELLIGENCE
                 </h3>
-                <p style="margin:6px 0 0 0;color:#657286;font-size:0.82em;line-height:1.5;text-align:center;">
-                    Generate Structured Cleaned Datasets,<br/>Validation Reports And Visual Data Summaries.
+                <p style="margin:4px 0 0 0;color:{branding['primary_colour']};font-size:0.9em;font-weight:700;letter-spacing:0.04em;text-align:center;">
+                    {branding.get('platform_line', 'Navigate the DataMaze.')}
+                </p>
+                <p style="margin:5px 0 0 0;color:#657286;font-size:0.78em;line-height:1.5;text-align:center;">
+                    From raw, tangled data to clean, validated reports —<br/>wherever your team works.
                 </p>
             </div>
         </div>
@@ -135,7 +138,7 @@ def render_footer(branding: dict) -> None:
             <div style="font-size:0.875rem;color:#657286;margin-bottom:10px;">
                 <strong style="color:{branding['primary_colour']};">{branding['app_name']}</strong>
                 &nbsp;&nbsp;|&nbsp;&nbsp;
-                Structured Data Cleaning, Validation &amp; Reporting
+                Navigate the DataMaze &nbsp;&middot;&nbsp; Data Cleaning, Validation &amp; Reporting
                 &nbsp;&nbsp;|&nbsp;&nbsp;
                 <a href="mailto:{branding['contact_email']}"
                    style="color:{branding['primary_colour']};text-decoration:none;">
@@ -224,9 +227,12 @@ def _render_login_header(branding: dict) -> None:
                         text-transform:uppercase;margin-top:10px;">
                 {branding['tagline']}
             </div>
+            <div style="font-size:1rem;font-weight:700;color:{primary};margin-top:7px;letter-spacing:0.03em;">
+                {branding.get('platform_line', 'Navigate the DataMaze.')}
+            </div>
             <div style="font-size:0.87rem;color:#657286;margin-top:10px;line-height:1.6;">
-                Structured data cleaning, validation reports &amp; visual summaries —<br/>
-                built for teams who need clean data, fast.
+                From raw, tangled data to clean, validated reports —<br/>
+                built for the hybrid workforce.
             </div>
         </div>
         """,
@@ -237,9 +243,9 @@ def _render_login_header(branding: dict) -> None:
 def _render_login_features(branding: dict) -> None:
     primary = branding["primary_colour"]
     features = [
-        ("📂", "Upload any CSV or Excel", "Handles messy real-world files with missing values, duplicates, and mixed types."),
-        ("✅", "Instant cleaning & validation", "Automated rules detect and fix common data quality issues in seconds."),
-        ("📊", "Reports & visual summaries", "Export cleaned datasets with PDF validation reports and chart galleries."),
+        ("🧭", "Find your way through messy data", "Upload any CSV or Excel — ColtraDataAi handles missing values, duplicates, and mixed types automatically."),
+        ("✅", "Instant cleaning & validation", "AI-powered rules map your path through the DataMaze, fixing quality issues in seconds."),
+        ("📊", "Boardroom-ready reports, on any device", "Export cleaned datasets with PDF summaries and chart galleries — delivered to your inbox or home screen."),
     ]
     cols = st.columns(3)
     for col, (icon, title, desc) in zip(cols, features):
