@@ -294,8 +294,74 @@ def render_results_panel(
         )
         render_upgrade_cta_button("premium", key_suffix="branding_lock")
 
+    # ── Step 8: Email Report Delivery ─────────────────────────────────────
+    render_section_divider(branding=branding)
+    render_step_header(
+        8, "Email Report",
+        "Send your PDF report directly to an inbox — useful when you're on the move.",
+        branding=branding,
+    )
+
+    if can_export_pdf:
+        _render_email_delivery_section(result, user_plan)
+    else:
+        paywall_card(
+            "Email delivery is locked",
+            "Upgrade to Professional or above to send reports directly to your inbox.",
+        )
+        render_upgrade_cta_button("professional", key_suffix="email_lock")
+
 
 # ── Private helpers ───────────────────────────────────────────────────────────
+
+def _render_email_delivery_section(result: dict, user_plan: str) -> None:
+    from services.transactional_email import send_email_with_attachment, transactional_email_config_complete
+    from services.lifecycle_emails import render_report_delivery_email
+
+    try:
+        email_cfg = dict(st.secrets.get("transactional_email", {}))
+    except Exception:
+        email_cfg = {}
+
+    if not transactional_email_config_complete(email_cfg):
+        st.info(
+            "Email delivery is not configured on this deployment. "
+            "Use the download buttons above to save your report."
+        )
+        return
+
+    default_email = get_user_email() or ""
+    recipient = st.text_input(
+        "Recipient email address",
+        value=default_email,
+        placeholder="you@example.com",
+        key="email_delivery_recipient",
+    )
+
+    if st.button("Send PDF report to inbox", use_container_width=True, key="send_report_email_btn"):
+        if not recipient or "@" not in recipient:
+            st.error("Please enter a valid email address.")
+        else:
+            subject, body = render_report_delivery_email(app_url=email_cfg.get("app_url", ""))
+            with st.spinner("Sending report…"):
+                ok = send_email_with_attachment(
+                    cfg=email_cfg,
+                    to_email=recipient,
+                    subject=subject,
+                    body=body,
+                    attachment_data=result["pdf_bytes"],
+                    attachment_filename=result["pdf_filename"],
+                )
+            if ok:
+                st.success(f"Report sent to {recipient}")
+                if get_user_email():
+                    log_usage_event(get_user_email(), "export_email", user_plan)
+                    st.session_state["follow_through_this_session"] = True
+            else:
+                st.error("Failed to send the email. Please download the report using the button above.")
+
+    st.caption("The PDF executive summary is attached. Delivery may take a few minutes.")
+
 
 def _render_branding_test_form(result: dict, raw_df: pd.DataFrame, branding: dict) -> None:
     """Lets an Enterprise/Premium tester swap in a custom logo and regenerate

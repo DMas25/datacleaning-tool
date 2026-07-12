@@ -9,6 +9,7 @@ font = "sans serif"
 headless = true
 runOnSave = true
 maxUploadSize = 200
+enableStaticServing = true
 
 [logger]
 level = "info"

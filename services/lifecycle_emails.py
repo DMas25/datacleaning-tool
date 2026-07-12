@@ -24,3 +24,17 @@ def render_activation_nudge(app_url: str = "") -> tuple[str, str]:
         cta_line += f": {app_url}"
     body = f"{ACTIVATION_NUDGE['body']}\n\n{cta_line}"
     return subject, body
+
+
+def render_report_delivery_email(app_url: str = "") -> tuple[str, str]:
+    """Return (subject, body) for a report-delivery email with PDF attachment."""
+    subject = "Your ColtraDataAi cleaned data report"
+    body = (
+        "Your cleaned data report is attached to this email.\n\n"
+        "It includes your full cleaned dataset, quality analysis, and an executive PDF summary.\n\n"
+        "To run another report or manage your account, visit the app"
+    )
+    if app_url:
+        body += f": {app_url}"
+    body += "\n\nColtraDataAi by Coltrane Ltd"
+    return subject, body

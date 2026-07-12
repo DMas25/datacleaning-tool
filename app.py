@@ -101,6 +101,33 @@ st.set_page_config(
 
 inject_app_css(branding)
 
+# ── PWA bootstrap ──────────────────────────────────────────────────────────────
+# Injects the web-app manifest link and registers the service worker so the app
+# can be installed to a home screen on mobile (iOS Safari / Android Chrome).
+# Icons must be placed in static/icon-192.png and static/icon-512.png.
+st.markdown(
+    """
+    <script>
+    (function () {
+        if (!document.querySelector('link[rel="manifest"]')) {
+            var link = document.createElement('link');
+            link.rel = 'manifest';
+            link.href = '/app/static/manifest.json';
+            document.head.appendChild(link);
+        }
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker
+                    .register('/app/static/sw.js')
+                    .catch(function () {});
+            });
+        }
+    })();
+    </script>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 def _run_app() -> None:
     # SUBSCRIPTION LOGIC START
