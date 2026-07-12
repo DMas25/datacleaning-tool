@@ -60,18 +60,25 @@ def is_free_plan() -> bool:
     return get_plan_key() == "free"
 
 
-def render_dev_plan_override() -> None:
-    """Sidebar override dropdown — only shown when dev.testing_mode = true in secrets.toml."""
-    try:
-        if not st.secrets.get("dev", {}).get("testing_mode", False):
-            return
-    except Exception:
-        return
+def is_admin() -> bool:
+    return bool(st.session_state.get("is_admin", False))
 
-    with st.sidebar.expander("Dev: override plan", expanded=False):
+
+def render_dev_plan_override() -> None:
+    """Sidebar plan switcher — shown for admin sessions or when dev.testing_mode = true."""
+    admin_session = is_admin()
+    if not admin_session:
+        try:
+            if not st.secrets.get("dev", {}).get("testing_mode", False):
+                return
+        except Exception:
+            return
+
+    label = "Demo plan" if admin_session else "Dev: override plan"
+    with st.sidebar.expander(label, expanded=False):
         current = get_plan_key()
         override = st.selectbox(
-            "Force plan",
+            "Active plan",
             PLAN_ORDER,
             index=PLAN_ORDER.index(current) if current in PLAN_ORDER else 0,
             key="_dev_plan_override",

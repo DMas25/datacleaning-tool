@@ -17,6 +17,7 @@ from ui.upgrade_prompts import render_targeted_upgrade_banner
 from ui.pricing_cards import render_pricing_page
 from ui.branding_components import inject_app_css
 from ui.homepage import check_password, render_header, render_footer, render_legal_notices, render_sign_out_button
+from ui.onboarding_modal import show_onboarding_modal, needs_onboarding
 from ui.upload_panel import render_upload_panel
 from ui.cleaning_options import render_cleaning_options
 from ui.preview_panel import render_preview_panel
@@ -143,19 +144,33 @@ def _run_app() -> None:
     # client-facing UI — operators navigate here manually when investigating
     # an incident. Rendering it short-circuits the rest of the app for this run.
     with st.sidebar.expander("🛠 Admin", expanded=False):
-        admin_password = st.secrets.get("admin", {}).get("dashboard_password", "")
-        entered = st.text_input("Dashboard password", type="password", key="_admin_pwd")
-        if admin_password and entered == admin_password:
-            st.session_state["_show_fault_dashboard"] = True
-        elif entered:
-            st.session_state["_show_fault_dashboard"] = False
-
-        insights_password = st.secrets.get("admin", {}).get("insights_password", "")
-        entered_insights = st.text_input("Insights password", type="password", key="_admin_insights_pwd")
-        if insights_password and entered_insights == insights_password:
-            st.session_state["_show_internal_insights"] = True
-        elif entered_insights:
-            st.session_state["_show_internal_insights"] = False
+        if st.session_state.get("is_admin"):
+            # Admin bypass users get toggle checkboxes — no secondary password needed
+            st.session_state["_show_fault_dashboard"] = st.checkbox(
+                "Fault dashboard",
+                value=st.session_state.get("_show_fault_dashboard", False),
+            )
+            st.session_state["_show_internal_insights"] = st.checkbox(
+                "Insights dashboard",
+                value=st.session_state.get("_show_internal_insights", False),
+            )
+        else:
+            admin_password = st.secrets.get("admin", {}).get("dashboard_password", "")
+            entered = st.text_input("Admin password", type="password", key="_admin_pwd")
+            if st.button("Unlock", key="_admin_unlock", use_container_width=True):
+                if admin_password and entered == admin_password:
+                    st.session_state["_admin_unlocked"] = True
+                else:
+                    st.error("Incorrect password")
+            if st.session_state.get("_admin_unlocked"):
+                st.session_state["_show_fault_dashboard"] = st.checkbox(
+                    "Fault dashboard",
+                    value=st.session_state.get("_show_fault_dashboard", False),
+                )
+                st.session_state["_show_internal_insights"] = st.checkbox(
+                    "Insights dashboard",
+                    value=st.session_state.get("_show_internal_insights", False),
+                )
 
     if st.session_state.get("_show_fault_dashboard"):
         render_fault_dashboard()
@@ -186,6 +201,16 @@ def _run_app() -> None:
         customer_email = st.session_state.get("customer_email", "")
         if customer_email:
             set_plan_key(load_customer_plan_from_store(customer_email))
+
+    # ── Onboarding gate ────────────────────────────────────────────────────────
+    # Intercepts a paying subscriber on their first activation to capture
+    # profile and compliance-consent data.  Runs after plan resolution so that
+    # plan_key is already correct.  st.stop() blocks the rest of the app from
+    # rendering until the modal is dismissed (i.e. onboarding_complete is set).
+    _onboarding_email = st.session_state.get("user_email") or st.session_state.get("customer_email", "")
+    if needs_onboarding(_onboarding_email):
+        show_onboarding_modal(_onboarding_email)
+        st.stop()
 
     # ── Subscription panels ─────────────────────────────────────────────────────
     # ---------------------------------------------

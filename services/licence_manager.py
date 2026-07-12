@@ -357,6 +357,91 @@ def update_subscription_profile(
         )
 
 
+# ── Extended onboarding profile ───────────────────────────────────────────────
+def update_customer_profile(
+    email: str,
+    *,
+    customer_name: str = "",
+    company_name: str = "",
+    phone: str = "",
+    country: str = "",
+    vat_number: str = "",
+) -> None:
+    """Write extended onboarding profile fields to the subscriptions row.
+
+    Uses PRAGMA table_info to discover which columns exist before writing, so
+    this is safe against both the current SQLite schema (which won't have these
+    columns yet) and the future Supabase schema (which will).  Missing columns
+    are silently skipped; no ALTER TABLE is performed here.
+    """
+    email = email.lower().strip()
+    _FALLBACK = "Not provided"
+
+    field_map = {
+        "customer_name": customer_name or _FALLBACK,
+        "company_name": company_name or _FALLBACK,
+        "phone": phone or _FALLBACK,
+        "country": country or _FALLBACK,
+        "vat_number": vat_number or _FALLBACK,
+    }
+
+    try:
+        with _conn() as con:
+            existing_cols = {row["name"] for row in con.execute("PRAGMA table_info(subscriptions)")}
+            updates = {col: val for col, val in field_map.items() if col in existing_cols}
+            if not updates:
+                log.warning(
+                    "update_customer_profile: none of the onboarding columns exist yet in subscriptions — skipping"
+                )
+                return
+            set_clause = ", ".join(f"{col} = ?" for col in updates)
+            params = list(updates.values()) + [_now(), email]
+            con.execute(
+                f"UPDATE subscriptions SET {set_clause}, updated_at = ? WHERE email = ?",
+                params,
+            )
+    except Exception:
+        log.exception("update_customer_profile: unexpected error for email=%s", email)
+
+
+def save_compliance_consent(
+    email: str,
+    *,
+    t_and_c: bool,
+    privacy: bool,
+    marketing: bool,
+    ip_address: str = "",
+) -> None:
+    """Insert or update a compliance consent record in the compliance_consent table.
+
+    Uses INSERT OR REPLACE (SQLite syntax) — swap to
+    INSERT INTO ... ON CONFLICT(email) DO UPDATE SET ...
+    when migrating to PostgreSQL/Supabase.
+
+    If the table does not exist yet, silently logs a warning instead of crashing.
+    """
+    email = email.lower().strip()
+    now = _now()
+    try:
+        with _conn() as con:
+            con.execute(
+                """INSERT OR REPLACE INTO compliance_consent
+                       (email, t_and_c, privacy, marketing, ip_address, consented_at)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (email, int(t_and_c), int(privacy), int(marketing), ip_address, now),
+            )
+    except sqlite3.OperationalError as exc:
+        if "no such table" in str(exc).lower():
+            log.warning(
+                "save_compliance_consent: compliance_consent table does not exist yet — consent not saved for %s",
+                email,
+            )
+        else:
+            log.exception("save_compliance_consent: unexpected DB error for email=%s", email)
+    except Exception:
+        log.exception("save_compliance_consent: unexpected error for email=%s", email)
+
+
 # ── Usage event logging (internal analytics; no PII beyond email) ─────────────
 def log_usage_event(email: str, event_type: str, plan: str = "") -> None:
     """Record a behavioral event (activate/run/export_excel/export_pdf/ai_advisory)."""

@@ -34,7 +34,7 @@ branding = {
     ),
 
     # Footer branding line for PDF page footers and report cover sheets
-    "footer_line": "ColtraDataAi  ·  Coltrane Ltd  ·  support@coltradata.com",
+    "footer_line": "ColtraDataAi powered by Coltrane Ltd  ·  support@coltradata.com",
 
     # UK trading-disclosure line (Companies (Trading Disclosures) Regulations 2008) —
     # company name, place of registration, registered number, and registered office

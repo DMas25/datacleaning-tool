@@ -41,12 +41,19 @@ def check_password(branding: dict) -> bool:
         )
         if st.button("Sign in", use_container_width=True, type="primary"):
             configured = _get_configured_password()
-            if configured is None:
+            admin_pwd = _get_admin_password()
+            if configured is None and admin_pwd is None:
                 st.error(
                     "No login password is configured. Add a [credentials] password "
                     "to .streamlit/secrets.toml (see .streamlit/secrets.toml.example)."
                 )
-            elif pwd == configured:
+            elif admin_pwd and pwd == admin_pwd:
+                st.session_state.authenticated = True
+                st.session_state.is_admin = True
+                st.session_state.plan_key = "enterprise"
+                st.session_state.user_email = "admin@coltradata.com"
+                st.rerun()
+            elif configured and pwd == configured:
                 st.session_state.authenticated = True
                 st.rerun()
             else:
@@ -265,6 +272,13 @@ def _render_login_features(branding: dict) -> None:
 def _get_configured_password() -> str | None:
     try:
         return st.secrets["credentials"]["password"]
+    except (KeyError, st.errors.StreamlitSecretNotFoundError):
+        return None
+
+
+def _get_admin_password() -> str | None:
+    try:
+        return st.secrets["admin"]["admin_password"]
     except (KeyError, st.errors.StreamlitSecretNotFoundError):
         return None
 

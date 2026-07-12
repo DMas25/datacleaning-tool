@@ -10,16 +10,13 @@
 # Nothing in this file is secret — it contains only public IDs and URLs.
 # Keep secrets out of this file and in .streamlit/secrets.toml.
 
-STORE_SLUG = "TODO"  # e.g. "coltradata" (your LS store subdomain).
-# NOTE: not currently referenced anywhere in the codebase (checkout URLs are
-# pasted directly into CHECKOUT_URLS below). Leave as "TODO" — fill in only
-# if/when a feature needs to build a store URL programmatically.
+STORE_SLUG = "coltradataai"
 
-# ── Variant IDs ────────────────────────────────────────────────────────────
-STARTER_VARIANT_ID      = "1790190"
-PROFESSIONAL_VARIANT_ID = "1790279"
-PREMIUM_VARIANT_ID      = "1790302"
-ENTERPRISE_VARIANT_ID   = "1807649"
+# ── Variant IDs (Live Mode) ────────────────────────────────────────────────
+STARTER_VARIANT_ID      = "1888469"
+PROFESSIONAL_VARIANT_ID = "1888467"
+PREMIUM_VARIANT_ID      = "1888466"
+ENTERPRISE_VARIANT_ID   = "1888462"
 
 # ── Variant ID → plan key ──────────────────────────────────────────────────
 # Populate once variant IDs are known. Used by the webhook handler and
@@ -44,10 +41,10 @@ VARIANT_TIER_MAP: dict[str, str] = {
 # Paste the LemonSqueezy "Buy link" for each plan here.
 # Leave as empty string until the account is approved; the UI shows "Coming soon".
 CHECKOUT_URLS: dict[str, str] = {
-    "Starter":      "https://coltradataai.lemonsqueezy.com/checkout/buy/258cdf5f-37a0-4ce2-b7b5-13c0186db8c1",
-    "Professional": "https://coltradataai.lemonsqueezy.com/checkout/buy/d1ced1d8-b649-4804-ab70-b0a95b0180d1",
-    "Premium":      "https://coltradataai.lemonsqueezy.com/checkout/buy/6e028361-d420-4410-83d8-c6d2e7c575a5",
-    "Enterprise":   "https://coltradataai.lemonsqueezy.com/checkout/buy/3a9ef5ca-68cb-4b1f-b0a5-c656ed9ae236?discount=0",
+    "Starter":      "https://coltradataai.lemonsqueezy.com/checkout/buy/d5d25833-3149-487f-a9d1-832c398d13e6",
+    "Professional": "https://coltradataai.lemonsqueezy.com/checkout/buy/a358b1c4-70b8-4196-ab47-fe22153a488d",
+    "Premium":      "https://coltradataai.lemonsqueezy.com/checkout/buy/c4a03a84-0d00-401d-8550-1f4974bc54b0",
+    "Enterprise":   "https://coltradataai.lemonsqueezy.com/checkout/buy/9c89a708-c7c3-4067-a2e9-720ea4df8991",
 }
 
 
