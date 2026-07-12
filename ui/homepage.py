@@ -278,14 +278,14 @@ def _render_login_features(branding: dict) -> None:
 def _get_configured_password() -> str | None:
     try:
         return st.secrets["credentials"]["password"]
-    except (KeyError, st.errors.StreamlitSecretNotFoundError):
+    except KeyError:
         return None
 
 
 def _get_admin_password() -> str | None:
     try:
         return st.secrets["admin"]["admin_password"]
-    except (KeyError, st.errors.StreamlitSecretNotFoundError):
+    except KeyError:
         return None
 
 
