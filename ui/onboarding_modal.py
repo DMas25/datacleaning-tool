@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from services.licence_manager import (
+from services.licence_manager_pg import (
     get_by_email,
     save_compliance_consent,
     update_customer_profile,

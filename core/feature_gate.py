@@ -99,7 +99,7 @@ def _record_profile_and_activation(
 ) -> None:
     """Attach optional profile fields and log the activation event, keyed off the
     subscriber row created by the webhook server — skipped for keys with no local row."""
-    from services.licence_manager import get_by_key, update_subscription_profile, log_usage_event
+    from services.licence_manager_pg import get_by_key, update_subscription_profile, log_usage_event
 
     row = get_by_key(licence_key)
     if not row:

@@ -19,7 +19,7 @@ def render_targeted_upgrade_banner() -> None:
     Falls back to render_live_upgrade_banner() when there's no email on file
     or no behavioural signal strong enough to act on (e.g. brand-new users).
     """
-    from services.licence_manager import (
+    from services.licence_manager_pg import (
         get_user_behavior,
         signal_shown_recently,
         log_signal_shown,

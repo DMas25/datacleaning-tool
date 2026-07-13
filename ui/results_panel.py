@@ -21,7 +21,7 @@ from core.feature_gate import feature_unlocked
 from services.entitlements import has_feature
 from services.subscription import get_user_plan_from_subscription
 from services.usage_tracker import can_run, increment_run
-from services.licence_manager import (
+from services.licence_manager_pg import (
     log_usage_event,
     get_runs_this_calendar_month,
     milestone_already_shown,

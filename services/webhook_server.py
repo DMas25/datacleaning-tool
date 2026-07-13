@@ -42,7 +42,7 @@ from typing import Any
 from fastapi import FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
-from services.licence_manager import (
+from services.licence_manager_pg import (
     cancel_subscription,
     log_webhook_event,
     upsert_subscription,

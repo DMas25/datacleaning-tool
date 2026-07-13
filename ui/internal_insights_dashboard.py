@@ -12,7 +12,7 @@ import plotly.express as px
 import streamlit as st
 
 from core.ai_advisor import generate_internal_insights
-from services.licence_manager import (
+from services.licence_manager_pg import (
     get_usage_analytics,
     get_prompt_effectiveness,
     classify_signal_effectiveness,

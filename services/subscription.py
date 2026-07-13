@@ -43,7 +43,7 @@ def load_customer_plan_from_store(customer_email: str) -> str:
     No manual data entry required once the webhook is configured.
     """
     try:
-        from services.licence_manager import get_by_email
+        from services.licence_manager_pg import get_by_email
         row = get_by_email(customer_email)
         if row and row.get("status") == "active" and row.get("plan") in PLAN_CONFIG:
             return row["plan"]

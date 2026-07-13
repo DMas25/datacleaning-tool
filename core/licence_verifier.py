@@ -43,7 +43,7 @@ def validate_licence_key(licence_key: str) -> dict:
 
     # ── 1. Check local DB first ───────────────────────────────────────────
     try:
-        from services.licence_manager import validate_local_key
+        from services.licence_manager_pg import validate_local_key
         local = validate_local_key(key)
         if local["valid"]:
             plan = local["plan"]
