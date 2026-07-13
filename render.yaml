@@ -1,41 +1,89 @@
-# Render Blueprint — ColtraDataAI Webhook Server
+# Render Blueprint — ColtraDataAi
 # Docs: https://render.com/docs/blueprint-spec
 #
 # Deploy steps:
 #   1. Push this file to your GitHub repo (root level).
 #   2. In Render dashboard → New → Blueprint → connect your repo.
-#   3. Render detects this file and creates the service below.
-#   4. After creation, set the two secret env vars in the Render dashboard
-#      (Environment tab on the service) — they are NOT stored here.
+#   3. Render detects this file and creates both services below.
+#   4. After creation, set all sync:false env vars in the Render dashboard
+#      (Environment tab on each service) — they are NOT stored here.
 #
 # See scripts/deploy_to_render.md for the full deployment checklist.
 
 services:
+
+  # ── Streamlit app (user-facing) ──────────────────────────────────────────
+  - type: web
+    name: coltradata-app
+    runtime: python
+    plan: starter          # Starter ($7/mo) — always-on, no cold starts for users.
+    region: frankfurt      # Closest AWS region to UK customers.
+
+    buildCommand: pip install -r requirements.txt
+    startCommand: bash run_render.sh
+
+    envVars:
+      - key: CREDENTIALS_PASSWORD
+        sync: false   # The app login password shown at the sign-in screen
+
+      - key: ADMIN_PASSWORD
+        sync: false   # Internal Coltrane staff bypass — grants Enterprise access
+
+      - key: ADMIN_DASHBOARD_PASSWORD
+        sync: false
+
+      - key: ADMIN_INSIGHTS_PASSWORD
+        sync: false
+
+      - key: ANTHROPIC_API_KEY
+        sync: false   # Claude API key — required for AI Advisor feature
+
+      - key: SMTP_ENABLED
+        value: "false"   # Set to "true" once email is configured
+
+      - key: SMTP_HOST
+        value: "smtp.office365.com"
+
+      - key: SMTP_PORT
+        value: "587"
+
+      - key: SMTP_USER
+        sync: false
+
+      - key: SMTP_PASSWORD
+        sync: false
+
+      - key: SMTP_FROM
+        sync: false
+
+      - key: APP_URL
+        sync: false   # Public URL of this app e.g. https://app.coltradataai.com
+
+      - key: DATABASE_URL
+        sync: false   # Supabase connection string (Transaction pooler, port 6543)
+
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+
+  # ── Webhook server (LemonSqueezy → Supabase) ────────────────────────────
   - type: web
     name: coltradata-webhook
     runtime: python
-    plan: starter          # Starter ($7/mo) — keeps the service always-on.
-                           # Free tier sleeps after 15 min and would miss webhooks.
-    region: frankfurt      # Closest AWS region to UK customers.
+    plan: starter          # Starter ($7/mo) — must not sleep or webhooks are missed.
+    region: frankfurt
 
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn services.webhook_server:app --host 0.0.0.0 --port $PORT
 
-    # Render sends GET /health every 30 s. A non-2xx response marks the
-    # deploy as unhealthy and triggers an automatic restart.
+    # Render sends GET /health every 30 s. A non-2xx response triggers restart.
     healthCheckPath: /health
 
     envVars:
-      # Secret env vars — sync: false means Render will prompt you to enter
-      # the value in the dashboard rather than reading it from this file.
-      # Never commit real secrets here.
-
       - key: LEMONSQUEEZY_WEBHOOK_SECRET
         sync: false   # Paste from LemonSqueezy → Settings → Webhooks → signing secret
 
       - key: DATABASE_URL
-        sync: false   # Supabase connection string (Transaction pooler, port 6543)
-                      # Format: postgresql://postgres.<ref>:<password>@aws-0-eu-west-2.pooler.supabase.com:6543/postgres
+        sync: false   # Same Supabase connection string as coltradata-app above
 
       - key: PYTHON_VERSION
         value: "3.11.0"

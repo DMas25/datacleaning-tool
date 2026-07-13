@@ -58,3 +58,8 @@ anthropic==0.42.0
 # Webhook server — FastAPI + ASGI runner (pure-Python wheels, cp314 safe)
 fastapi>=0.115.0,<1
 uvicorn>=0.32.0,<1
+
+# PostgreSQL — binary wheel, used by services/licence_manager_pg.py on Render/Supabase
+# psycopg2-binary has cp311/cp312/cp313 wheels; on cp314 Streamlit Cloud it installs
+# from source via manylinux — acceptable since it is only imported when DATABASE_URL is set.
+psycopg2-binary>=2.9.9
