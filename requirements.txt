@@ -55,6 +55,9 @@ reportlab>=4.0.0,<4.2
 # AI/ML (pure-Python — pin OK)
 anthropic==0.42.0
 
+# Email delivery — pure-Python, cp314 safe
+resend>=2.0.0,<3
+
 # Webhook server — FastAPI + ASGI runner (pure-Python wheels, cp314 safe)
 fastapi>=0.115.0,<1
 uvicorn>=0.32.0,<1

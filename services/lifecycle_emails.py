@@ -26,6 +26,22 @@ def render_activation_nudge(app_url: str = "") -> tuple[str, str]:
     return subject, body
 
 
+def render_licence_key_email(key: str, plan: str, app_url: str = "") -> tuple[str, str]:
+    """Return (subject, body) for a new-purchase licence key delivery email."""
+    subject = "Your ColtraDataAi licence key"
+    plan_label = plan.capitalize()
+    body = (
+        f"Thank you for purchasing ColtraDataAi {plan_label}.\n\n"
+        f"Your licence key is:\n\n"
+        f"    {key}\n\n"
+        f"To activate, open the app and enter this key when prompted."
+    )
+    if app_url:
+        body += f"\n\n{app_url}"
+    body += "\n\nColtraDataAi by Coltrane Ltd"
+    return subject, body
+
+
 def render_report_delivery_email(app_url: str = "") -> tuple[str, str]:
     """Return (subject, body) for a report-delivery email with PDF attachment."""
     subject = "Your ColtraDataAi cleaned data report"

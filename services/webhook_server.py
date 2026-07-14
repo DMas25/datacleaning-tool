@@ -47,6 +47,8 @@ from services.licence_manager_pg import (
     log_webhook_event,
     upsert_subscription,
 )
+from services.lifecycle_emails import render_licence_key_email
+from services.transactional_email import send_email
 
 logging.basicConfig(
     level=logging.INFO,
@@ -55,6 +57,30 @@ logging.basicConfig(
 log = logging.getLogger("coltradata.webhook")
 
 app = FastAPI(title="ColtraDataAI Webhook Server", docs_url=None, redoc_url=None)
+
+# ── Resend config ─────────────────────────────────────────────────────────────
+def _resend_cfg() -> dict:
+    """Read Resend config from env var or secrets.toml."""
+    api_key = os.environ.get("RESEND_API_KEY", "")
+    app_url = os.environ.get("APP_URL", "")
+    if not api_key:
+        try:
+            import tomllib
+            p = Path(".streamlit/secrets.toml")
+            if p.exists():
+                data = tomllib.loads(p.read_text())
+                te = data.get("transactional_email", {})
+                api_key = te.get("resend_api_key", "")
+                app_url = app_url or te.get("app_url", "")
+        except Exception:
+            pass
+    return {
+        "resend_api_key": api_key,
+        "from_name": "ColtraDataAi",
+        "from_email": "support@coltradata.com",
+        "app_url": app_url,
+    }
+
 
 # ── Plan map ──────────────────────────────────────────────────────────────────
 # Maps LemonSqueezy product/variant names → internal plan keys.
@@ -170,7 +196,11 @@ def _handle_order_created(payload: dict) -> str:
         status="active",
     )
     log.info("order_created  email=%s  plan=%s  key=%s", f["email"], f["plan"], key)
-    return f"activated {f['plan']} for {f['email']} (key={key})"
+    cfg = _resend_cfg()
+    subject, body = render_licence_key_email(key=key, plan=f["plan"], app_url=cfg["app_url"])
+    sent = send_email(cfg, f["email"], subject, body)
+    log.info("licence key email sent=%s to %s", sent, f["email"])
+    return f"activated {f['plan']} for {f['email']} (key={key}, email_sent={sent})"
 
 
 def _handle_subscription_created(payload: dict) -> str:
@@ -188,7 +218,11 @@ def _handle_subscription_created(payload: dict) -> str:
         "subscription_created  email=%s  plan=%s  sub_id=%s  key=%s",
         f["email"], f["plan"], f["subscription_id"], key,
     )
-    return f"subscription created {f['plan']} for {f['email']}"
+    cfg = _resend_cfg()
+    subject, body = render_licence_key_email(key=key, plan=f["plan"], app_url=cfg["app_url"])
+    sent = send_email(cfg, f["email"], subject, body)
+    log.info("licence key email sent=%s to %s", sent, f["email"])
+    return f"subscription created {f['plan']} for {f['email']} (email_sent={sent})"
 
 
 def _handle_subscription_updated(payload: dict) -> str:

@@ -1,6 +1,6 @@
-"""One-off SMTP credential test — sends a single test email and exits.
+"""One-off Resend delivery test — sends a single test email and exits.
 
-Not part of the lifecycle email pipeline; delete after confirming SMTP works.
+Not part of the lifecycle email pipeline; run once to confirm your API key works.
 Usage: python scripts/test_smtp.py you@example.com
 """
 from __future__ import annotations
@@ -25,7 +25,7 @@ def main() -> int:
     secrets = tomllib.loads(SECRETS_PATH.read_text(encoding="utf-8"))
     cfg = secrets.get("transactional_email", {})
 
-    ok = send_email(cfg, to_email, "ColtraDataAi SMTP test", "If you're reading this, SMTP works.")
+    ok = send_email(cfg, to_email, "ColtraDataAi email test", "If you're reading this, Resend is working.")
     print("Sent." if ok else "Failed — check logs above for the exception.")
     return 0 if ok else 1
 

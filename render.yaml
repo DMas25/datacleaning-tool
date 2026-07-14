@@ -38,23 +38,8 @@ services:
       - key: ANTHROPIC_API_KEY
         sync: false   # Claude API key — required for AI Advisor feature
 
-      - key: SMTP_ENABLED
-        value: "false"   # Set to "true" once email is configured
-
-      - key: SMTP_HOST
-        value: "smtp.office365.com"
-
-      - key: SMTP_PORT
-        value: "587"
-
-      - key: SMTP_USER
-        sync: false
-
-      - key: SMTP_PASSWORD
-        sync: false
-
-      - key: SMTP_FROM
-        sync: false
+      - key: RESEND_API_KEY
+        sync: false   # Resend API key — transactional + licence key delivery emails
 
       - key: APP_URL
         sync: false   # Public URL of this app e.g. https://app.coltradataai.com
@@ -81,6 +66,9 @@ services:
     envVars:
       - key: LEMONSQUEEZY_WEBHOOK_SECRET
         sync: false   # Paste from LemonSqueezy → Settings → Webhooks → signing secret
+
+      - key: RESEND_API_KEY
+        sync: false   # Same key as coltradata-app — sends licence key emails on purchase
 
       - key: DATABASE_URL
         sync: false   # Same Supabase connection string as coltradata-app above
