@@ -203,6 +203,30 @@
     .cookie-visible .chat-toggle { bottom: 5.5rem; }
     .cookie-visible .chat-window { bottom: 7.5rem; }
 
+    /* Testimonials */
+    .testimonials { background: var(--secondary); }
+    .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+    .testimonial-card { background: var(--white); border-radius: var(--radius); padding: 1.75rem; border-left: 4px solid var(--accent); }
+    .testimonial-card p { font-size: 0.97rem; color: var(--text); line-height: 1.7; font-style: italic; margin-bottom: 1rem; }
+    .testimonial-author { font-size: 0.85rem; font-weight: 700; color: var(--primary); }
+
+    /* Works Everywhere */
+    .works-everywhere { background: var(--primary); color: var(--white); }
+    .works-everywhere .section-label { color: #7dd3fc; }
+    .works-everywhere .section-title { color: var(--white); }
+    .works-everywhere-content { display: grid; grid-template-columns: 1.2fr 1fr; gap: 3.5rem; align-items: start; }
+    .works-text p { color: rgba(255,255,255,0.85); font-size: 1.05rem; margin-bottom: 1rem; line-height: 1.7; }
+    .install-steps { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.6rem; }
+    .install-step { background: rgba(255,255,255,0.1); border-radius: 8px; padding: 0.7rem 1rem; font-size: 0.9rem; color: rgba(255,255,255,0.9); }
+    .install-step strong { color: var(--white); }
+    .works-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .works-card { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: var(--radius); padding: 1.25rem; }
+    .works-card-icon { font-size: 1.4rem; margin-bottom: 0.5rem; display: block; }
+    .works-card h4 { font-size: 0.92rem; font-weight: 700; color: var(--white); margin-bottom: 0.3rem; }
+    .works-card p { font-size: 0.82rem; color: rgba(255,255,255,0.7); margin: 0; line-height: 1.4; }
+    .pricing-note-wrap { text-align: center; margin-top: 1.5rem; }
+    .pricing-note { display: inline-block; font-size: 0.9rem; color: var(--muted); background: var(--white); border: 1px solid var(--secondary); border-radius: 8px; padding: 0.8rem 1.5rem; }
+
     /* Responsive */
     @media (max-width: 768px) {
       nav { padding: 0 1rem; }
@@ -210,6 +234,10 @@
       section { padding: 3.5rem 1.25rem; }
       .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
       .demo-list { grid-template-columns: 1fr; }
+      .works-everywhere-content { grid-template-columns: 1fr; gap: 2rem; }
+    }
+    @media (max-width: 500px) {
+      .works-cards { grid-template-columns: 1fr; }
     }
     @media (max-width: 600px) {
       .chat-window { right: 0.75rem; left: 0.75rem; width: auto; }
@@ -224,6 +252,7 @@
   <a href="#"><img src="assets/logo.png" alt="ColtraDataAi" /></a>
   <div class="nav-links">
     <a href="#features">Features</a>
+    <a href="#mobile">Mobile</a>
     <a href="#demo">Demo</a>
     <a href="#samples">Sample Report</a>
     <a href="#pricing">Pricing</a>
@@ -239,20 +268,45 @@
   <div class="hero-content">
     <div class="hero-badge">AI-Powered Data Analytics Platform</div>
     <h1>Transform Raw Data into <span>Business-Ready Insights</span> in&nbsp;Minutes</h1>
-    <p>Upload Excel or CSV files and instantly generate cleaned datasets, intelligent dashboards, advanced analytics, AI-powered recommendations, and professional reports. No technical expertise required.</p>
+    <p>Save hours of spreadsheet analysis and produce boardroom-ready reports in minutes — without hiring a data analyst. Upload your Excel or CSV file and get cleaned data, AI-powered insights, interactive dashboards, and professional reports, instantly.</p>
     <div class="hero-tagline">Clean &nbsp;·&nbsp; Analyse &nbsp;·&nbsp; Report &nbsp;·&nbsp; Decide</div>
     <div class="hero-ctas">
       <a href="https://app.coltradata.com" class="btn-hero-primary">🚀 Start Free Trial</a>
       <a href="#demo" class="btn-hero-outline">▶️ Watch 2-Minute Demo</a>
     </div>
-    <p style="margin-top:1.25rem; font-size:0.85rem; color:rgba(255,255,255,0.6); letter-spacing:0.02em;">📱 Works on desktop, tablet &amp; mobile &nbsp;·&nbsp; Add to your home screen for app-like access</p>
+    <p style="margin-top:1.25rem; font-size:0.85rem; color:rgba(255,255,255,0.6); letter-spacing:0.02em;">Works on every device — desktop, tablet, or phone. No app store required.</p>
   </div>
 </section>
 
 <!-- Positioning Banner -->
 <div class="positioning">
-  <p>From Raw Data to Clear Decisions, Powered by AI.</p>
+  <p>Turn spreadsheets into boardroom-ready insights — without hiring a data analyst.</p>
 </div>
+
+<!-- Testimonials -->
+<section class="testimonials" id="testimonials">
+  <div class="container">
+    <div class="text-center">
+      <div class="section-label">Trusted By</div>
+      <h2 class="section-title">Used by Consultants, SMEs &amp; Analysts</h2>
+      <p class="section-subtitle">Professionals across industries use ColtraDataA<i>i</i> to transform spreadsheet data into actionable reports.</p>
+    </div>
+    <div class="testimonials-grid">
+      <div class="testimonial-card">
+        <p>"I uploaded a messy client dataset and had a professional, client-ready PDF report in under five minutes. What used to take me a full afternoon now takes minutes."</p>
+        <div class="testimonial-author">— Management Consultant</div>
+      </div>
+      <div class="testimonial-card">
+        <p>"Finally a tool that doesn't require a data analyst on the team. Our finance team now produces clean, visualised reports without any technical help."</p>
+        <div class="testimonial-author">— Finance Manager, SME</div>
+      </div>
+      <div class="testimonial-card">
+        <p>"The AI advisory picks up patterns I would have missed. It's like having a data scientist review every file I upload — at a fraction of the cost."</p>
+        <div class="testimonial-author">— Business Analyst</div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- Features -->
 <section id="features">
@@ -296,7 +350,12 @@
       <div class="feature-card">
         <span class="feature-icon">📱</span>
         <h3>Works on Any Device</h3>
-        <p>Use ColtraDataAi in any browser, on desktop, tablet, or smartphone. Add it to your mobile home screen for instant, app-like access — no app store required.</p>
+        <p>Full functionality on any phone, tablet, or desktop. Upload files, view dashboards, and download reports — all from your pocket. No app store required.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⚡</span>
+        <h3>Nothing to Install</h3>
+        <p>Zero downloads. Zero updates. Open your browser and go. We handle everything server-side so you always have the latest version, on every device.</p>
       </div>
     </div>
   </div>
@@ -330,6 +389,48 @@
   </div>
 </section>
 
+<!-- Works Everywhere -->
+<section class="works-everywhere" id="mobile">
+  <div class="container">
+    <div class="text-center">
+      <div class="section-label">Available on Every Device</div>
+      <h2 class="section-title">Your Data Lab — Anywhere You Are</h2>
+    </div>
+    <div class="works-everywhere-content">
+      <div class="works-text">
+        <p>ColtraDataA<i>i</i> runs entirely in your browser — no downloads, no installations, no waiting. Open it on your laptop at the office, your tablet in a meeting, or your phone on the train. Upload a spreadsheet, get a dashboard. Every feature works on every screen size.</p>
+        <p>Want the full app experience on your phone? Add ColtraDataA<i>i</i> to your home screen in one tap — it gets its own icon, opens full screen, and even sends you notifications when your reports are ready. No App Store. No Google Play. Just your browser.</p>
+        <div class="install-steps">
+          <div class="install-step"><strong>iPhone / iPad (Safari):</strong> Tap the Share button &rarr; "Add to Home Screen"</div>
+          <div class="install-step"><strong>Android (Chrome):</strong> Tap the three-dot menu &rarr; "Add to Home Screen" or "Install app"</div>
+        </div>
+      </div>
+      <div class="works-cards">
+        <div class="works-card">
+          <span class="works-card-icon">📱</span>
+          <h4>Works on Mobile</h4>
+          <p>Full functionality on any phone — upload, analyse, and download on the go.</p>
+        </div>
+        <div class="works-card">
+          <span class="works-card-icon">🏠</span>
+          <h4>Add to Home Screen</h4>
+          <p>One tap to install. Your own app icon, full-screen mode, no browser bar.</p>
+        </div>
+        <div class="works-card">
+          <span class="works-card-icon">🔔</span>
+          <h4>Smart Notifications</h4>
+          <p>Get notified when reports are ready. Works on Android and iPhone (iOS 16.4+).</p>
+        </div>
+        <div class="works-card">
+          <span class="works-card-icon">⚡</span>
+          <h4>Nothing to Install</h4>
+          <p>Zero downloads. Always the latest version. Open your browser and go.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- Demo -->
 <section id="demo">
   <div class="container">
@@ -350,7 +451,7 @@
         <li>Branded PDF report downloads</li>
       </ul>
       <div class="video-wrapper">
-        <iframe src="https://www.youtube.com/embed/VIXCC46HL9I" title="ColtraDataAi 2-Minute Demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        <iframe src="https://www.youtube.com/embed/VIXCC46HL9I?rel=0" title="ColtraDataAi 2-Minute Demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
       </div>
       <a href="https://app.coltradata.com" class="btn-hero-primary">🚀 Try It Free Now</a>
     </div>
@@ -485,6 +586,9 @@
         <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/9c89a708-c7c3-4067-a2e9-720ea4df8991" class="plan-cta">Get Enterprise</a>
       </div>
     </div>
+    <div class="pricing-note-wrap">
+      <span class="pricing-note">📱 All plans include full mobile access — no separate app purchase required.</span>
+    </div>
   </div>
 </section>
 
@@ -571,7 +675,19 @@
       </div>
       <div class="faq-item">
         <button class="faq-q" onclick="toggleFAQ(this)">Can I use ColtraDataA<i>i</i> on my phone or tablet?<span class="faq-icon">+</span></button>
-        <div class="faq-a"><p>Yes. ColtraDataA<i>i</i> works in any modern browser on desktop, tablet, or smartphone — no app download required. For the best mobile experience, you can add it directly to your home screen so it opens just like a native app, complete with the ColtraDataA<i>i</i> icon:<br /><br /><strong>iPhone / iPad (Safari):</strong> Tap the Share button (box with arrow), then tap <strong>Add to Home Screen</strong>.<br /><strong>Android (Chrome):</strong> Tap the three-dot menu, then tap <strong>Add to Home Screen</strong>.<br /><br />The ColtraDataA<i>i</i> icon will appear on your home screen for quick, one-tap access.</p></div>
+        <div class="faq-a"><p>Yes. ColtraDataA<i>i</i> is fully responsive and works on iPhone, Android, iPad, and any tablet. Upload files, view dashboards, and download reports — all from your mobile device. No app download required.<br /><br /><strong>iPhone / iPad (Safari):</strong> Tap the Share button, then tap <strong>Add to Home Screen</strong>.<br /><strong>Android (Chrome):</strong> Tap the three-dot menu, then tap <strong>Add to Home Screen</strong> or <strong>Install app</strong>.<br /><br />The ColtraDataA<i>i</i> icon will appear on your home screen for quick, full-screen, app-like access.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFAQ(this)">Do I need to download an app?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>No. ColtraDataA<i>i</i> works entirely in your browser — nothing to install, nothing to update. Open <a href="https://app.coltradata.com">app.coltradata.com</a> on any device and you are ready to go. You can optionally add it to your home screen for a full-screen app experience, but it is not required.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFAQ(this)">What are push notifications and how do I get them?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>Once you add ColtraDataA<i>i</i> to your home screen, you can opt in to push notifications. We will alert you when a report finishes generating or a scheduled analysis completes — even when the app is not open. Push notifications are supported on Android (Chrome) and on iPhone and iPad running iOS 16.4 or later.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFAQ(this)">Is my data safe when I use ColtraDataA<i>i</i> on mobile?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>Absolutely. Mobile sessions use the same HTTPS encryption and secure server-side processing as desktop. Your files are processed and then deleted after analysis — they are never stored permanently or shared with any third party. See our <a href="privacy.html">Privacy Policy</a> for full details.</p></div>
       </div>
     </div>
   </div>
