@@ -1,0 +1,17 @@
+{
+  "name": "ColtraDataAi",
+  "short_name": "ColtraDataAi",
+  "description": "AI-powered data cleaning and analytics platform. Clean, Analyse, Report, Decide.",
+  "start_url": "https://app.coltradata.com",
+  "display": "standalone",
+  "background_color": "#1F4E79",
+  "theme_color": "#1F4E79",
+  "icons": [
+    {
+      "src": "assets/logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
