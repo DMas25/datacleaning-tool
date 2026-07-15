@@ -169,7 +169,6 @@
     .faq-a.open { display: block; }
     .faq-a p { font-size: 0.95rem; color: var(--muted); line-height: 1.65; }
     .faq-a a { color: var(--accent); }
-    #faq i { font-style: normal; }
 
     /* Chatbot */
     .chat-toggle { position: fixed; bottom: 1.5rem; right: 1.5rem; width: 56px; height: 56px; background: var(--primary); color: var(--white); border: none; border-radius: 50%; font-size: 1.4rem; cursor: pointer; box-shadow: 0 4px 20px rgba(31,78,121,0.4); z-index: 1000; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
@@ -227,10 +226,29 @@
     .pricing-note-wrap { text-align: center; margin-top: 1.5rem; }
     .pricing-note { display: inline-block; font-size: 0.9rem; color: var(--muted); background: var(--white); border: 1px solid var(--secondary); border-radius: 8px; padding: 0.8rem 1.5rem; }
 
+    /* Solutions dropdown */
+    .nav-dropdown { position: relative; }
+    .nav-dropdown > a::after { content: " ▾"; font-size: 0.75rem; }
+    .nav-dropdown-menu { position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: var(--white); border: 1px solid var(--secondary); border-radius: var(--radius); box-shadow: 0 8px 28px rgba(31,78,121,0.14); min-width: 240px; padding: 0.5rem 0; z-index: 200; display: none; }
+    .nav-dropdown:hover .nav-dropdown-menu, .nav-dropdown:focus-within .nav-dropdown-menu { display: block; }
+    .nav-dropdown-menu a { display: block; padding: 0.55rem 1.25rem; color: var(--text); font-size: 0.9rem; font-weight: 500; text-decoration: none; transition: background 0.15s; white-space: nowrap; }
+    .nav-dropdown-menu a::after { display: none; }
+    .nav-dropdown-menu a:hover { background: var(--secondary); color: var(--primary); }
+
+    /* Who It's For — persona cards */
+    .persona-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; }
+    .persona-card { background: var(--light); border: 1px solid var(--secondary); border-radius: var(--radius); padding: 1.75rem; text-decoration: none; color: inherit; display: block; transition: all 0.2s; }
+    .persona-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(31,78,121,0.1); border-color: var(--accent); }
+    .persona-icon { font-size: 2rem; display: block; margin-bottom: 0.75rem; }
+    .persona-card h3 { font-size: 1.05rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; }
+    .persona-card p { font-size: 0.92rem; color: var(--muted); margin-bottom: 1rem; line-height: 1.5; }
+    .persona-link { font-size: 0.88rem; font-weight: 700; color: var(--accent); }
+
     /* Responsive */
     @media (max-width: 768px) {
       nav { padding: 0 1rem; }
-      .nav-links a:not(:last-child):not(.btn-login) { display: none; }
+      .nav-links a:not(:last-child):not(.btn-login):not(.btn-primary) { display: none; }
+      .nav-dropdown { display: none; }
       section { padding: 3.5rem 1.25rem; }
       .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
       .demo-list { grid-template-columns: 1fr; }
@@ -252,12 +270,22 @@
   <a href="#"><img src="assets/logo.png" alt="ColtraDataAi" /></a>
   <div class="nav-links">
     <a href="#features">Features</a>
-    <a href="#mobile">Mobile</a>
+    <div class="nav-dropdown">
+      <a href="#who-its-for">Solutions</a>
+      <div class="nav-dropdown-menu">
+        <a href="bookkeepers.html">📚 Bookkeepers &amp; Accountants</a>
+        <a href="consultants.html">💼 Consultants</a>
+        <a href="finance-teams.html">📊 Finance Teams</a>
+        <a href="retail.html">🛒 Retail Businesses</a>
+        <a href="researchers.html">🔬 Researchers</a>
+        <a href="logistics.html">🚚 Logistics Companies</a>
+        <a href="smes.html">🏢 SMEs</a>
+      </div>
+    </div>
     <a href="#demo">Demo</a>
     <a href="#samples">Sample Report</a>
     <a href="#pricing">Pricing</a>
     <a href="#faq">FAQ</a>
-    <a href="#about">About</a>
     <a href="https://app.coltradata.com" class="btn btn-login">Log In</a>
     <a href="#pricing" class="btn btn-primary">Start Free</a>
   </div>
@@ -283,13 +311,68 @@
   <p>Turn spreadsheets into boardroom-ready insights — without hiring a data analyst.</p>
 </div>
 
+<!-- Who It's For -->
+<section id="who-its-for">
+  <div class="container">
+    <div class="text-center">
+      <div class="section-label">Built for Your Industry</div>
+      <h2 class="section-title">Who Uses ColtraDataAi?</h2>
+      <p class="section-subtitle">From bookkeepers cleaning client records to researchers validating field data — see how ColtraDataAi fits the way you work.</p>
+    </div>
+    <div class="persona-grid">
+      <a href="bookkeepers.html" class="persona-card">
+        <span class="persona-icon">📚</span>
+        <h3>Bookkeepers &amp; Accountants</h3>
+        <p>Clean messy client records before they hit your accounting software. Save hours every client, every month.</p>
+        <span class="persona-link">See how it works for you →</span>
+      </a>
+      <a href="consultants.html" class="persona-card">
+        <span class="persona-icon">💼</span>
+        <h3>Consultants</h3>
+        <p>Turn client data dumps into boardroom-ready reports — the same day they arrive.</p>
+        <span class="persona-link">See how it works for you →</span>
+      </a>
+      <a href="finance-teams.html" class="persona-card">
+        <span class="persona-icon">📊</span>
+        <h3>Finance Teams</h3>
+        <p>Faster reporting cycles without waiting on IT. Clean, analyse, and report independently.</p>
+        <span class="persona-link">See how it works for you →</span>
+      </a>
+      <a href="retail.html" class="persona-card">
+        <span class="persona-icon">🛒</span>
+        <h3>Retail Businesses</h3>
+        <p>Clean sales, stock, and customer data from your POS and inventory systems in minutes.</p>
+        <span class="persona-link">See how it works for you →</span>
+      </a>
+      <a href="researchers.html" class="persona-card">
+        <span class="persona-icon">🔬</span>
+        <h3>Researchers</h3>
+        <p>Start analysis on solid ground. Systematic data cleaning with a full documented audit trail.</p>
+        <span class="persona-link">See how it works for you →</span>
+      </a>
+      <a href="logistics.html" class="persona-card">
+        <span class="persona-icon">🚚</span>
+        <h3>Logistics Companies</h3>
+        <p>Stop data errors from causing operational mistakes. Clean shipment and route records fast.</p>
+        <span class="persona-link">See how it works for you →</span>
+      </a>
+      <a href="smes.html" class="persona-card">
+        <span class="persona-icon">🏢</span>
+        <h3>SMEs</h3>
+        <p>Professional data reporting without hiring a data analyst. Affordable from £9/month.</p>
+        <span class="persona-link">See how it works for you →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
 <!-- Testimonials -->
 <section class="testimonials" id="testimonials">
   <div class="container">
     <div class="text-center">
       <div class="section-label">Trusted By</div>
       <h2 class="section-title">Used by Consultants, SMEs &amp; Analysts</h2>
-      <p class="section-subtitle">Professionals across industries use ColtraDataA<i>i</i> to transform spreadsheet data into actionable reports.</p>
+      <p class="section-subtitle">Professionals across industries use ColtraDataAi to transform spreadsheet data into actionable reports.</p>
     </div>
     <div class="testimonials-grid">
       <div class="testimonial-card">
@@ -312,7 +395,7 @@
 <section id="features">
   <div class="container">
     <div class="text-center">
-      <div class="section-label">Why ColtraDataA<i>i</i></div>
+      <div class="section-label">Why ColtraDataAi</div>
       <h2 class="section-title">Everything You Need to Turn Data into Decisions</h2>
       <p class="section-subtitle">Six powerful capabilities in one platform. No coding, no consultants, no waiting.</p>
     </div>
@@ -378,7 +461,7 @@
       <div class="step">
         <div class="step-number">2</div>
         <h3>Clean &amp; Analyse</h3>
-        <p>ColtraDataA<i>i</i> automatically cleans your data and generates dashboards, analytics, and AI insights.</p>
+        <p>ColtraDataAi automatically cleans your data and generates dashboards, analytics, and AI insights.</p>
       </div>
       <div class="step">
         <div class="step-number">3</div>
@@ -398,8 +481,8 @@
     </div>
     <div class="works-everywhere-content">
       <div class="works-text">
-        <p>ColtraDataA<i>i</i> runs entirely in your browser — no downloads, no installations, no waiting. Open it on your laptop at the office, your tablet in a meeting, or your phone on the train. Upload a spreadsheet, get a dashboard. Every feature works on every screen size.</p>
-        <p>Want the full app experience on your phone? Add ColtraDataA<i>i</i> to your home screen in one tap — it gets its own icon, opens full screen, and even sends you notifications when your reports are ready. No App Store. No Google Play. Just your browser.</p>
+        <p>ColtraDataAi runs entirely in your browser — no downloads, no installations, no waiting. Open it on your laptop at the office, your tablet in a meeting, or your phone on the train. Upload a spreadsheet, get a dashboard. Every feature works on every screen size.</p>
+        <p>Want the full app experience on your phone? Add ColtraDataAi to your home screen in one tap — it gets its own icon, opens full screen, and even sends you notifications when your reports are ready. No App Store. No Google Play. Just your browser.</p>
         <div class="install-steps">
           <div class="install-step"><strong>iPhone / iPad (Safari):</strong> Tap the Share button &rarr; "Add to Home Screen"</div>
           <div class="install-step"><strong>Android (Chrome):</strong> Tap the three-dot menu &rarr; "Add to Home Screen" or "Install app"</div>
@@ -436,7 +519,7 @@
   <div class="container">
     <div class="text-center">
       <div class="section-label">See It in Action</div>
-      <h2 class="section-title">Watch ColtraDataA<i>i</i> Transform Your Data</h2>
+      <h2 class="section-title">Watch ColtraDataAi Transform Your Data</h2>
       <p class="section-subtitle">See how raw spreadsheets become actionable business intelligence in just a few clicks.</p>
     </div>
     <div class="demo-box">
@@ -463,8 +546,8 @@
   <div class="container">
     <div class="text-center">
       <div class="section-label">Sample Outputs</div>
-      <h2 class="section-title">See What ColtraDataA<i>i</i> Delivers</h2>
-      <p class="section-subtitle">Download a real report generated by ColtraDataA<i>i</i> from a live dataset. No sign-up required.</p>
+      <h2 class="section-title">See What ColtraDataAi Delivers</h2>
+      <p class="section-subtitle">Download a real report generated by ColtraDataAi from a live dataset. No sign-up required.</p>
     </div>
     <div class="downloads-grid">
       <div class="download-card">
@@ -494,7 +577,7 @@
       <div class="download-card">
         <div class="download-icon">🚀</div>
         <h3>Try It on Your Own Data</h3>
-        <p>Upload your own Excel or CSV file and see ColtraDataA<i>i</i> clean, analyse, and report on it in minutes. Free tier available, no credit card required.</p>
+        <p>Upload your own Excel or CSV file and see ColtraDataAi clean, analyse, and report on it in minutes. Free tier available, no credit card required.</p>
         <div class="download-tags">
           <span class="download-tag">Free Tier</span>
           <span class="download-tag">Up to 5,000 Rows</span>
@@ -597,10 +680,10 @@
   <div class="container">
     <div class="about-grid">
       <div class="about-text">
-        <div class="section-label">About ColtraDataA<i>i</i></div>
+        <div class="section-label">About ColtraDataAi</div>
         <h2 class="section-title">Built for People Who Work with Data</h2>
-        <p>ColtraDataA<i>i</i> is an <strong>AI-powered analytics platform</strong> that helps businesses, consultants, researchers, educators, and professionals transform Excel and CSV data into insights, dashboards, AI recommendations, and professional reports within minutes.</p>
-        <p>No coding. No technical expertise. No waiting. Just upload your data and let ColtraDataA<i>i</i> do the heavy lifting.</p>
+        <p>ColtraDataAi is an <strong>AI-powered analytics platform</strong> that helps businesses, consultants, researchers, educators, and professionals transform Excel and CSV data into insights, dashboards, AI recommendations, and professional reports within minutes.</p>
+        <p>No coding. No technical expertise. No waiting. Just upload your data and let ColtraDataAi do the heavy lifting.</p>
         <div class="about-tags">
           <span class="tag">Businesses</span>
           <span class="tag">Consultants</span>
@@ -638,28 +721,28 @@
     <div class="text-center">
       <div class="section-label">Got Questions?</div>
       <h2 class="section-title">Frequently Asked Questions</h2>
-      <p class="section-subtitle">Everything you need to know about ColtraDataA<i>i</i>.</p>
+      <p class="section-subtitle">Everything you need to know about ColtraDataAi.</p>
     </div>
     <div class="faq-list">
       <div class="faq-item">
-        <button class="faq-q" onclick="toggleFAQ(this)">What file formats does ColtraDataA<i>i</i> support?<span class="faq-icon">+</span></button>
-        <div class="faq-a"><p>ColtraDataA<i>i</i> supports Excel files (.xlsx, .xls) and CSV files (.csv). File size limits depend on your plan: 10 MB (Free), 25 MB (Starter), 75 MB (Professional), 150 MB (Premium), and 300 MB (Enterprise).</p></div>
+        <button class="faq-q" onclick="toggleFAQ(this)">What file formats does ColtraDataAi support?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>ColtraDataAi supports Excel files (.xlsx, .xls) and CSV files (.csv). File size limits depend on your plan: 10 MB (Free), 25 MB (Starter), 75 MB (Professional), 150 MB (Premium), and 300 MB (Enterprise).</p></div>
       </div>
       <div class="faq-item">
         <button class="faq-q" onclick="toggleFAQ(this)">Do I need any technical skills to use it?<span class="faq-icon">+</span></button>
-        <div class="faq-a"><p>None at all. If you can upload a file and click a button, you can use ColtraDataA<i>i</i>. The platform handles all the technical work — cleaning, analysing, and reporting — automatically.</p></div>
+        <div class="faq-a"><p>None at all. If you can upload a file and click a button, you can use ColtraDataAi. The platform handles all the technical work — cleaning, analysing, and reporting — automatically.</p></div>
       </div>
       <div class="faq-item">
         <button class="faq-q" onclick="toggleFAQ(this)">Is my data secure?<span class="faq-icon">+</span></button>
         <div class="faq-a"><p>Yes. Your files are processed securely and are not permanently stored or shared with any third party. We are GDPR-compliant. See our <a href="privacy.html">Privacy Policy</a> for full details.</p></div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" onclick="toggleFAQ(this)">Can I try ColtraDataA<i>i</i> before buying?<span class="faq-icon">+</span></button>
+        <button class="faq-q" onclick="toggleFAQ(this)">Can I try ColtraDataAi before buying?<span class="faq-icon">+</span></button>
         <div class="faq-a"><p>Yes. Our Free plan gives you 3 cleaning runs per month with up to 5,000 rows — no credit card required. You can also download sample reports from our <a href="#samples">Sample Outputs</a> section without signing up at all.</p></div>
       </div>
       <div class="faq-item">
         <button class="faq-q" onclick="toggleFAQ(this)">How does the AI Advisory work?<span class="faq-icon">+</span></button>
-        <div class="faq-a"><p>After cleaning and analysing your data, ColtraDataA<i>i</i>'s AI engine generates plain-English recommendations specific to your dataset — highlighting trends, anomalies, risks, and opportunities relevant to your business context.</p></div>
+        <div class="faq-a"><p>After cleaning and analysing your data, ColtraDataAi's AI engine generates plain-English recommendations specific to your dataset — highlighting trends, anomalies, risks, and opportunities relevant to your business context.</p></div>
       </div>
       <div class="faq-item">
         <button class="faq-q" onclick="toggleFAQ(this)">What does a Professional report include?<span class="faq-icon">+</span></button>
@@ -674,19 +757,19 @@
         <div class="faq-a"><p>Select your new plan from the <a href="#pricing">Pricing section</a> above and complete the checkout. Upgrades take effect immediately. Contact <a href="mailto:support@coltradata.com">support@coltradata.com</a> if you need any assistance.</p></div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" onclick="toggleFAQ(this)">Can I use ColtraDataA<i>i</i> on my phone or tablet?<span class="faq-icon">+</span></button>
-        <div class="faq-a"><p>Yes. ColtraDataA<i>i</i> is fully responsive and works on iPhone, Android, iPad, and any tablet. Upload files, view dashboards, and download reports — all from your mobile device. No app download required.<br /><br /><strong>iPhone / iPad (Safari):</strong> Tap the Share button, then tap <strong>Add to Home Screen</strong>.<br /><strong>Android (Chrome):</strong> Tap the three-dot menu, then tap <strong>Add to Home Screen</strong> or <strong>Install app</strong>.<br /><br />The ColtraDataA<i>i</i> icon will appear on your home screen for quick, full-screen, app-like access.</p></div>
+        <button class="faq-q" onclick="toggleFAQ(this)">Can I use ColtraDataAi on my phone or tablet?<span class="faq-icon">+</span></button>
+        <div class="faq-a"><p>Yes. ColtraDataAi is fully responsive and works on iPhone, Android, iPad, and any tablet. Upload files, view dashboards, and download reports — all from your mobile device. No app download required.<br /><br /><strong>iPhone / iPad (Safari):</strong> Tap the Share button, then tap <strong>Add to Home Screen</strong>.<br /><strong>Android (Chrome):</strong> Tap the three-dot menu, then tap <strong>Add to Home Screen</strong> or <strong>Install app</strong>.<br /><br />The ColtraDataAi icon will appear on your home screen for quick, full-screen, app-like access.</p></div>
       </div>
       <div class="faq-item">
         <button class="faq-q" onclick="toggleFAQ(this)">Do I need to download an app?<span class="faq-icon">+</span></button>
-        <div class="faq-a"><p>No. ColtraDataA<i>i</i> works entirely in your browser — nothing to install, nothing to update. Open <a href="https://app.coltradata.com">app.coltradata.com</a> on any device and you are ready to go. You can optionally add it to your home screen for a full-screen app experience, but it is not required.</p></div>
+        <div class="faq-a"><p>No. ColtraDataAi works entirely in your browser — nothing to install, nothing to update. Open <a href="https://app.coltradata.com">app.coltradata.com</a> on any device and you are ready to go. You can optionally add it to your home screen for a full-screen app experience, but it is not required.</p></div>
       </div>
       <div class="faq-item">
         <button class="faq-q" onclick="toggleFAQ(this)">What are push notifications and how do I get them?<span class="faq-icon">+</span></button>
-        <div class="faq-a"><p>Once you add ColtraDataA<i>i</i> to your home screen, you can opt in to push notifications. We will alert you when a report finishes generating or a scheduled analysis completes — even when the app is not open. Push notifications are supported on Android (Chrome) and on iPhone and iPad running iOS 16.4 or later.</p></div>
+        <div class="faq-a"><p>Once you add ColtraDataAi to your home screen, you can opt in to push notifications. We will alert you when a report finishes generating or a scheduled analysis completes — even when the app is not open. Push notifications are supported on Android (Chrome) and on iPhone and iPad running iOS 16.4 or later.</p></div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" onclick="toggleFAQ(this)">Is my data safe when I use ColtraDataA<i>i</i> on mobile?<span class="faq-icon">+</span></button>
+        <button class="faq-q" onclick="toggleFAQ(this)">Is my data safe when I use ColtraDataAi on mobile?<span class="faq-icon">+</span></button>
         <div class="faq-a"><p>Absolutely. Mobile sessions use the same HTTPS encryption and secure server-side processing as desktop. Your files are processed and then deleted after analysis — they are never stored permanently or shared with any third party. See our <a href="privacy.html">Privacy Policy</a> for full details.</p></div>
       </div>
     </div>
@@ -697,7 +780,7 @@
 <section class="closing">
   <div class="container">
     <h2>Ready to Unlock the Value Hidden in Your Data?</h2>
-    <p>Join organisations and professionals using ColtraDataA<i>i</i> to make faster, smarter, and more confident decisions.</p>
+    <p>Join organisations and professionals using ColtraDataAi to make faster, smarter, and more confident decisions.</p>
     <div class="closing-ctas">
       <a href="https://app.coltradata.com" class="btn-hero-primary">🚀 Start Free Trial Today</a>
       <a href="https://app.coltradata.com" class="btn-hero-outline">🔑 Log In to Your Account</a>
@@ -717,9 +800,9 @@
     <a href="mailto:support@coltradata.com">support@coltradata.com</a>
   </div>
   <p>
-    ColtraDataA<i>i</i> is a trading name of Coltrane Ltd, registered in England and Wales<br />
+    ColtraDataAi is a trading name of Coltrane Ltd, registered in England and Wales<br />
     Company No. 09088932 &nbsp;·&nbsp; Registered office: Kemp House, 128 City Road, London EC1V 2NX<br /><br />
-    &copy; 2026 ColtraDataA<i>i</i> &nbsp;·&nbsp; All Rights Reserved
+    &copy; 2026 ColtraDataAi &nbsp;·&nbsp; All Rights Reserved
   </p>
 </footer>
 
@@ -727,11 +810,11 @@
 <button class="chat-toggle" onclick="toggleChat()" aria-label="Open chat assistant">💬</button>
 <div class="chat-window" id="chatWindow">
   <div class="chat-header">
-    <span>💬 ColtraDataA<i>i</i> Assistant</span>
+    <span>💬 ColtraDataAi Assistant</span>
     <button class="chat-close-btn" onclick="toggleChat()" aria-label="Close chat">✕</button>
   </div>
   <div class="chat-messages" id="chatMessages">
-    <div class="chat-msg bot">Hi! I'm the ColtraDataA<i>i</i> assistant. Ask me anything about plans, features, or how it works. 👋</div>
+    <div class="chat-msg bot">Hi! I'm the ColtraDataAi assistant. Ask me anything about plans, features, or how it works. 👋</div>
   </div>
   <div class="chat-chips" id="chatChips">
     <button class="chat-chip" onclick="sendChip('What plans are available?')">Plans &amp; Pricing</button>
