@@ -158,6 +158,33 @@
     .btn-login { background: transparent; color: var(--primary); border: 2px solid var(--primary); }
     .btn-login:hover { background: var(--primary); color: var(--white); }
 
+    /* Free Health Check spotlight section */
+    .health-check-section { background: linear-gradient(135deg, #EFF6FF 0%, #E0F2FE 100%); border-top: 3px solid var(--accent); border-bottom: 3px solid var(--accent); padding: 4rem 2rem; }
+    .health-check-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+    .health-check-badge { display: inline-block; background: var(--accent); color: var(--white); font-size: 0.78rem; font-weight: 700; padding: 0.3rem 0.9rem; border-radius: 100px; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 0.9rem; }
+    .health-check-title { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 800; color: var(--primary); line-height: 1.2; margin-bottom: 0.75rem; }
+    .health-check-sub { font-size: 1rem; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.6; }
+    .health-check-points { list-style: none; margin-bottom: 1.75rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 1rem; }
+    .health-check-points li { font-size: 0.9rem; color: var(--text); display: flex; align-items: flex-start; gap: 0.4rem; }
+    .health-check-points li::before { content: "✓"; color: var(--success); font-weight: 800; flex-shrink: 0; }
+    .btn-health-check { display: inline-block; text-decoration: none; background: var(--primary); color: var(--white); font-weight: 700; font-size: 1rem; padding: 0.85rem 2rem; border-radius: 10px; transition: all 0.2s; }
+    .btn-health-check:hover { background: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(31,78,121,0.2); }
+    .health-check-note { font-size: 0.8rem; color: var(--muted); margin-top: 0.6rem; }
+    .health-check-preview { background: var(--white); border-radius: 16px; border: 1px solid #BFDBFE; box-shadow: 0 8px 28px rgba(31,78,121,0.1); padding: 1.5rem; }
+    .hcp-score-ring { width: 90px; height: 90px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; margin: 0 auto 1rem; font-weight: 800; box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+    .hcp-title { font-size: 0.85rem; font-weight: 700; color: var(--primary); text-align: center; margin-bottom: 0.9rem; }
+    .hcp-bar-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.45rem; }
+    .hcp-bar-label { font-size: 0.75rem; color: var(--muted); width: 90px; flex-shrink: 0; }
+    .hcp-bar-bg { flex: 1; height: 7px; background: #E6ECF0; border-radius: 4px; overflow: hidden; }
+    .hcp-bar-fill { height: 7px; border-radius: 4px; }
+    .hcp-bar-pts { font-size: 0.72rem; font-weight: 700; color: var(--primary); width: 36px; text-align: right; flex-shrink: 0; }
+    .hcp-obs { background: #F0F7FF; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 0.55rem 0.85rem; margin-top: 0.9rem; font-size: 0.82rem; color: #1A2F45; line-height: 1.5; }
+    .hcp-locked { background: #F9FAFB; border: 2px dashed #D1D5DB; border-radius: 10px; padding: 0.6rem 0.9rem; text-align: center; margin-top: 0.7rem; color: #9CA3AF; font-size: 0.78rem; }
+    @media (max-width: 768px) {
+      .health-check-inner { grid-template-columns: 1fr; gap: 2rem; }
+      .health-check-points { grid-template-columns: 1fr; }
+    }
+
     /* FAQ */
     .faq-list { max-width: 760px; margin: 0 auto; }
     .faq-item { border-bottom: 1px solid var(--secondary); }
@@ -289,6 +316,7 @@
     <a href="#pricing">Pricing</a>
     <a href="#faq">FAQ</a>
     <a href="https://app.coltradata.com" class="btn btn-login">Log In</a>
+    <a href="https://app.coltradata.com/Free_Health_Check" class="btn btn-primary" style="background:var(--accent);">🔍 Free Health Check</a>
     <a href="#pricing" class="btn btn-primary">Start Free</a>
   </div>
 </nav>
@@ -302,7 +330,8 @@
     <div class="hero-tagline">Clean &nbsp;·&nbsp; Analyse &nbsp;·&nbsp; Report &nbsp;·&nbsp; Decide</div>
     <div class="hero-ctas">
       <a href="https://app.coltradata.com" class="btn-hero-primary">🚀 Start Free Trial</a>
-      <a href="#demo" class="btn-hero-outline">▶️ Watch 2-Minute Demo</a>
+      <a href="#free-health-check" class="btn-hero-outline">🔍 Free Health Check</a>
+      <a href="#demo" class="btn-hero-outline">▶️ Watch Demo</a>
     </div>
     <p style="margin-top:1.25rem; font-size:0.85rem; color:rgba(255,255,255,0.6); letter-spacing:0.02em;">Works on every device — desktop, tablet, or phone. No app store required.</p>
   </div>
@@ -312,6 +341,65 @@
 <div class="positioning">
   <p>Turn spreadsheets into boardroom-ready insights — without hiring a data analyst.</p>
 </div>
+
+<!-- Free Data Health Check -->
+<section class="health-check-section" id="free-health-check">
+  <div class="health-check-inner">
+    <div class="health-check-left">
+      <span class="health-check-badge">Free · No Card Required</span>
+      <h2 class="health-check-title">Get Your Free Data Health Check in 2 Minutes</h2>
+      <p class="health-check-sub">Upload any Excel or CSV file and receive an instant quality report — your Data Quality Score, missing values analysis, duplicate detection, and 3 AI-powered observations, completely free.</p>
+      <ul class="health-check-points">
+        <li>Data Quality Score (0–100)</li>
+        <li>Missing values per column</li>
+        <li>Duplicate record count</li>
+        <li>Formatting inconsistencies</li>
+        <li>3 AI-powered observations</li>
+        <li>Column type breakdown</li>
+        <li>Visual charts &amp; summary</li>
+        <li>No signup required*</li>
+      </ul>
+      <a href="https://app.coltradata.com/Free_Health_Check" class="btn-health-check">🔍 Run My Free Health Check</a>
+      <p class="health-check-note">*Email address required for delivery · One free check per address · CSV &amp; XLSX · Up to 5,000 rows · 10 MB max</p>
+    </div>
+    <div class="health-check-right">
+      <!-- Preview card: simulates what the report looks like -->
+      <div class="health-check-preview">
+        <p class="hcp-title">📊 Data Health Report Preview</p>
+        <div class="hcp-score-ring" style="background:#ECFDF5;color:#065F46;">
+          <span style="font-size:1.8rem;line-height:1;">82</span>
+          <span style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em;margin-top:1px;">Good</span>
+        </div>
+        <div style="margin-top:0.5rem;">
+          <div class="hcp-bar-row">
+            <span class="hcp-bar-label">Completeness</span>
+            <div class="hcp-bar-bg"><div class="hcp-bar-fill" style="width:88%;background:#2E86AB;"></div></div>
+            <span class="hcp-bar-pts">30/35</span>
+          </div>
+          <div class="hcp-bar-row">
+            <span class="hcp-bar-label">Uniqueness</span>
+            <div class="hcp-bar-bg"><div class="hcp-bar-fill" style="width:85%;background:#48C9B0;"></div></div>
+            <span class="hcp-bar-pts">17/20</span>
+          </div>
+          <div class="hcp-bar-row">
+            <span class="hcp-bar-label">Consistency</span>
+            <div class="hcp-bar-bg"><div class="hcp-bar-fill" style="width:80%;background:#46D324;"></div></div>
+            <span class="hcp-bar-pts">20/25</span>
+          </div>
+          <div class="hcp-bar-row">
+            <span class="hcp-bar-label">Structure</span>
+            <div class="hcp-bar-bg"><div class="hcp-bar-fill" style="width:75%;background:#F59E0B;"></div></div>
+            <span class="hcp-bar-pts">15/20</span>
+          </div>
+        </div>
+        <div class="hcp-obs">
+          <strong style="color:#1F4E79;">#1</strong>&nbsp; Your dataset contains 3,842 rows across 12 columns (7 numeric, 5 text/categorical).
+        </div>
+        <div class="hcp-locked">🔒 Full AI report, cleaned dataset &amp; Excel export — upgrade to unlock</div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- Who It's For -->
 <section id="who-its-for">

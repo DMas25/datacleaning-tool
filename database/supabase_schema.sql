@@ -342,3 +342,57 @@ CREATE TRIGGER trg_customer_profiles_updated_at
 CREATE TRIGGER trg_compliance_consent_updated_at
     BEFORE UPDATE ON compliance_consent
     FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+
+-- ===========================================================================
+-- SECTION 4: FREE DATA HEALTH CHECK (LEAD GENERATION)
+-- ===========================================================================
+
+-- ---------------------------------------------------------------------------
+-- free_health_checks
+-- One row per completed free health check. Enforces one check per email via
+-- the UNIQUE constraint. Stores only aggregated summary statistics — no raw
+-- data is ever persisted.
+-- ---------------------------------------------------------------------------
+CREATE TABLE free_health_checks (
+    id                  BIGSERIAL       PRIMARY KEY,
+    email               TEXT            NOT NULL UNIQUE,
+    file_name           TEXT,
+    file_size_bytes     INTEGER,
+    row_count           INTEGER,
+    column_count        INTEGER,
+    quality_score       INTEGER         CHECK (quality_score BETWEEN 0 AND 100),
+    result_json         JSONB,          -- summary stats only, never raw data
+    ip_address          TEXT,
+    cta_clicked         TEXT,           -- which CTA the user clicked ('trial', 'professional', etc.)
+    converted_to_trial  BOOLEAN         NOT NULL DEFAULT FALSE,
+    uploaded_at         TIMESTAMPTZ     NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_hc_email       ON free_health_checks (email);
+CREATE INDEX idx_hc_uploaded_at ON free_health_checks (uploaded_at DESC);
+CREATE INDEX idx_hc_cta         ON free_health_checks (cta_clicked) WHERE cta_clicked IS NOT NULL;
+
+ALTER TABLE free_health_checks ENABLE ROW LEVEL SECURITY;
+
+-- ---------------------------------------------------------------------------
+-- health_check_events
+-- Analytics event stream for the free health check funnel.
+-- event_type values: upload_started, upload_completed, report_viewed,
+--                    cta_clicked, trial_signup, rate_limited, error
+-- ---------------------------------------------------------------------------
+CREATE TABLE health_check_events (
+    id          BIGSERIAL       PRIMARY KEY,
+    email       TEXT,                           -- nullable until email captured
+    event_type  TEXT            NOT NULL,
+    metadata    JSONB,                          -- ip_address, cta, error_msg, etc.
+    occurred_at TIMESTAMPTZ     NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_hce_email       ON health_check_events (email) WHERE email IS NOT NULL;
+CREATE INDEX idx_hce_event_type  ON health_check_events (event_type);
+CREATE INDEX idx_hce_occurred_at ON health_check_events (occurred_at DESC);
+-- GIN index for querying metadata fields (e.g. metadata->>'ip_address')
+CREATE INDEX idx_hce_metadata_gin ON health_check_events USING GIN (metadata);
+
+ALTER TABLE health_check_events ENABLE ROW LEVEL SECURITY;
