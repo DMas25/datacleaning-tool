@@ -13,6 +13,7 @@ import plotly.express as px
 import streamlit as st
 
 from core.cleaner import CleaningOptions, apply_cleaning
+from core.clinical_cleaner import apply_clinical_cleaning
 from core.profiler import build_quality_summary_df
 from core.insights_engine import generate_insights, detect_date_columns
 from core.ai_advisor import generate_ai_advisory
@@ -145,6 +146,10 @@ def render_results_panel(
 
     st.markdown("#### Cleaned Data Preview")
     st.dataframe(cleaned_df.head(10), use_container_width=True)
+
+    # ── Clinical Trial Register (Clinical Research mode only) ─────────────
+    if "Clinical Research" in options.dataset_type:
+        _render_clinical_trial_view(result, branding)
 
     # ── Step 6: Data Insights ─────────────────────────────────────────────
     render_section_divider(branding=branding)
@@ -426,6 +431,15 @@ def _anthropic_key_configured() -> bool:
         return False
 
 
+def _detect_col(df: pd.DataFrame, *keywords: str) -> Optional[str]:
+    """Return the first column whose lowercased name contains any keyword."""
+    for col in df.columns:
+        col_l = col.lower()
+        if any(kw in col_l for kw in keywords):
+            return col
+    return None
+
+
 def _run_processing(
     df: pd.DataFrame, options: CleaningOptions, branding: dict, user_plan: str,
 ) -> dict:
@@ -433,6 +447,27 @@ def _run_processing(
     cleaning_result      = apply_cleaning(df, options)
     cleaned_df           = cleaning_result.cleaned_df
     log_df               = cleaning_result.log_df
+
+    # ── Clinical Research pass (dataset_type gate) ────────────────────────
+    clinical_profiles = None
+    clinical_metrics  = None
+    if "Clinical Research" in options.dataset_type:
+        nct_col = _detect_col(cleaned_df, "nct")
+        inv_col = _detect_col(cleaned_df, "investigator", "principal_inv", "pi_name")
+        raw_unique_count  = int(df[inv_col].nunique()) if inv_col and inv_col in df.columns else 0
+        clinical_result   = apply_clinical_cleaning(
+            cleaned_df,
+            nct_col=nct_col,
+            researcher_name_col=inv_col,
+        )
+        cleaned_df         = clinical_result.cleaned_df
+        clinical_profiles  = clinical_result.profiles
+        clean_unique_count = len(clinical_profiles)
+        clinical_metrics   = {
+            "raw_unique_count":   raw_unique_count,
+            "clean_unique_count": clean_unique_count,
+            "duplicates_merged":  max(0, raw_unique_count - clean_unique_count),
+        }
 
     quality_df           = build_quality_summary_df(df, cleaned_df, options.null_handling)
     date_cols            = detect_date_columns(cleaned_df)
@@ -473,6 +508,8 @@ def _run_processing(
         "excel_path":           export.excel_path,
         "pdf_bytes":            export.pdf_bytes,
         "pdf_filename":         export.pdf_filename,
+        "clinical_profiles":    clinical_profiles,
+        "clinical_metrics":     clinical_metrics,
     }
 
 
@@ -611,3 +648,80 @@ def _render_distribution_analysis(cleaned_df: pd.DataFrame, date_cols: list, bra
                     st.dataframe(bottom_vals.reset_index(drop=True).to_frame(name=str(sel_top_num)), use_container_width=True)
             else:
                 st.info("No numeric columns available.")
+
+
+def _render_clinical_trial_view(result: dict, branding: dict) -> None:
+    """Render the researcher → trial expander register for Clinical Research datasets.
+
+    Each verified researcher profile is one collapsible expander. Trial records
+    are listed inside, one per row, with status badge, NCT/trial ID, and phase.
+    Unverified researcher IDs (failed regex) are flagged with a warning icon.
+    """
+    profiles = result.get("clinical_profiles")
+    if not profiles:
+        return
+
+    render_section_divider(branding=branding)
+    render_step_header(5, "Clinical Trial Register", branding=branding)
+
+    st.markdown("### 2. Cleaned Relational Registry Output")
+
+    metrics            = result.get("clinical_metrics") or {}
+    raw_unique_count   = metrics.get("raw_unique_count",   0)
+    clean_unique_count = metrics.get("clean_unique_count", len(profiles))
+    duplicates_merged  = metrics.get("duplicates_merged",  0)
+
+    st.toast(
+        f"Data mapping complete! Merged {duplicates_merged} duplicate profiles.",
+        icon="🎉",
+    )
+    st.success(
+        f"**Cleanup Summary:** We analyzed **{raw_unique_count}** variations of "
+        f"investigator names and safely resolved them down to **{clean_unique_count}** "
+        f"unique master profiles. **{duplicates_merged} alignment conflicts** were "
+        f"automatically corrected."
+    )
+
+    verified_count   = sum(1 for p in profiles if p.verified)
+    unverified_count = len(profiles) - verified_count
+    st.caption(
+        f"{len(profiles)} researcher profile(s) — "
+        f"{verified_count} verified"
+        + (f", {unverified_count} flagged" if unverified_count else "")
+    )
+
+    for profile in profiles:
+        header_icon = "✓" if profile.verified else "⚠"
+        id_note     = "" if profile.verified else "  · ID format issue"
+        expander_label = (
+            f"{header_icon}  {profile.researcher_id} "
+            f"— {profile.trial_count} trial(s){id_note}"
+        )
+
+        with st.expander(expander_label, expanded=False):
+            if not profile.trials:
+                st.write("No trial records found for this researcher.")
+                continue
+
+            for trial in profile.trials:
+                trial_id = trial.get("trial_id", "—")
+                phase    = trial.get("phase",    "—")
+                status   = trial.get("status",   "—")
+                verified = trial.get("researcher_valid", True)
+
+                status_lower = str(status).lower()
+                if status_lower in ("completed",):
+                    badge = "🟢"
+                elif status_lower in ("active", "ongoing", "recruiting", "enrolling"):
+                    badge = "🔵"
+                elif status_lower in ("terminated", "withdrawn", "suspended"):
+                    badge = "🔴"
+                else:
+                    badge = "⚪"
+
+                id_flag = "  ⚠ researcher ID unverified" if not verified else ""
+                st.write(
+                    f"{badge} &nbsp;**{trial_id}**"
+                    f"&nbsp;&nbsp;|&nbsp;&nbsp;Phase: {phase}"
+                    f"&nbsp;&nbsp;|&nbsp;&nbsp;Status: {status}{id_flag}"
+                )

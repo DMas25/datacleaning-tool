@@ -25,6 +25,7 @@ class CleaningOptions:
     trim_whitespace:      bool = True
     standardise_headers:  bool = True
     null_handling:        str  = "No Change"   # "No Change" | "Fill with blank" | "Fill with placeholder"
+    dataset_type:         str  = "General"     # "General" | "Clinical Research"
 
 
 @dataclass

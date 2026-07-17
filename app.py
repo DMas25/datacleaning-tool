@@ -129,6 +129,25 @@ st.markdown(
 )
 
 
+# Pre-built CSV payload for the sidebar sample download.
+# Uses the full 10-row entity-resolution dataset so the Clinical Research
+# template pipeline (NCT normalise → name standardise → entity resolve →
+# expander view) is fully exercised on first try.
+_DEMO_CSV_BYTES: bytes = (
+    "Trial_ID,Principal_Investigator,Facility_Site,Phase,Status\n"
+    "nct 49211,Dr. John Smith,Mayo Clinic,Phase II,Recruiting\n"
+    "NCT-051122,J. Smith,Mayo Clinic,Phase II,Recruiting\n"
+    "nct0049211,Smith John,Mayo Clinic,Phase II,Completed\n"
+    "NCT:88231,John A. Smith MD,Mayo Clinic,Phase I,Active\n"
+    "NCT 00511220,Dr. Sarah Jones,Stanford Med,Phase III,Completed\n"
+    "NCT 39100,Sarah Jones MD,Stanford Med,Phase III,Completed\n"
+    "NCT 10044,S. Jones,Stanford Med,Phase I,Active\n"
+    "NCT 88823,Sarah E. Jones,Johns Hopkins,Phase II,Recruiting\n"
+    "NCT 22201,Dr. Emily Carter,Cleveland Clinic,Phase II,Active\n"
+    "NCT 33902,James Okafor PhD,Johns Hopkins,Phase III,Recruiting\n"
+).encode("utf-8")
+
+
 def _run_app() -> None:
     # SUBSCRIPTION LOGIC START
     # ── Session + subscription init ──────────────────────────────────────────
@@ -244,6 +263,27 @@ def _run_app() -> None:
     # SUBSCRIPTION UI ENTRY POINTS
     # ---------------------------------------------
     render_sidebar_subscription_panel()         # licence form · plan badge · run counter · upgrade CTAs
+
+    # ── Sidebar: sample file download ───────────────────────────────────────
+    # Gives first-time visitors a one-click way to try the Clinical Research
+    # template without needing their own dataset.  The CSV is intentionally
+    # messy so the full pipeline (NCT normalisation → name standardisation →
+    # entity resolution → expander view) is exercised end-to-end.
+    with st.sidebar:
+        st.markdown("---")
+        st.markdown("### 🧪 Test the Platform")
+        st.caption(
+            "Don't have a dataset ready? Download our intentionally messy "
+            "sample file and upload it with the "
+            "**🧬 Clinical Research & Trial Registers** template selected."
+        )
+        st.download_button(
+            label="📥 Download Messy Clinical CSV",
+            data=_DEMO_CSV_BYTES,
+            file_name="messy_clinical_trials_sample.csv",
+            mime="text/csv",
+            use_container_width=True,
+        )
 
     # main-area nudge, grounded in actual usage history — evaluated once per
     # session (page-load moment only). Restricted to banner-tier signals
