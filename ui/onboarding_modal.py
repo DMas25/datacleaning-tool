@@ -16,7 +16,18 @@ from services.licence_manager_pg import (
     get_by_email,
     save_compliance_consent,
     update_customer_profile,
+    update_subscription_profile,
 )
+
+_PROFESSIONS = [
+    "Prefer not to say", "Owner / Founder", "Executive / Director",
+    "Manager", "Analyst / Specialist", "Consultant", "Other",
+]
+_INDUSTRIES = [
+    "Prefer not to say", "Logistics & Supply Chain", "Healthcare",
+    "Finance & Insurance", "Retail & E-commerce", "Manufacturing",
+    "Technology", "Education", "Professional Services", "Other",
+]
 
 _COUNTRIES = [
     "United Kingdom",
@@ -111,6 +122,25 @@ def show_onboarding_modal(email: str) -> None:
         help="If VAT-registered, include country prefix e.g. GB123456789",
     )
 
+    st.markdown("### About your work")
+    st.caption("Optional — helps us improve ColtraDataAi for your sector. No names collected.")
+
+    profession = st.selectbox(
+        "Profession",
+        options=_PROFESSIONS,
+        key="_ob_profession",
+    )
+    industry = st.selectbox(
+        "Industry / business category",
+        options=_INDUSTRIES,
+        key="_ob_industry",
+    )
+    business_activity = st.text_input(
+        "Business activity (optional)",
+        key="_ob_business_activity",
+        placeholder="e.g. freight brokerage, outpatient clinic, bookkeeping",
+    )
+
     st.markdown("### Legal & communications")
 
     t_and_c = st.checkbox(
@@ -161,6 +191,13 @@ def show_onboarding_modal(email: str) -> None:
             t_and_c=t_and_c,
             privacy=privacy,
             marketing=marketing,
+        )
+        _BLANK = "Prefer not to say"
+        update_subscription_profile(
+            email,
+            profession="" if profession == _BLANK else profession,
+            industry="" if industry == _BLANK else industry,
+            business_activity=business_activity.strip(),
         )
 
         st.session_state["onboarding_complete"] = True
