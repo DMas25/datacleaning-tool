@@ -12,17 +12,10 @@ def s(key, default=""):
     """Return JSON-encoded string — compatible with TOML basic string syntax."""
     return json.dumps(os.environ.get(key, default))
 
-if not os.environ.get("CREDENTIALS_PASSWORD"):
-    print("ERROR: CREDENTIALS_PASSWORD env var is required", file=sys.stderr)
-    sys.exit(1)
-
 smtp_port    = int(os.environ.get("SMTP_PORT", "587"))
 smtp_enabled = os.environ.get("SMTP_ENABLED", "false").lower()
 
-content = f"""[credentials]
-password = {s("CREDENTIALS_PASSWORD")}
-
-[dev]
+content = f"""[dev]
 testing_mode = false
 local_dev = false
 
@@ -30,6 +23,12 @@ local_dev = false
 admin_password     = {s("ADMIN_PASSWORD")}
 dashboard_password = {s("ADMIN_DASHBOARD_PASSWORD")}
 insights_password  = {s("ADMIN_INSIGHTS_PASSWORD")}
+admin_email        = {s("ADMIN_EMAIL")}
+
+[email]
+resend_api_key = {s("RESEND_API_KEY")}
+from_name      = "ColtraDataAi"
+from_email     = {s("FROM_EMAIL", "noreply@coltradata.com")}
 
 [anthropic]
 api_key = {s("ANTHROPIC_API_KEY")}

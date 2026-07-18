@@ -345,7 +345,37 @@ CREATE TRIGGER trg_compliance_consent_updated_at
 
 
 -- ===========================================================================
--- SECTION 4: FREE DATA HEALTH CHECK (LEAD GENERATION)
+-- SECTION 4: AUTHENTICATION — OTP TOKENS
+-- ===========================================================================
+-- Added: 2026-07-17. Migration script: database/migrations/001_add_otp_tokens.sql
+--
+-- Passwordless email OTP authentication.  Only the SHA-256 hash of the
+-- 6-digit code is stored — no plaintext code, no password, ever.
+-- ---------------------------------------------------------------------------
+-- NOTE: If running this on a fresh project, this table is included here.
+--       On the live project, run the migration script instead.
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE otp_tokens (
+    id          BIGSERIAL       PRIMARY KEY,
+    email       TEXT            NOT NULL,
+    token_hash  TEXT            NOT NULL,       -- SHA-256 hex digest; plaintext never stored
+    expires_at  TIMESTAMPTZ     NOT NULL,
+    used_at     TIMESTAMPTZ,                    -- NULL = available; set on first valid verification
+    created_at  TIMESTAMPTZ     NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_otp_email_unused  ON otp_tokens (email, expires_at DESC) WHERE used_at IS NULL;
+CREATE INDEX idx_otp_expires_at    ON otp_tokens (expires_at DESC);
+
+ALTER TABLE otp_tokens ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "service_role_full_access_otp" ON otp_tokens
+    FOR ALL USING (auth.role() = 'service_role');
+
+
+-- ===========================================================================
+-- SECTION 5: FREE DATA HEALTH CHECK (LEAD GENERATION)
 -- ===========================================================================
 
 -- ---------------------------------------------------------------------------

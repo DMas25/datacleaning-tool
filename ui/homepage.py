@@ -1,4 +1,26 @@
-"""Login gate, app header and page footer rendering for ColtraDataAi."""
+"""Login gate, app header and page footer rendering for ColtraDataAi.
+
+Authentication model
+────────────────────
+Passwordless email OTP.  No shared password; no passwords stored at all.
+
+Sign-in flow:
+  Step 1 — user enters their email → "Send verification code"
+  Step 2 — a 6-digit code arrives in their inbox → they enter it → authenticated
+
+Security properties:
+  • The 6-digit code is generated with secrets.randbelow (CSPRNG).
+  • Only the SHA-256 hash of the code is stored in Supabase — no admin or
+    backend viewer can read or replay the code.
+  • Codes expire in 10 minutes and are single-use.
+  • Rate-limited to 3 requests per email per 10 minutes.
+
+Admin access:
+  Admin privileges (is_admin flag + enterprise plan) are granted when the
+  authenticated email matches [admin] admin_email in secrets.toml / Render
+  env vars.  The fault dashboard retains its own dashboard_password gate
+  inside the sidebar expander — that is unchanged.
+"""
 from __future__ import annotations
 
 import base64
@@ -8,76 +30,26 @@ import streamlit as st
 
 
 def check_password(branding: dict) -> bool:
-    """Return True if the user is authenticated, False otherwise.
-
-    Renders the login form when not authenticated.  Does not call st.stop()
-    — the caller is responsible for halting the app when False is returned.
-    """
+    """Email OTP authentication gate. Returns True when authenticated."""
     if st.session_state.get("authenticated"):
         return True
 
     _inject_login_css(branding)
     _render_login_header(branding)
 
-    _, mid, _ = st.columns([1, 1.4, 1])
-    with mid:
-        st.markdown(
-            f"""
-            <div style="background:#FFFFFF;border:1px solid #DCE6EE;border-radius:16px;
-                        box-shadow:0 4px 28px rgba(31,78,121,0.10);padding:2rem 2rem 1.6rem 2rem;
-                        margin-top:0.5rem;">
-                <div style="font-size:1.05rem;font-weight:700;color:{branding['primary_colour']};
-                            margin-bottom:1.1rem;letter-spacing:0.01em;">
-                    Sign in to continue
-                </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        pwd = st.text_input(
-            "Password",
-            type="password",
-            label_visibility="collapsed",
-            placeholder="Enter your password",
-        )
-        if st.button("Sign in", use_container_width=True, type="primary"):
-            configured = _get_configured_password()
-            admin_pwd = _get_admin_password()
-            if configured is None and admin_pwd is None:
-                st.error(
-                    "No login password is configured. Add a [credentials] password "
-                    "to .streamlit/secrets.toml (see .streamlit/secrets.toml.example)."
-                )
-            elif admin_pwd and pwd == admin_pwd:
-                st.session_state.authenticated = True
-                st.session_state.is_admin = True
-                st.session_state.plan_key = "enterprise"
-                st.session_state.user_email = "admin@coltradata.com"
-                st.rerun()
-            elif configured and pwd == configured:
-                st.session_state.authenticated = True
-                st.rerun()
-            else:
-                st.error("Incorrect password. Please try again.")
-        st.markdown(
-            f"""
-            <div style="margin-top:1rem;text-align:center;font-size:0.75rem;color:#9CA3AF;">
-                Access restricted to authorised users only.
-            </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+    step = st.session_state.get("_otp_step", "email")
+    if step == "email":
+        _render_email_step(branding)
+    else:
+        _render_verify_step(branding)
 
+    _render_signup_guide(branding)
     _render_login_features(branding)
     return False
 
 
 def render_sign_out_button() -> None:
-    """Sidebar control letting an authenticated user end their session.
-
-    Clears all session state (auth flag, plan key, licence activation, etc.)
-    so the next rerun shows the login gate again — equivalent to a fresh visit.
-    """
+    """Sidebar control letting an authenticated user end their session."""
     if st.sidebar.button("Sign out", use_container_width=True):
         st.session_state.clear()
         st.rerun()
@@ -160,18 +132,284 @@ def render_footer(branding: dict) -> None:
     )
 
 
-# ── Private helpers ───────────────────────────────────────────────────────────
+# ── Login steps ───────────────────────────────────────────────────────────────
+
+def _render_email_step(branding: dict) -> None:
+    """Step 1: email input form."""
+    primary = branding["primary_colour"]
+    _, mid, _ = st.columns([1, 1.4, 1])
+    with mid:
+        st.markdown(
+            f"""
+            <div style="background:#FFFFFF;border:1px solid #DCE6EE;border-radius:16px;
+                        box-shadow:0 4px 28px rgba(31,78,121,0.10);padding:2rem 2rem 1.6rem 2rem;
+                        margin-top:0.5rem;">
+                <div style="font-size:1.05rem;font-weight:700;color:{primary};
+                            margin-bottom:0.3rem;letter-spacing:0.01em;">
+                    Sign in or get started
+                </div>
+                <div style="font-size:0.78rem;color:#657286;margin-bottom:1.1rem;">
+                    Enter your email — we'll send a 6-digit verification code.
+                    No password needed.
+                </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        email = st.text_input(
+            "Email address",
+            label_visibility="collapsed",
+            placeholder="your@email.com",
+            key="_login_email",
+        )
+        if st.button("Send verification code →", use_container_width=True, type="primary"):
+            _handle_send_otp(email.strip(), branding)
+        st.markdown(
+            """
+            <div style="margin-top:1rem;text-align:center;font-size:0.72rem;color:#9CA3AF;">
+                First time here? Enter your email and we'll create your account automatically.
+            </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+def _render_verify_step(branding: dict) -> None:
+    """Step 2: 6-digit OTP entry form."""
+    primary = branding["primary_colour"]
+    otp_email = st.session_state.get("_otp_email", "")
+    _, mid, _ = st.columns([1, 1.4, 1])
+    with mid:
+        st.markdown(
+            f"""
+            <div style="background:#FFFFFF;border:1px solid #DCE6EE;border-radius:16px;
+                        box-shadow:0 4px 28px rgba(31,78,121,0.10);padding:2rem 2rem 1.6rem 2rem;
+                        margin-top:0.5rem;">
+                <div style="font-size:1.05rem;font-weight:700;color:{primary};
+                            margin-bottom:0.45rem;letter-spacing:0.01em;">
+                    Enter your verification code
+                </div>
+                <div style="font-size:0.8rem;color:#657286;margin-bottom:1.1rem;line-height:1.55;">
+                    A 6-digit code was sent to
+                    <strong style="color:#1F2937;">{otp_email}</strong>.<br/>
+                    Check your spam / junk folder if it hasn't arrived within a minute.
+                </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        code = st.text_input(
+            "6-digit code",
+            label_visibility="collapsed",
+            placeholder="e.g.  8 4 7  2 9 3",
+            max_chars=7,
+            key="_login_otp_code",
+        )
+        if st.button("Verify & Sign in", use_container_width=True, type="primary"):
+            _handle_verify_otp(otp_email, code, branding)
+        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown(
+            f"""
+            <div style="text-align:center;margin-top:0.75rem;font-size:0.73rem;color:#9CA3AF;">
+                Code expires in 10 minutes. &nbsp;
+                <span style="color:{primary};cursor:pointer;" id="_otp_resend">
+                    Need a new code?
+                </span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        if st.button("← Use a different email", key="_otp_back", use_container_width=False):
+            st.session_state.pop("_otp_step", None)
+            st.session_state.pop("_otp_email", None)
+            st.rerun()
+
+
+def _handle_send_otp(email: str, branding: dict) -> None:
+    """Process the 'Send code' submission: generate OTP, send email, advance step."""
+    if not email or "@" not in email or "." not in email.split("@")[-1]:
+        st.error("Please enter a valid email address.")
+        return
+
+    from services.auth_service import issue_otp
+    from services.transactional_email import send_email
+
+    with st.spinner("Sending verification code…"):
+        ok, result = issue_otp(email)
+
+    if not ok:
+        st.error(result)
+        return
+
+    # result is the plaintext code — email it immediately, never log or store it
+    code = result
+    formatted = f"{code[:3]} {code[3:]}"   # "847293" → "847 293" for readability
+
+    subject = "Your ColtraDataAi verification code"
+    body = (
+        f"Your sign-in verification code is:\n\n"
+        f"    {formatted}\n\n"
+        f"This code expires in 10 minutes and can only be used once.\n\n"
+        f"If you did not request this, you can safely ignore this email — "
+        f"no account changes will be made.\n\n"
+        f"ColtraDataAi by Coltrane Ltd\n"
+        f"{branding.get('contact_email', 'support@coltradata.com')}"
+    )
+
+    cfg = _get_email_cfg()
+    email_sent = send_email(cfg, email, subject, body)
+
+    if not email_sent:
+        # Dev / misconfigured Resend: fall back to showing the code in the UI.
+        # This branch only fires when RESEND_API_KEY is absent — never in production.
+        try:
+            is_dev = st.secrets.get("dev", {}).get("local_dev", False) or \
+                     st.secrets.get("dev", {}).get("testing_mode", False)
+        except Exception:
+            is_dev = True
+
+        if is_dev:
+            st.info(f"[DEV] Email not configured. Your code: **{formatted}**")
+        else:
+            contact = branding.get("contact_email", "support@coltradata.com")
+            st.error(
+                f"We couldn't send your verification code. "
+                f"Please contact [{contact}](mailto:{contact}) for access."
+            )
+            return
+
+    st.session_state["_otp_email"] = email
+    st.session_state["_otp_step"] = "verify"
+    st.rerun()
+
+
+def _handle_verify_otp(email: str, code: str, branding: dict) -> None:
+    """Process the 'Verify' submission: validate OTP, set authenticated session."""
+    code = code.replace(" ", "").strip()
+
+    from services.auth_service import verify_otp
+
+    with st.spinner("Verifying…"):
+        valid, error = verify_otp(email, code)
+
+    if not valid:
+        st.error(error)
+        return
+
+    # ── Authenticated ──────────────────────────────────────────────────────────
+    st.session_state["authenticated"] = True
+    st.session_state["customer_email"] = email
+    st.session_state["user_email"] = email
+
+    # Grant admin privileges if the email matches the configured admin email.
+    # Admin still uses the same OTP flow — no separate shared password needed.
+    admin_email = _get_admin_email()
+    if admin_email and email.lower() == admin_email.lower():
+        st.session_state["is_admin"] = True
+        st.session_state["plan_key"] = "enterprise"
+
+    # Clean up OTP step state
+    st.session_state.pop("_otp_step", None)
+    st.session_state.pop("_otp_email", None)
+
+    st.rerun()
+
+
+# ── Informational sections on the login page ──────────────────────────────────
+
+def _render_signup_guide(branding: dict) -> None:
+    """'How to get started' guide shown below the sign-in card."""
+    primary = branding["primary_colour"]
+    store_url = "https://coltradataai.lemonsqueezy.com/"
+    contact = branding.get("contact_email", "support@coltradata.com")
+
+    st.markdown(
+        f"""
+        <div style="max-width:520px;margin:1.4rem auto 0 auto;
+                    background:#F0F6FF;border:1px solid #C7D9F0;border-radius:14px;
+                    padding:1.4rem 1.6rem;">
+            <div style="font-size:0.92rem;font-weight:700;color:{primary};
+                        margin-bottom:1rem;letter-spacing:0.01em;">
+                New here? How to sign up
+            </div>
+            <div style="display:flex;flex-direction:column;gap:0.8rem;">
+                <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+                    <div style="min-width:26px;height:26px;border-radius:50%;
+                                background:{primary};color:#fff;
+                                display:flex;align-items:center;justify-content:center;
+                                font-size:0.76rem;font-weight:700;flex-shrink:0;margin-top:1px;">1</div>
+                    <div>
+                        <div style="font-size:0.83rem;font-weight:600;color:#1F2937;">
+                            Choose a plan &amp; pay securely
+                        </div>
+                        <div style="font-size:0.76rem;color:#657286;margin-top:2px;line-height:1.5;">
+                            Click <em>View Plans &amp; Pricing</em> below.
+                            Select Starter, Professional, Premium, or Enterprise
+                            and complete checkout via Lemon Squeezy.
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+                    <div style="min-width:26px;height:26px;border-radius:50%;
+                                background:{primary};color:#fff;
+                                display:flex;align-items:center;justify-content:center;
+                                font-size:0.76rem;font-weight:700;flex-shrink:0;margin-top:1px;">2</div>
+                    <div>
+                        <div style="font-size:0.83rem;font-weight:600;color:#1F2937;">
+                            Return here &amp; sign in
+                        </div>
+                        <div style="font-size:0.76rem;color:#657286;margin-top:2px;line-height:1.5;">
+                            Enter the email you used at checkout above.
+                            We'll send a 6-digit verification code to that address.
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+                    <div style="min-width:26px;height:26px;border-radius:50%;
+                                background:{primary};color:#fff;
+                                display:flex;align-items:center;justify-content:center;
+                                font-size:0.76rem;font-weight:700;flex-shrink:0;margin-top:1px;">3</div>
+                    <div>
+                        <div style="font-size:0.83rem;font-weight:600;color:#1F2937;">
+                            Your plan activates automatically
+                        </div>
+                        <div style="font-size:0.76rem;color:#657286;margin-top:2px;line-height:1.5;">
+                            Once verified, your paid plan is detected from your account.
+                            No licence key entry needed — your subscription is linked
+                            to your email address.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top:1.1rem;padding-top:0.9rem;border-top:1px solid #C7D9F0;
+                        text-align:center;">
+                <a href="{store_url}" target="_blank"
+                   style="display:inline-block;padding:9px 24px;
+                          background:{primary};color:#fff;border-radius:8px;
+                          font-size:0.83rem;font-weight:600;text-decoration:none;
+                          letter-spacing:0.02em;">
+                    View Plans &amp; Pricing →
+                </a>
+                <div style="margin-top:0.65rem;font-size:0.7rem;color:#9CA3AF;">
+                    Want to explore first? Enter any email above — you'll start on the free plan.<br/>
+                    Questions? <a href="mailto:{contact}"
+                        style="color:{primary};text-decoration:none;">{contact}</a>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ── CSS & visual components ───────────────────────────────────────────────────
 
 def _inject_login_css(branding: dict) -> None:
     primary = branding["primary_colour"]
     st.markdown(
         f"""
         <style>
-            /* Hide sidebar on the login page */
             [data-testid="stSidebar"] {{ display: none !important; }}
             [data-testid="collapsedControl"] {{ display: none !important; }}
-
-            /* Remove the app-wide left border from column containers on login */
             [data-testid="stVerticalBlockBorderWrapper"] {{
                 border-left: none !important;
                 border: none !important;
@@ -180,15 +418,11 @@ def _inject_login_css(branding: dict) -> None:
                 border-radius: 0 !important;
                 margin-bottom: 0 !important;
             }}
-
-            /* Tighten the top padding on the login page */
             .block-container {{
                 padding-top: 0 !important;
                 max-width: 860px !important;
                 margin: 0 auto !important;
             }}
-
-            /* Style the sign-in button */
             .stButton > button {{
                 border-radius: 10px;
                 height: 46px;
@@ -275,19 +509,34 @@ def _render_login_features(branding: dict) -> None:
     )
 
 
-def _get_configured_password() -> str | None:
+# ── Secrets helpers ───────────────────────────────────────────────────────────
+
+def _get_email_cfg() -> dict:
+    """Load Resend transactional email config from secrets / env vars."""
     try:
-        return st.secrets["credentials"]["password"]
-    except KeyError:
-        return None
+        cfg = st.secrets.get("email", {})
+        return {
+            "resend_api_key": cfg.get("resend_api_key", os.environ.get("RESEND_API_KEY", "")),
+            "from_name": cfg.get("from_name", "ColtraDataAi"),
+            "from_email": cfg.get("from_email", os.environ.get("FROM_EMAIL", "noreply@coltradata.com")),
+        }
+    except Exception:
+        return {
+            "resend_api_key": os.environ.get("RESEND_API_KEY", ""),
+            "from_name": "ColtraDataAi",
+            "from_email": os.environ.get("FROM_EMAIL", "noreply@coltradata.com"),
+        }
 
 
-def _get_admin_password() -> str | None:
+def _get_admin_email() -> str:
+    """Return the admin email from secrets, or '' if not configured."""
     try:
-        return st.secrets["admin"]["admin_password"]
-    except KeyError:
-        return None
+        return st.secrets.get("admin", {}).get("admin_email", os.environ.get("ADMIN_EMAIL", ""))
+    except Exception:
+        return os.environ.get("ADMIN_EMAIL", "")
 
+
+# ── Logo helper ───────────────────────────────────────────────────────────────
 
 def _encode_logo(logo_path: str) -> str:
     """Return base64-encoded logo string, or empty string if file not found."""

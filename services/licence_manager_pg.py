@@ -776,6 +776,81 @@ def sessions_without_prompt(email: str, lookback: int = 3) -> int:
     return streak
 
 
+# ── OTP authentication ─────────────────────────────────────────────────────────
+
+def store_otp(email: str, token_hash: str, expires_at: datetime) -> None:
+    """Insert a new OTP record. Only the SHA-256 hash of the code is stored."""
+    with _conn() as cur:
+        cur.execute(
+            "INSERT INTO otp_tokens (email, token_hash, expires_at) VALUES (%s, %s, %s)",
+            (email.lower().strip(), token_hash, expires_at),
+        )
+
+
+def consume_otp(email: str, token_hash: str) -> bool:
+    """Find an unused, unexpired OTP matching the hash and mark it used.
+
+    Returns True if a valid token was found and consumed; False otherwise.
+    The plaintext code is never passed here — only its hash, so the DB row
+    never contains anything a backend viewer could replay.
+    """
+    email = email.lower().strip()
+    now = _now()
+    with _conn() as cur:
+        cur.execute(
+            """SELECT id FROM otp_tokens
+               WHERE email = %s
+                 AND token_hash = %s
+                 AND expires_at > %s
+                 AND used_at IS NULL
+               ORDER BY created_at DESC
+               LIMIT 1""",
+            (email, token_hash, now),
+        )
+        row = cur.fetchone()
+        if not row:
+            return False
+        cur.execute(
+            "UPDATE otp_tokens SET used_at = %s WHERE id = %s",
+            (now, row["id"]),
+        )
+    return True
+
+
+def count_recent_otp_requests(email: str, window_minutes: int) -> int:
+    """Count OTP tokens issued to this email within the last window_minutes.
+
+    Used to rate-limit OTP generation (max 3 per 10 minutes by default).
+    Counts ALL tokens (used or not) — this prevents burst abuse even when
+    codes are consumed immediately.
+    """
+    with _conn() as cur:
+        cur.execute(
+            """SELECT COUNT(*) AS n FROM otp_tokens
+               WHERE email = %s
+                 AND created_at >= NOW() - (%s * INTERVAL '1 minute')""",
+            (email.lower().strip(), window_minutes),
+        )
+        row = cur.fetchone()
+    return int(row["n"]) if row else 0
+
+
+def ensure_free_subscriber(email: str) -> None:
+    """Guarantee a subscription row exists for this email on the free plan.
+
+    Called during OTP generation so that any valid email can sign in, even
+    before a payment has been made. If a paid subscription already exists it
+    is untouched (ON CONFLICT DO NOTHING).
+    """
+    with _conn() as cur:
+        cur.execute(
+            """INSERT INTO subscriptions (email, plan, status)
+               VALUES (%s, 'free', 'active')
+               ON CONFLICT (email) DO NOTHING""",
+            (email.lower().strip(),),
+        )
+
+
 # ── Aggregated analytics ───────────────────────────────────────────────────────
 
 def get_usage_analytics() -> dict:

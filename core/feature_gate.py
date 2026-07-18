@@ -178,6 +178,7 @@ def _render_upgrade_ctas() -> None:
         url = get_checkout_url(plan["label"])
         if url:
             st.link_button(f"Upgrade to {plan['label']} →", url, use_container_width=True, type="primary")
+            st.caption("You'll receive a licence key by email after payment. Enter it above to activate.")
 
 
 def _render_dev_tier_override() -> None:
