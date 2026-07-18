@@ -198,6 +198,7 @@ def upsert_subscription(
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (email) DO UPDATE SET
                 plan            = EXCLUDED.plan,
+                licence_key     = COALESCE(subscriptions.licence_key, EXCLUDED.licence_key),
                 subscription_id = COALESCE(NULLIF(EXCLUDED.subscription_id, ''), subscriptions.subscription_id),
                 order_id        = COALESCE(NULLIF(EXCLUDED.order_id, ''),        subscriptions.order_id),
                 status          = EXCLUDED.status,
