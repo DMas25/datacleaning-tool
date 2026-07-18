@@ -73,15 +73,19 @@ def _get_connection_string() -> str:
 
     Raises ``RuntimeError`` if neither source is configured.
     """
+    def _clean(raw: str) -> str:
+        """Strip whitespace and any accidental surrounding quote characters."""
+        return raw.strip().strip("\"'")
+
     # 1. Environment variable (Render / CI / local override)
-    url = os.environ.get("DATABASE_URL", "")
+    url = _clean(os.environ.get("DATABASE_URL", ""))
     if url:
         return url
 
     # 2. Streamlit secrets
     try:
         import streamlit as st
-        url = st.secrets.get("supabase", {}).get("database_url", "")
+        url = _clean(st.secrets.get("supabase", {}).get("database_url", ""))
         if url:
             return url
     except Exception:
