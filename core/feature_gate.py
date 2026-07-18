@@ -79,7 +79,7 @@ def _render_licence_form() -> None:
             st.sidebar.warning("Please enter a licence key.")
         else:
             from core.licence_verifier import validate_licence_key
-            with st.sidebar.spinner("Validating…"):
+            with st.spinner("Validating…"):
                 result = validate_licence_key(licence_key)
             if result["valid"]:
                 plan_key = result.get("plan") or _TIER_TO_PLAN.get(result["tier"], "free")
