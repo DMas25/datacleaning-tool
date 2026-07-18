@@ -307,6 +307,22 @@ def _handle_verify_otp(email: str, code: str, branding: dict) -> None:
         st.session_state["is_admin"] = True
         st.session_state["plan_key"] = "enterprise"
 
+    # Auto-activate paid plan from subscription record — no licence key entry needed.
+    # The webhook stores the plan against the email; we load it here on first sign-in.
+    _PLAN_DISPLAY = {
+        "starter": "Starter", "professional": "Professional",
+        "premium": "Premium", "enterprise": "Enterprise",
+    }
+    try:
+        from services.licence_manager_pg import get_by_email
+        sub = get_by_email(email)
+        if sub and sub.get("status") == "active" and sub.get("plan") not in (None, "", "free"):
+            plan_key = sub["plan"]
+            st.session_state["account_tier"] = _PLAN_DISPLAY.get(plan_key, plan_key.capitalize())
+            st.session_state["plan_key"] = plan_key
+    except Exception:
+        pass  # Non-fatal — free plan remains default; user can still enter a key manually.
+
     # Clean up OTP step state
     st.session_state.pop("_otp_step", None)
     st.session_state.pop("_otp_email", None)
