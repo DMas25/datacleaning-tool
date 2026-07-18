@@ -71,7 +71,13 @@ def issue_otp(email: str) -> tuple[bool, str]:
     if not email or "@" not in email:
         return False, "Please enter a valid email address."
 
-    recent = count_recent_otp_requests(email, RATE_LIMIT_WINDOW_MINUTES)
+    try:
+        recent = count_recent_otp_requests(email, RATE_LIMIT_WINDOW_MINUTES)
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).exception("count_recent_otp_requests failed: %s", exc)
+        return False, "Could not reach the database. Please try again in a moment."
+
     if recent >= MAX_OTP_REQUESTS_PER_WINDOW:
         return False, (
             f"Too many verification requests. "
@@ -80,7 +86,12 @@ def issue_otp(email: str) -> tuple[bool, str]:
 
     # Guarantee a subscription row exists (free plan) so the login can proceed
     # even before the user has paid — the plan upgrades automatically on payment.
-    ensure_free_subscriber(email)
+    try:
+        ensure_free_subscriber(email)
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).exception("ensure_free_subscriber failed: %s", exc)
+        # Non-fatal — subscriber may already exist; proceed to OTP generation.
 
     code = _generate_code()
     token_hash = _hash_code(code)
@@ -88,7 +99,9 @@ def issue_otp(email: str) -> tuple[bool, str]:
 
     try:
         store_otp(email, token_hash, expires_at)
-    except Exception:
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).exception("store_otp failed: %s", exc)
         return False, "Could not generate a verification code. Please try again."
 
     return True, code
