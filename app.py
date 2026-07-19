@@ -185,6 +185,9 @@ def _run_app() -> None:
 
     render_sign_out_button()
 
+    st.sidebar.image("assets/New_logo.png", use_container_width=True)
+    st.sidebar.markdown("---")
+
     # ── Admin · fault dashboard ─────────────────────────────────────────────────
     # Password-gated (separate from the client login above). Never linked from
     # client-facing UI — operators navigate here manually when investigating

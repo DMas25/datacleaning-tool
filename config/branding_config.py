@@ -24,7 +24,7 @@ branding = {
     "font_family_bold": "Helvetica-Bold",
 
     # Assets
-    "logo_path":        "assets/logo/coltradata_logo.png",
+    "logo_path":        "assets/New_logo.png",
 
     # Standard non-advisory disclaimer applied to every report output
     "report_disclaimer": (
