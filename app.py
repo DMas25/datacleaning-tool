@@ -18,6 +18,8 @@ from ui.pricing_cards import render_pricing_page
 from ui.branding_components import inject_app_css
 from ui.homepage import check_password, render_header, render_footer, render_legal_notices, render_sign_out_button
 from ui.onboarding_modal import show_onboarding_modal, needs_onboarding
+from ui.feedback_modal import show_feedback_modal
+from services.feedback_service import should_show_feedback
 from ui.upload_panel import render_upload_panel
 from ui.cleaning_options import render_cleaning_options
 from ui.preview_panel import render_preview_panel
@@ -351,6 +353,17 @@ def _run_app() -> None:
         else:
             render_results_panel(df, options, user_plan, branding)
         # SUBSCRIPTION LOGIC END
+
+        # ── Post-run feedback survey ────────────────────────────────────────────
+        # Show once per session, after the user's 3rd lifetime run.
+        # Suppression (snooze / never-ask-again) is persisted in signal_log.
+        _fb_email = st.session_state.get("user_email") or st.session_state.get("customer_email", "")
+        if (
+            _fb_email
+            and st.session_state.get("runs_this_session", 0) >= 1
+            and should_show_feedback(_fb_email)
+        ):
+            show_feedback_modal(_fb_email)
 
     # ── Page footer ─────────────────────────────────────────────────────────────
 

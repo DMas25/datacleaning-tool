@@ -91,6 +91,24 @@ def needs_onboarding(email: str) -> bool:
 @st.dialog("Complete your account setup", width="large")
 def show_onboarding_modal(email: str) -> None:
     """Render the onboarding form inside a Streamlit modal dialog."""
+    st.markdown(
+        """
+        <style>
+        [data-testid="stDialog"] label {
+            font-weight: 600 !important;
+            font-size: 0.9rem !important;
+        }
+        [data-testid="stDialog"] .stCheckbox span {
+            font-weight: 600 !important;
+            font-size: 0.9rem !important;
+        }
+        [data-testid="stDialog"] [data-testid="stCaptionContainer"] p {
+            font-weight: 500 !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
     st.markdown("### Your details")
 

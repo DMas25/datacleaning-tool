@@ -361,6 +361,8 @@ def _render_signup_guide(branding: dict) -> None:
                             Click <em>View Plans &amp; Pricing</em> below.
                             Select Starter, Professional, Premium, or Enterprise
                             and complete checkout via Lemon Squeezy.
+                            A subscription confirmation email will be sent to you —
+                            if it doesn't arrive, check your <strong>spam&nbsp;/&nbsp;junk</strong> folder.
                         </div>
                     </div>
                 </div>
