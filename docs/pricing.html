@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pricing — ColtraDataAi</title>
+  <meta name="description" content="Simple, transparent pricing for ColtraDataAi. Start free — no credit card required. Upgrade anytime." />
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <meta name="theme-color" content="#1F4E79" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --primary: #1F4E79; --accent: #2E86AB; --secondary: #D9E1F2; --light: #F8FAFC; --text: #1a2a3a; --muted: #5a6a7a; --white: #ffffff; --radius: 12px; }
+    html { scroll-behavior: smooth; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--text); background: var(--white); line-height: 1.6; }
+
+    nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-bottom: 1px solid var(--secondary); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 68px; box-shadow: 0 2px 12px rgba(31,78,121,0.07); }
+    nav img { height: 62px; }
+    .nav-links { display: flex; gap: 2rem; align-items: center; }
+    .nav-links a { text-decoration: none; color: var(--primary); font-weight: 500; font-size: 0.95rem; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--accent); }
+    .btn { display: inline-block; text-decoration: none; padding: 0.65rem 1.5rem; border-radius: 8px; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; cursor: pointer; border: none; }
+    .btn-primary { background: var(--primary); color: var(--white); }
+    .btn-primary:hover { background: var(--accent); transform: translateY(-1px); }
+    .btn-login { background: transparent; color: var(--primary); border: 2px solid var(--primary); }
+    .btn-login:hover { background: var(--primary); color: var(--white); }
+    .nav-dropdown { position: relative; }
+    .nav-dropdown > a::after { content: " ▾"; font-size: 0.75rem; }
+    .nav-dropdown-menu { position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: var(--white); border: 1px solid var(--secondary); border-radius: var(--radius); box-shadow: 0 8px 28px rgba(31,78,121,0.14); min-width: 240px; padding: 0.5rem 0; z-index: 200; display: none; }
+    .nav-dropdown:hover .nav-dropdown-menu, .nav-dropdown:focus-within .nav-dropdown-menu { display: block; }
+    .nav-dropdown-menu a { display: block; padding: 0.55rem 1.25rem; color: var(--text); font-size: 0.9rem; font-weight: 500; text-decoration: none; transition: background 0.15s; white-space: nowrap; }
+    .nav-dropdown-menu a::after { display: none; }
+    .nav-dropdown-menu a:hover { background: var(--secondary); color: var(--primary); }
+
+    .pricing-hero { background: var(--light); padding: 4rem 2rem 3rem; text-align: center; border-bottom: 1px solid var(--secondary); }
+    .pricing-hero h1 { font-size: 2.4rem; font-weight: 900; color: var(--primary); letter-spacing: -0.02em; }
+    .pricing-hero p { font-size: 1.05rem; color: var(--muted); margin-top: 0.75rem; max-width: 520px; margin-left: auto; margin-right: auto; line-height: 1.7; }
+    .free-callout { display: inline-block; margin-top: 1.25rem; background: #EBF8F0; color: #1a6e3a; font-size: 0.88rem; font-weight: 600; padding: 0.4rem 1rem; border-radius: 100px; border: 1px solid #b2e4c5; }
+
+    .pricing-section { padding: 3rem 2rem 4rem; max-width: 1200px; margin: 0 auto; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.25rem; align-items: start; }
+
+    .plan-card { background: var(--white); border: 1.5px solid var(--secondary); border-radius: 16px; padding: 1.6rem 1.3rem; display: flex; flex-direction: column; position: relative; transition: box-shadow 0.2s, transform 0.2s; }
+    .plan-card:hover { box-shadow: 0 8px 32px rgba(31,78,121,0.12); transform: translateY(-2px); }
+    .plan-card.featured { border-color: var(--primary); border-width: 2px; box-shadow: 0 8px 40px rgba(31,78,121,0.15); }
+    .plan-card.enterprise-card { background: #0d1e2e; border-color: #0d1e2e; }
+
+    .plan-badge { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); background: var(--primary); color: var(--white); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.25rem 0.9rem; border-radius: 100px; white-space: nowrap; }
+
+    .plan-name { font-size: 1rem; font-weight: 800; color: var(--primary); margin-bottom: 0.3rem; }
+    .enterprise-card .plan-name { color: rgba(255,255,255,0.95); }
+
+    .plan-price { font-size: 1.85rem; font-weight: 900; color: var(--text); line-height: 1.1; margin-bottom: 0.15rem; }
+    .enterprise-card .plan-price { color: var(--white); }
+    .plan-price span { font-size: 0.82rem; font-weight: 500; color: var(--muted); }
+    .enterprise-card .plan-price span { color: rgba(255,255,255,0.5); }
+
+    .plan-blurb { font-size: 0.78rem; color: var(--muted); margin: 0.5rem 0 1rem; line-height: 1.5; min-height: 2.6rem; }
+    .enterprise-card .plan-blurb { color: rgba(255,255,255,0.6); }
+
+    .plan-divider { height: 1px; background: var(--secondary); margin: 0.75rem 0; }
+    .enterprise-card .plan-divider { background: rgba(255,255,255,0.12); }
+
+    .plan-features { list-style: none; margin: 0; padding: 0; flex: 1; }
+    .plan-features li { font-size: 0.78rem; color: var(--text); padding: 0.3rem 0; display: flex; align-items: flex-start; gap: 0.45rem; line-height: 1.45; }
+    .enterprise-card .plan-features li { color: rgba(255,255,255,0.8); }
+    .plan-features li::before { content: "✓"; color: #2a8a4e; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; margin-top: 1px; }
+    .enterprise-card .plan-features li::before { color: #5de88a; }
+
+    .plan-cta { display: block; margin-top: 1.4rem; padding: 0.75rem 1rem; border-radius: 9px; font-size: 0.88rem; font-weight: 700; text-align: center; text-decoration: none; transition: all 0.2s; }
+    .cta-free { background: var(--secondary); color: var(--primary); }
+    .cta-free:hover { background: #c4d0e8; }
+    .cta-paid { background: var(--primary); color: var(--white); }
+    .cta-paid:hover { background: var(--accent); transform: translateY(-1px); }
+    .cta-featured { background: var(--primary); color: var(--white); box-shadow: 0 4px 16px rgba(31,78,121,0.3); }
+    .cta-featured:hover { background: var(--accent); transform: translateY(-1px); }
+    .cta-enterprise { background: rgba(255,255,255,0.1); color: var(--white); border: 1.5px solid rgba(255,255,255,0.25); }
+    .cta-enterprise:hover { background: rgba(255,255,255,0.2); }
+
+    .compare-section { background: var(--light); border-top: 1px solid var(--secondary); padding: 3.5rem 2rem; }
+    .compare-inner { max-width: 1100px; margin: 0 auto; }
+    .compare-title { font-size: 1.5rem; font-weight: 800; color: var(--primary); text-align: center; margin-bottom: 0.4rem; }
+    .compare-sub { text-align: center; color: var(--muted); font-size: 0.9rem; margin-bottom: 2.5rem; }
+    .compare-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .compare-table th { background: var(--primary); color: var(--white); padding: 0.75rem 1rem; font-weight: 700; text-align: center; }
+    .compare-table th:first-child { text-align: left; border-radius: 10px 0 0 0; }
+    .compare-table th:last-child { border-radius: 0 10px 0 0; }
+    .compare-table td { padding: 0.7rem 1rem; border-bottom: 1px solid var(--secondary); text-align: center; vertical-align: middle; }
+    .compare-table td:first-child { text-align: left; font-weight: 500; color: var(--text); }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table tr:nth-child(even) td { background: #f4f7fc; }
+    .compare-table tr:nth-child(even) td.hi { background: rgba(31,78,121,0.1); }
+    .compare-table .check { color: #2a8a4e; font-size: 1rem; font-weight: 700; }
+    .compare-table .dash { color: #c8d6df; font-size: 1rem; }
+    .compare-table .hi { background: rgba(31,78,121,0.06); font-weight: 600; color: var(--primary); }
+    .compare-table .section-row td { background: var(--secondary) !important; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--primary); padding: 0.45rem 1rem; }
+
+    .faq-section { padding: 3.5rem 2rem; max-width: 780px; margin: 0 auto; }
+    .faq-title { font-size: 1.5rem; font-weight: 800; color: var(--primary); text-align: center; margin-bottom: 2rem; }
+    .faq-item { border-bottom: 1px solid var(--secondary); padding: 1.1rem 0; }
+    .faq-q { font-size: 0.95rem; font-weight: 700; color: var(--text); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 1rem; user-select: none; }
+    .faq-q::after { content: "+"; font-size: 1.3rem; color: var(--primary); flex-shrink: 0; transition: transform 0.2s; }
+    .faq-item.open .faq-q::after { transform: rotate(45deg); }
+    .faq-a { font-size: 0.88rem; color: var(--muted); line-height: 1.7; margin-top: 0.6rem; display: none; }
+    .faq-a a { color: var(--primary); }
+    .faq-item.open .faq-a { display: block; }
+
+    .cta-bar { background: var(--primary); color: var(--white); text-align: center; padding: 3rem 2rem; }
+    .cta-bar h2 { font-size: 1.65rem; font-weight: 800; margin-bottom: 0.5rem; }
+    .cta-bar p { font-size: 1rem; opacity: 0.8; margin-bottom: 1.5rem; }
+    .cta-bar a { display: inline-block; background: var(--white); color: var(--primary); font-weight: 700; font-size: 1rem; padding: 0.9rem 2.25rem; border-radius: 10px; text-decoration: none; transition: all 0.2s; }
+    .cta-bar a:hover { background: var(--secondary); transform: translateY(-1px); }
+
+    footer { background: #0d1e2e; color: rgba(255,255,255,0.6); padding: 2.5rem 2rem; text-align: center; }
+    footer img { height: 52px; opacity: 0.7; margin-bottom: 1rem; }
+    footer p { font-size: 0.82rem; line-height: 1.8; }
+    footer a { color: rgba(255,255,255,0.5); text-decoration: none; }
+    footer a:hover { color: var(--white); }
+    .footer-links { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 1rem; flex-wrap: wrap; }
+
+    .chat-toggle { position: fixed; bottom: 1.5rem; right: 1.5rem; width: 56px; height: 56px; background: var(--primary); color: var(--white); border: none; border-radius: 50%; font-size: 1.4rem; cursor: pointer; box-shadow: 0 4px 20px rgba(31,78,121,0.4); z-index: 1000; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .chat-toggle:hover { background: var(--accent); transform: scale(1.08); }
+    .chat-window { position: fixed; bottom: 5rem; right: 1.5rem; width: 320px; max-height: 460px; background: var(--white); border: 1px solid var(--secondary); border-radius: 16px; box-shadow: 0 8px 32px rgba(31,78,121,0.18); z-index: 999; flex-direction: column; overflow: hidden; display: none; }
+    .chat-window.open { display: flex; }
+    .chat-header { background: var(--primary); color: var(--white); padding: 0.9rem 1.25rem; font-weight: 700; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+    .chat-close-btn { background: none; border: none; color: rgba(255,255,255,0.8); font-size: 1.2rem; cursor: pointer; line-height: 1; padding: 0; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; min-height: 180px; }
+    .chat-msg { max-width: 85%; padding: 0.6rem 0.9rem; border-radius: 10px; font-size: 0.88rem; line-height: 1.5; }
+    .chat-msg.bot { background: var(--secondary); color: var(--text); align-self: flex-start; border-bottom-left-radius: 3px; }
+    .chat-msg.user { background: var(--primary); color: var(--white); align-self: flex-end; border-bottom-right-radius: 3px; }
+    .chat-msg a { color: inherit; text-decoration: underline; }
+    .chat-chips { padding: 0 0.75rem 0.75rem; display: flex; flex-wrap: wrap; gap: 0.4rem; flex-shrink: 0; }
+    .chat-chip { background: var(--secondary); color: var(--primary); border: none; padding: 0.3rem 0.7rem; border-radius: 100px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+    .chat-chip:hover { background: var(--primary); color: var(--white); }
+    .chat-input-row { display: flex; border-top: 1px solid var(--secondary); flex-shrink: 0; }
+    .chat-input { flex: 1; border: none; padding: 0.75rem 1rem; font-size: 0.88rem; outline: none; font-family: inherit; color: var(--text); }
+    .chat-send-btn { background: var(--primary); color: var(--white); border: none; padding: 0.75rem 1rem; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
+    .chat-send-btn:hover { background: var(--accent); }
+
+    @media (max-width: 960px) { .pricing-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 640px) {
+      .pricing-grid { grid-template-columns: 1fr 1fr; }
+      .pricing-hero h1 { font-size: 1.8rem; }
+      nav { padding: 0 1rem; }
+      .nav-links a:not(:last-child):not(.btn-login):not(.btn-primary) { display: none; }
+      .nav-dropdown { display: none; }
+      .compare-table { font-size: 0.78rem; }
+      .compare-table th, .compare-table td { padding: 0.5rem 0.5rem; }
+    }
+    @media (max-width: 420px) { .pricing-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) { .chat-window { right: 0.75rem; left: 0.75rem; width: auto; } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html"><img src="assets/logo.png" alt="ColtraDataAi" /></a>
+  <div class="nav-links">
+    <a href="index.html#features">Features</a>
+    <div class="nav-dropdown">
+      <a href="index.html#who-its-for">Solutions</a>
+      <div class="nav-dropdown-menu">
+        <a href="consultants.html">💼 Consultants</a>
+        <a href="finance-teams.html">📊 Finance Teams</a>
+        <a href="bookkeepers.html">📚 Bookkeepers &amp; Accountants</a>
+        <a href="smes.html">🏢 SMEs</a>
+        <a href="healthcare.html">🏥 Healthcare</a>
+        <a href="researchers.html">🔬 Researchers</a>
+        <a href="logistics.html">🚚 Logistics Companies</a>
+        <a href="importers-exporters.html">🌍 Importers &amp; Exporters</a>
+        <a href="retail.html">🛒 Retail Businesses</a>
+      </div>
+    </div>
+    <a href="pricing.html" style="color:var(--accent);font-weight:700;">Pricing</a>
+    <a href="index.html#faq">FAQ</a>
+    <a href="https://app.coltradata.com" class="btn btn-login">Log In</a>
+    <a href="https://app.coltradata.com" class="btn btn-primary">Start Free</a>
+  </div>
+</nav>
+
+<section class="pricing-hero">
+  <h1>Simple, transparent pricing</h1>
+  <p>Start cleaning your data for free — no credit card, no commitment. Upgrade when you need more rows, AI insights, or boardroom-ready reports.</p>
+  <span class="free-callout">Free plan available — no card required</span>
+</section>
+
+<section class="pricing-section">
+  <div class="pricing-grid">
+
+    <div class="plan-card">
+      <div class="plan-name">Free</div>
+      <div class="plan-price">£0 <span>/ month</span></div>
+      <div class="plan-blurb">Clean and summarise small datasets. No sign-up friction.</div>
+      <div class="plan-divider"></div>
+      <ul class="plan-features">
+        <li>Up to 5,000 rows</li>
+        <li>3 runs per month</li>
+        <li>Automated data cleaning</li>
+        <li>Duplicate detection</li>
+        <li>Basic summary dashboard</li>
+        <li>Passwordless email sign-in</li>
+      </ul>
+      <a href="https://app.coltradata.com" class="plan-cta cta-free">Start Free →</a>
+    </div>
+
+    <div class="plan-card">
+      <div class="plan-name">Starter</div>
+      <div class="plan-price">£9 <span>/ month</span></div>
+      <div class="plan-blurb">For solo users who process regular uploads.</div>
+      <div class="plan-divider"></div>
+      <ul class="plan-features">
+        <li>Up to 25,000 rows</li>
+        <li>Unlimited runs</li>
+        <li>Everything in Free</li>
+        <li>Excel export</li>
+        <li>Email support</li>
+      </ul>
+      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/d5d25833-3149-487f-a9d1-832c398d13e6" class="plan-cta cta-paid" target="_blank" rel="noopener">Get Starter →</a>
+    </div>
+
+    <div class="plan-card featured">
+      <div class="plan-badge">Most Popular</div>
+      <div class="plan-name">Professional</div>
+      <div class="plan-price">£29 <span>/ month</span></div>
+      <div class="plan-blurb">Reports and AI insights for consultants and small teams.</div>
+      <div class="plan-divider"></div>
+      <ul class="plan-features">
+        <li>Up to 100,000 rows</li>
+        <li>Unlimited runs</li>
+        <li>Everything in Starter</li>
+        <li>Advanced dashboards</li>
+        <li>AI-powered insights</li>
+        <li>PDF reports</li>
+        <li>Priority email support</li>
+      </ul>
+      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/a358b1c4-70b8-4196-ab47-fe22153a488d" class="plan-cta cta-featured" target="_blank" rel="noopener">Get Professional →</a>
+    </div>
+
+    <div class="plan-card">
+      <div class="plan-name">Premium</div>
+      <div class="plan-price">£59 <span>/ month</span></div>
+      <div class="plan-blurb">High-volume processing with branded, boardroom-ready outputs.</div>
+      <div class="plan-divider"></div>
+      <ul class="plan-features">
+        <li>Up to 250,000 rows</li>
+        <li>Unlimited runs</li>
+        <li>Everything in Professional</li>
+        <li>AI advisory</li>
+        <li>Branded report outputs</li>
+        <li>Chart galleries</li>
+        <li>Priority support</li>
+      </ul>
+      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/c4a03a84-0d00-401d-8550-1f4974bc54b0" class="plan-cta cta-paid" target="_blank" rel="noopener">Get Premium →</a>
+    </div>
+
+    <div class="plan-card enterprise-card">
+      <div class="plan-name">Enterprise</div>
+      <div class="plan-price">£299 <span>/ month</span></div>
+      <div class="plan-blurb">Unlimited scale, API access, and white-label branding.</div>
+      <div class="plan-divider"></div>
+      <ul class="plan-features">
+        <li>Unlimited rows</li>
+        <li>Unlimited runs</li>
+        <li>Everything in Premium</li>
+        <li>API access</li>
+        <li>White-label branding</li>
+        <li>Bulk upload</li>
+        <li>Priority processing</li>
+      </ul>
+      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/9c89a708-c7c3-4067-a2e9-720ea4df8991" class="plan-cta cta-enterprise" target="_blank" rel="noopener">Get Enterprise →</a>
+    </div>
+
+  </div>
+  <p style="text-align:center;font-size:0.78rem;color:var(--muted);margin-top:1.75rem;">
+    Payments processed securely by <strong>Lemon Squeezy</strong>. Cancel anytime from your billing portal.
+  </p>
+</section>
+
+<section class="compare-section">
+  <div class="compare-inner">
+    <h2 class="compare-title">Full feature comparison</h2>
+    <p class="compare-sub">Everything you get, at a glance.</p>
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th style="width:28%;text-align:left;">Feature</th>
+          <th>Free</th>
+          <th>Starter</th>
+          <th>Professional</th>
+          <th>Premium</th>
+          <th>Enterprise</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="section-row"><td colspan="6">Capacity</td></tr>
+        <tr>
+          <td>Row limit</td>
+          <td>5,000</td>
+          <td>25,000</td>
+          <td class="hi">100,000</td>
+          <td>250,000</td>
+          <td>Unlimited</td>
+        </tr>
+        <tr>
+          <td>Runs per month</td>
+          <td>3</td>
+          <td>Unlimited</td>
+          <td class="hi">Unlimited</td>
+          <td>Unlimited</td>
+          <td>Unlimited</td>
+        </tr>
+        <tr class="section-row"><td colspan="6">Data Cleaning</td></tr>
+        <tr>
+          <td>Automated cleaning</td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td class="hi"><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Duplicate detection</td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td class="hi"><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Mixed-type handling</td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td class="hi"><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr class="section-row"><td colspan="6">Reports &amp; Export</td></tr>
+        <tr>
+          <td>Basic summary dashboard</td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td class="hi"><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Excel export</td>
+          <td><span class="dash">—</span></td>
+          <td><span class="check">✓</span></td>
+          <td class="hi"><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Advanced dashboards</td>
+          <td><span class="dash">—</span></td>
+          <td><span class="dash">—</span></td>
+          <td class="hi"><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>PDF reports</td>
+          <td><span class="dash">—</span></td>
+          <td><span class="dash">—</span></td>
+          <td class="hi"><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Chart galleries</td>
+          <td><span class="dash">—</span></td>
+          <td><span class="dash">—</span></td>
+          <td class="hi"><span class="dash">—</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Branded outputs</td>
+          <td><span class="dash">—</span></td>
+          <td><span class="dash">—</span></td>
+          <td class="hi"><span class="dash">—</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr class="section-row"><td colspan="6">AI &amp; Intelligence</td></tr>
+        <tr>
+          <td>AI-powered insights</td>
+          <td><span class="dash">—</span></td>
+          <td><span class="dash">—</span></td>
+          <td class="hi"><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>AI advisory</td>
+          <td><span class="dash">—</span></td>
+          <td><span class="dash">—</span></td>
+          <td class="hi"><span class="dash">—</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr class="section-row"><td colspan="6">Scale &amp; Integration</td></tr>
+        <tr>
+          <td>API access</td>
+          <td><span class="dash">—</span></td>
+          <td><span class="dash">—</span></td>
+          <td class="hi"><span class="dash">—</span></td>
+          <td><span class="dash">—</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Bulk upload</td>
+          <td><span class="dash">—</span></td>
+          <td><span class="dash">—</span></td>
+          <td class="hi"><span class="dash">—</span></td>
+          <td><span class="dash">—</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>White-label branding</td>
+          <td><span class="dash">—</span></td>
+          <td><span class="dash">—</span></td>
+          <td class="hi"><span class="dash">—</span></td>
+          <td><span class="dash">—</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Priority processing</td>
+          <td><span class="dash">—</span></td>
+          <td><span class="dash">—</span></td>
+          <td class="hi"><span class="dash">—</span></td>
+          <td><span class="dash">—</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr class="section-row"><td colspan="6">Support</td></tr>
+        <tr>
+          <td>Email support</td>
+          <td><span class="dash">—</span></td>
+          <td><span class="check">✓</span></td>
+          <td class="hi"><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Priority support</td>
+          <td><span class="dash">—</span></td>
+          <td><span class="dash">—</span></td>
+          <td class="hi"><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="faq-section">
+  <h2 class="faq-title">Frequently asked questions</h2>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Can I try ColtraDataAi before paying?</div>
+    <div class="faq-a">Yes — the Free plan lets you run up to 3 cleaning sessions per month on datasets up to 5,000 rows. No credit card required. Just enter your email at <a href="https://app.coltradata.com">app.coltradata.com</a> to get started instantly.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">How does billing work?</div>
+    <div class="faq-a">Subscriptions are billed monthly via Lemon Squeezy, our payment processor. You'll receive a receipt immediately after payment. Cancel anytime from your Lemon Squeezy billing portal — no questions asked.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">How does my plan activate after purchase?</div>
+    <div class="faq-a">After checkout, return to <a href="https://app.coltradata.com">app.coltradata.com</a> and sign in with the same email you used at purchase. Your paid plan is detected automatically — no licence key entry needed.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">What file types are supported?</div>
+    <div class="faq-a">ColtraDataAi supports CSV and Excel (.xlsx / .xls) files. Upload any messy spreadsheet and the platform handles missing values, duplicates, and mixed data types automatically.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Is my data secure?</div>
+    <div class="faq-a">Your data is processed securely and never permanently stored or shared with third parties. ColtraDataAi is GDPR-compliant and built for professional use. See our <a href="privacy.html">Privacy Policy</a> for full details.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Can I upgrade or downgrade my plan?</div>
+    <div class="faq-a">Yes. To upgrade, simply purchase the new plan via the checkout link above — your subscription will update. To cancel or get help, email <a href="mailto:support@coltradata.com">support@coltradata.com</a>.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Do you offer team or multi-seat pricing?</div>
+    <div class="faq-a">The Enterprise plan is designed for large-scale use and includes API access, white-label options, and priority processing. For custom team arrangements, contact us at <a href="mailto:support@coltradata.com">support@coltradata.com</a>.</div>
+  </div>
+</section>
+
+<div class="cta-bar">
+  <h2>Ready to clean your data?</h2>
+  <p>Start free today — no credit card, no commitment.</p>
+  <a href="https://app.coltradata.com">Get Started Free →</a>
+</div>
+
+<footer>
+  <img src="assets/logo.png" alt="ColtraDataAi" /><br />
+  <div class="footer-links">
+    <a href="index.html#features">Features</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="index.html#faq">FAQ</a>
+    <a href="privacy.html">Privacy Policy</a>
+    <a href="mailto:support@coltradata.com">support@coltradata.com</a>
+  </div>
+  <p>ColtraDataAi is a trading name of Coltrane Ltd, registered in England and Wales<br />Company No. 09088932 &nbsp;·&nbsp; Registered office: Kemp House, 128 City Road, London EC1V 2NX<br /><br />&copy; 2026 ColtraDataAi &nbsp;·&nbsp; All Rights Reserved</p>
+</footer>
+
+<button class="chat-toggle" onclick="toggleChat()">💬</button>
+<div class="chat-window" id="chatWindow">
+  <div class="chat-header"><span>💬 ColtraDataAi Assistant</span><button class="chat-close-btn" onclick="toggleChat()">✕</button></div>
+  <div class="chat-messages" id="chatMessages"><div class="chat-msg bot">Hi! I can help with questions about our plans and pricing. 👋</div></div>
+  <div class="chat-chips" id="chatChips">
+    <button class="chat-chip" onclick="sendChip('Which plan should I choose?')">Which plan?</button>
+    <button class="chat-chip" onclick="sendChip('How does billing work?')">Billing</button>
+    <button class="chat-chip" onclick="sendChip('Is my data secure?')">Data security</button>
+  </div>
+  <div class="chat-input-row">
+    <input class="chat-input" id="chatInput" type="text" placeholder="Ask a question…" onkeydown="if(event.key==='Enter') sendMessage()" />
+    <button class="chat-send-btn" onclick="sendMessage()">➤</button>
+  </div>
+</div>
+
+<script>
+  function toggleChat() { document.getElementById('chatWindow').classList.toggle('open'); }
+  function toggleFaq(el) { el.closest('.faq-item').classList.toggle('open'); }
+  const botRules = [
+    { k: ['which','choose','recommend','best','right','should'], a: 'Most users start with <strong>Professional (£29/mo)</strong> — up to 100k rows, AI insights, and PDF reports. If you only need exports, Starter (£9) is a great starting point.' },
+    { k: ['plan','price','cost','pricing','tier','starter','professional','premium','enterprise'], a: '5 plans available:<br>• Free – £0/mo (3 runs, 5k rows)<br>• Starter – £9/mo (25k rows, Excel export)<br>• Professional – £29/mo (100k rows, AI + PDF)<br>• Premium – £59/mo (250k rows, branded reports)<br>• Enterprise – £299/mo (unlimited, API access)' },
+    { k: ['free','trial','no card','signup'], a: 'Free plan: 3 runs/month, up to 5,000 rows, no credit card required. <a href="https://app.coltradata.com">Start free →</a>' },
+    { k: ['billing','cancel','refund','charge','payment'], a: 'Billed monthly via Lemon Squeezy. Cancel anytime from your billing portal. For refunds email <a href="mailto:support@coltradata.com">support@coltradata.com</a>.' },
+    { k: ['activate','login','sign in','access','how do i start'], a: 'After purchase, go to <a href="https://app.coltradata.com">app.coltradata.com</a> and sign in with the same email. Your plan activates automatically — no licence key needed.' },
+    { k: ['secure','privacy','gdpr','safe','data'], a: 'Data is processed securely and never permanently stored or shared. GDPR-compliant. <a href="privacy.html">Privacy Policy →</a>' },
+  ];
+  function getBotReply(msg) { const lower = msg.toLowerCase(); for (const rule of botRules) { if (rule.k.some(kw => lower.includes(kw))) return rule.a; } return 'Good question! Email <a href="mailto:support@coltradata.com">support@coltradata.com</a> — we reply within 24 hours.'; }
+  function appendMsg(text, type) { const msgs = document.getElementById('chatMessages'); const div = document.createElement('div'); div.className = 'chat-msg ' + type; div.innerHTML = text; msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight; }
+  function sendChip(text) { document.getElementById('chatChips').style.display = 'none'; sendText(text); }
+  function sendMessage() { const input = document.getElementById('chatInput'); const text = input.value.trim(); if (!text) return; input.value = ''; document.getElementById('chatChips').style.display = 'none'; sendText(text); }
+  function sendText(text) { appendMsg(text, 'user'); setTimeout(() => appendMsg(getBotReply(text), 'bot'), 420); }
+</script>
+</body>
+</html>

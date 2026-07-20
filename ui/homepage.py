@@ -335,7 +335,7 @@ def _handle_verify_otp(email: str, code: str, branding: dict) -> None:
 def _render_signup_guide(branding: dict) -> None:
     """'How to get started' guide shown below the sign-in card."""
     primary = branding["primary_colour"]
-    store_url = "https://coltradataai.lemonsqueezy.com/"
+    store_url = "https://coltradata.com/pricing.html"
     contact = branding.get("contact_email", "support@coltradata.com")
 
     st.markdown(
