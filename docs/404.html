@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page Not Found — ColtraDataAi</title>
+  <meta name="description" content="The page you're looking for couldn't be found. Return to ColtraDataAi." />
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <meta name="theme-color" content="#1F4E79" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --primary: #1F4E79; --accent: #2E86AB; --secondary: #D9E1F2; --light: #F8FAFC; --success: #46D324; --danger: #DC2626; --text: #1a2a3a; --muted: #5a6a7a; --white: #ffffff; --radius: 12px; }
+    html { scroll-behavior: smooth; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--text); background: var(--white); line-height: 1.6; }
+    nav { position: sticky; top: 0; z-index: 100; background: var(--white); border-bottom: 1px solid var(--secondary); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 68px; box-shadow: 0 2px 12px rgba(31,78,121,0.07); }
+    nav img { height: 62px; }
+    .nav-links { display: flex; gap: 2rem; align-items: center; }
+    .nav-links a { text-decoration: none; color: var(--primary); font-weight: 500; font-size: 0.95rem; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--accent); }
+    .btn { display: inline-block; text-decoration: none; padding: 0.65rem 1.5rem; border-radius: 8px; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; cursor: pointer; border: none; }
+    .btn-primary { background: var(--primary); color: var(--white); }
+    .btn-primary:hover { background: var(--accent); transform: translateY(-1px); }
+    .btn-login { background: transparent; color: var(--primary); border: 2px solid var(--primary); }
+    .btn-login:hover { background: var(--primary); color: var(--white); }
+    .nav-dropdown { position: relative; }
+    .nav-dropdown > a::after { content: " ▾"; font-size: 0.75rem; }
+    .nav-dropdown-menu { position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: var(--white); border: 1px solid var(--secondary); border-radius: var(--radius); box-shadow: 0 8px 28px rgba(31,78,121,0.14); min-width: 240px; padding: 0.5rem 0; z-index: 200; display: none; }
+    .nav-dropdown:hover .nav-dropdown-menu, .nav-dropdown:focus-within .nav-dropdown-menu { display: block; }
+    .nav-dropdown-menu a { display: block; padding: 0.55rem 1.25rem; color: var(--text); font-size: 0.9rem; font-weight: 500; text-decoration: none; transition: background 0.15s; white-space: nowrap; }
+    .nav-dropdown-menu a::after { display: none; }
+    .nav-dropdown-menu a:hover { background: var(--secondary); color: var(--primary); }
+
+    .error-page { min-height: calc(100vh - 68px - 140px); display: flex; align-items: center; justify-content: center; padding: 4rem 2rem; background: var(--light); }
+    .error-card { background: var(--white); border: 1px solid var(--secondary); border-radius: 20px; padding: 3.5rem 3rem; max-width: 600px; width: 100%; text-align: center; box-shadow: 0 8px 40px rgba(31,78,121,0.08); }
+    .error-code { font-size: 6rem; font-weight: 900; color: var(--secondary); line-height: 1; margin-bottom: 0.25rem; letter-spacing: -0.03em; }
+    .error-icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+    .error-title { font-size: 1.6rem; font-weight: 800; color: var(--primary); margin-bottom: 1rem; }
+    .error-body { font-size: 1rem; color: var(--muted); margin-bottom: 0.75rem; line-height: 1.65; }
+    .error-tip { font-size: 0.9rem; color: var(--muted); background: var(--light); border: 1px solid var(--secondary); border-radius: 8px; padding: 0.85rem 1.25rem; margin: 1.5rem 0 2rem; text-align: left; }
+    .error-tip strong { color: var(--primary); }
+    .error-tip ul { padding-left: 1.25rem; margin-top: 0.4rem; }
+    .error-tip ul li { margin-bottom: 0.3rem; }
+    .error-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-back { background: var(--primary); color: var(--white); padding: 0.85rem 2rem; border-radius: 10px; font-size: 1rem; font-weight: 700; text-decoration: none; display: inline-block; transition: all 0.2s; }
+    .btn-back:hover { background: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(31,78,121,0.2); }
+    .btn-support { background: transparent; color: var(--primary); border: 2px solid var(--primary); padding: 0.85rem 2rem; border-radius: 10px; font-size: 1rem; font-weight: 700; text-decoration: none; display: inline-block; transition: all 0.2s; }
+    .btn-support:hover { background: var(--primary); color: var(--white); }
+    .divider { height: 1px; background: var(--secondary); margin: 2rem 0; }
+    .quick-links { display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center; }
+    .quick-link { font-size: 0.85rem; color: var(--accent); text-decoration: none; font-weight: 600; padding: 0.3rem 0.7rem; border-radius: 6px; background: var(--light); border: 1px solid var(--secondary); transition: all 0.15s; }
+    .quick-link:hover { background: var(--secondary); color: var(--primary); }
+
+    footer { background: #0d1e2e; color: rgba(255,255,255,0.6); padding: 2.5rem 2rem; text-align: center; }
+    footer img { height: 52px; opacity: 0.7; margin-bottom: 1rem; }
+    footer p { font-size: 0.82rem; line-height: 1.8; }
+    footer a { color: rgba(255,255,255,0.5); text-decoration: none; }
+    footer a:hover { color: var(--white); }
+    .footer-links { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 1rem; flex-wrap: wrap; }
+    .chat-toggle { position: fixed; bottom: 1.5rem; right: 1.5rem; width: 56px; height: 56px; background: var(--primary); color: var(--white); border: none; border-radius: 50%; font-size: 1.4rem; cursor: pointer; box-shadow: 0 4px 20px rgba(31,78,121,0.4); z-index: 1000; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .chat-toggle:hover { background: var(--accent); transform: scale(1.08); }
+    .chat-window { position: fixed; bottom: 5rem; right: 1.5rem; width: 320px; max-height: 460px; background: var(--white); border: 1px solid var(--secondary); border-radius: 16px; box-shadow: 0 8px 32px rgba(31,78,121,0.18); z-index: 999; flex-direction: column; overflow: hidden; display: none; }
+    .chat-window.open { display: flex; }
+    .chat-header { background: var(--primary); color: var(--white); padding: 0.9rem 1.25rem; font-weight: 700; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+    .chat-close-btn { background: none; border: none; color: rgba(255,255,255,0.8); font-size: 1.2rem; cursor: pointer; line-height: 1; padding: 0; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; min-height: 180px; }
+    .chat-msg { max-width: 85%; padding: 0.6rem 0.9rem; border-radius: 10px; font-size: 0.88rem; line-height: 1.5; }
+    .chat-msg.bot { background: var(--secondary); color: var(--text); align-self: flex-start; border-bottom-left-radius: 3px; }
+    .chat-msg.user { background: var(--primary); color: var(--white); align-self: flex-end; border-bottom-right-radius: 3px; }
+    .chat-msg a { color: inherit; text-decoration: underline; }
+    .chat-chips { padding: 0 0.75rem 0.75rem; display: flex; flex-wrap: wrap; gap: 0.4rem; flex-shrink: 0; }
+    .chat-chip { background: var(--secondary); color: var(--primary); border: none; padding: 0.3rem 0.7rem; border-radius: 100px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+    .chat-chip:hover { background: var(--primary); color: var(--white); }
+    .chat-input-row { display: flex; border-top: 1px solid var(--secondary); flex-shrink: 0; }
+    .chat-input { flex: 1; border: none; padding: 0.75rem 1rem; font-size: 0.88rem; outline: none; font-family: inherit; color: var(--text); }
+    .chat-send-btn { background: var(--primary); color: var(--white); border: none; padding: 0.75rem 1rem; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
+    .chat-send-btn:hover { background: var(--accent); }
+    @media (max-width: 768px) { nav { padding: 0 1rem; } .nav-links a:not(:last-child):not(.btn-login):not(.btn-primary) { display: none; } .nav-dropdown { display: none; } .error-card { padding: 2.5rem 1.5rem; } .error-code { font-size: 4.5rem; } }
+    @media (max-width: 600px) { .chat-window { right: 0.75rem; left: 0.75rem; width: auto; } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html"><img src="assets/logo.png" alt="ColtraDataAi" /></a>
+  <div class="nav-links">
+    <a href="index.html#features">Features</a>
+    <div class="nav-dropdown">
+      <a href="index.html#who-its-for">Solutions</a>
+      <div class="nav-dropdown-menu">
+        <a href="consultants.html">💼 Consultants</a>
+        <a href="finance-teams.html">📊 Finance Teams</a>
+        <a href="bookkeepers.html">📚 Bookkeepers &amp; Accountants</a>
+        <a href="smes.html">🏢 SMEs</a>
+        <a href="healthcare.html">🏥 Healthcare</a>
+        <a href="researchers.html">🔬 Researchers</a>
+        <a href="logistics.html">🚚 Logistics Companies</a>
+        <a href="importers-exporters.html">🌍 Importers &amp; Exporters</a>
+        <a href="retail.html">🛒 Retail Businesses</a>
+      </div>
+    </div>
+    <a href="index.html#pricing">Pricing</a>
+    <a href="index.html#faq">FAQ</a>
+    <a href="https://app.coltradata.com" class="btn btn-login">Log In</a>
+    <a href="index.html#pricing" class="btn btn-primary">Start Free</a>
+  </div>
+</nav>
+
+<div class="error-page">
+  <div class="error-card">
+    <div class="error-code">404</div>
+    <span class="error-icon">🔍</span>
+    <h1 class="error-title">Page Not Found</h1>
+    <p class="error-body">
+      This page may be temporarily unavailable while we update the site, or the link you followed may be out of date.
+    </p>
+
+    <div class="error-tip">
+      <strong>Things you can try:</strong>
+      <ul>
+        <li>Wait a minute and refresh the page — updates usually complete within 2–3 minutes.</li>
+        <li>Press <strong>Ctrl + Shift + R</strong> (or <strong>Cmd + Shift + R</strong> on Mac) to force a fresh load.</li>
+        <li>Try opening the link in a private / incognito window.</li>
+        <li>Return to the homepage and navigate from there.</li>
+      </ul>
+    </div>
+
+    <div class="error-actions">
+      <a href="index.html" class="btn-back">← Back to Homepage</a>
+      <a href="mailto:support@coltradata.com" class="btn-support">Contact Support</a>
+    </div>
+
+    <div class="divider"></div>
+
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;">Or jump straight to a section:</p>
+    <div class="quick-links">
+      <a href="index.html#features" class="quick-link">Features</a>
+      <a href="index.html#who-its-for" class="quick-link">Solutions</a>
+      <a href="index.html#pricing" class="quick-link">Pricing</a>
+      <a href="index.html#faq" class="quick-link">FAQ</a>
+      <a href="privacy.html" class="quick-link">Privacy Policy</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <img src="assets/logo.png" alt="ColtraDataAi" /><br />
+  <div class="footer-links">
+    <a href="index.html#features">Features</a><a href="index.html#pricing">Pricing</a><a href="index.html#faq">FAQ</a><a href="privacy.html">Privacy Policy</a><a href="mailto:support@coltradata.com">support@coltradata.com</a>
+  </div>
+  <p>ColtraDataAi is a trading name of Coltrane Ltd, registered in England and Wales<br />Company No. 09088932 &nbsp;·&nbsp; Registered office: Kemp House, 128 City Road, London EC1V 2NX<br /><br />&copy; 2026 ColtraDataAi &nbsp;·&nbsp; All Rights Reserved</p>
+</footer>
+
+<button class="chat-toggle" onclick="toggleChat()">💬</button>
+<div class="chat-window" id="chatWindow">
+  <div class="chat-header"><span>💬 ColtraDataAi Assistant</span><button class="chat-close-btn" onclick="toggleChat()">✕</button></div>
+  <div class="chat-messages" id="chatMessages"><div class="chat-msg bot">Hi! Looks like you hit a missing page. Can I help you find what you're looking for? 👋</div></div>
+  <div class="chat-chips" id="chatChips">
+    <button class="chat-chip" onclick="sendChip('What plans are available?')">Plans &amp; Pricing</button>
+    <button class="chat-chip" onclick="sendChip('How do I get started?')">Get started</button>
+    <button class="chat-chip" onclick="sendChip('Is my data secure?')">Data security</button>
+  </div>
+  <div class="chat-input-row">
+    <input class="chat-input" id="chatInput" type="text" placeholder="Ask a question…" onkeydown="if(event.key==='Enter') sendMessage()" />
+    <button class="chat-send-btn" onclick="sendMessage()">➤</button>
+  </div>
+</div>
+<script>
+  function toggleChat() { document.getElementById('chatWindow').classList.toggle('open'); }
+  const botRules = [
+    { k: ['plan','price','cost','pricing','tier','starter','professional','premium','enterprise'], a: '5 plans available:<br>• Free – £0/mo (3 runs, 5k rows)<br>• Starter – £9/mo<br>• Professional – £29/mo (most popular)<br>• Premium – £59/mo (includes branded reports)<br>• Enterprise – £299/mo (unlimited)<br><br><a href="index.html#pricing">See full details →</a>' },
+    { k: ['free','trial','no card','signup'], a: 'Free plan: 3 runs/month, up to 5,000 rows, no credit card required. <a href="https://app.coltradata.com">Start free →</a>' },
+    { k: ['secure','privacy','gdpr','safe'], a: 'Client data is processed securely and never permanently stored or shared. GDPR-compliant. <a href="privacy.html">Privacy Policy →</a>' },
+    { k: ['how','start','step','work'], a: '1) Upload your Excel or CSV, 2) ColtraDataAi cleans and analyses it automatically, 3) Download a professional PDF or Excel report. Done in minutes.' },
+    { k: ['404','missing','page','find'], a: 'If you were looking for a specific page, try returning to the <a href="index.html">homepage</a> and navigating from there. If the problem persists, email <a href="mailto:support@coltradata.com">support@coltradata.com</a>.' },
+  ];
+  function getBotReply(msg) { const lower = msg.toLowerCase(); for (const rule of botRules) { if (rule.k.some(kw => lower.includes(kw))) return rule.a; } return 'Good question! Email <a href="mailto:support@coltradata.com">support@coltradata.com</a> — we reply within 24 hours.'; }
+  function appendMsg(text, type) { const msgs = document.getElementById('chatMessages'); const div = document.createElement('div'); div.className = 'chat-msg ' + type; div.innerHTML = text; msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight; }
+  function sendChip(text) { document.getElementById('chatChips').style.display = 'none'; sendText(text); }
+  function sendMessage() { const input = document.getElementById('chatInput'); const text = input.value.trim(); if (!text) return; input.value = ''; document.getElementById('chatChips').style.display = 'none'; sendText(text); }
+  function sendText(text) { appendMsg(text, 'user'); setTimeout(() => appendMsg(getBotReply(text), 'bot'), 420); }
+</script>
+</body>
+</html>
