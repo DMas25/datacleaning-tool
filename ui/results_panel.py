@@ -14,6 +14,10 @@ import streamlit as st
 
 from core.cleaner import CleaningOptions, apply_cleaning
 from core.clinical_cleaner import apply_clinical_cleaning
+from core.logistics_cleaner import apply_logistics_cleaning
+from core.trade_cleaner import apply_trade_cleaning
+from core.finance_cleaner import apply_finance_cleaning
+from core.retail_cleaner import apply_retail_cleaning
 from core.profiler import build_quality_summary_df
 from core.insights_engine import generate_insights, detect_date_columns
 from core.ai_advisor import generate_ai_advisory
@@ -152,6 +156,19 @@ def render_results_panel(
     # ── Clinical Trial Register (Clinical Research mode only) ─────────────
     if "Clinical Research" in options.dataset_type:
         _render_clinical_trial_view(result, branding)
+
+    # ── Domain-specific results views ─────────────────────────────────────
+    if "Logistics" in options.dataset_type and result.get("logistics_result"):
+        _render_logistics_view(result, branding)
+
+    if "Import/Export" in options.dataset_type and result.get("trade_result"):
+        _render_trade_view(result, branding)
+
+    if "Finance" in options.dataset_type and result.get("finance_result"):
+        _render_finance_view(result, branding)
+
+    if "Retail" in options.dataset_type and result.get("retail_result"):
+        _render_retail_view(result, branding)
 
     # ── Audit Intelligence (Professional+) ───────────────────────────────
     if has_feature(user_plan, "can_view_advanced_insights"):
@@ -465,9 +482,14 @@ def _run_processing(
     cleaned_df           = cleaning_result.cleaned_df
     log_df               = cleaning_result.log_df
 
-    # ── Clinical Research pass (dataset_type gate) ────────────────────────
+    # ── Domain-specific cleaning passes ──────────────────────────────────
     clinical_profiles = None
     clinical_metrics  = None
+    logistics_result  = None
+    trade_result      = None
+    finance_result    = None
+    retail_result     = None
+
     if "Clinical Research" in options.dataset_type:
         nct_col = _detect_col(cleaned_df, "nct")
         inv_col = _detect_col(cleaned_df, "investigator", "principal_inv", "pi_name")
@@ -486,12 +508,30 @@ def _run_processing(
             "duplicates_merged":  max(0, raw_unique_count - clean_unique_count),
         }
 
+    if "Logistics" in options.dataset_type:
+        logistics_result = apply_logistics_cleaning(cleaned_df)
+        cleaned_df = logistics_result.cleaned_df
+
+    if "Import/Export" in options.dataset_type:
+        trade_result = apply_trade_cleaning(cleaned_df)
+        cleaned_df = trade_result.cleaned_df
+
+    if "Finance" in options.dataset_type:
+        finance_result = apply_finance_cleaning(cleaned_df)
+        cleaned_df = finance_result.cleaned_df
+
+    if "Retail" in options.dataset_type:
+        retail_result = apply_retail_cleaning(cleaned_df)
+        cleaned_df = retail_result.cleaned_df
+
     quality_df           = build_quality_summary_df(df, cleaned_df, options.null_handling)
     date_cols            = detect_date_columns(cleaned_df)
 
     quality_breakdown_df, risk_summary, chart_assets = build_chart_and_risk(
         branding, df, cleaned_df, date_cols=date_cols
     )
+
+    ledger_analysis = analyse_ledger(cleaned_df)
 
     ai_advisory = None
     if has_feature(user_plan, "can_view_advanced_insights") and _anthropic_key_configured():
@@ -505,8 +545,6 @@ def _run_processing(
         if ai_advisory and get_user_email():
             log_usage_event(get_user_email(), "ai_advisory", user_plan)
             st.session_state["follow_through_this_session"] = True
-
-    ledger_analysis = analyse_ledger(cleaned_df)
 
     export = generate_reports(
         branding=branding,
@@ -536,6 +574,10 @@ def _run_processing(
         "pdf_filename":         export.pdf_filename,
         "clinical_profiles":    clinical_profiles,
         "clinical_metrics":     clinical_metrics,
+        "logistics_result":     logistics_result,
+        "trade_result":         trade_result,
+        "finance_result":       finance_result,
+        "retail_result":        retail_result,
     }
 
 
@@ -751,3 +793,202 @@ def _render_clinical_trial_view(result: dict, branding: dict) -> None:
                     f"&nbsp;&nbsp;|&nbsp;&nbsp;Phase: {phase}"
                     f"&nbsp;&nbsp;|&nbsp;&nbsp;Status: {status}{id_flag}"
                 )
+
+
+# ── Logistics & Supply Chain results view ─────────────────────────────────────
+
+def _render_logistics_view(result: dict, branding: dict) -> None:
+    lr = result.get("logistics_result")
+    if not lr:
+        return
+
+    render_section_divider(branding=branding)
+    render_step_header(5, "Logistics & Supply Chain Analysis", branding=branding)
+
+    m = lr.metrics
+    cols = st.columns(3)
+    with cols[0]:
+        render_kpi_row([("Total Shipments", f"{m.get('total_shipments', 0):,}")], branding)
+    with cols[1]:
+        transit = m.get("transit_stats") or {}
+        avg_transit = transit.get("avg_days")
+        render_kpi_row([("Avg Transit Days", f"{avg_transit:.1f}" if avg_transit is not None else "—")], branding)
+    with cols[2]:
+        render_kpi_row([("Issues Detected", f"{m.get('issues_found', 0)}")], branding)
+
+    if m.get("status_counts"):
+        st.markdown("#### Shipment Status Breakdown")
+        status_df = pd.DataFrame(
+            list(m["status_counts"].items()), columns=["Status", "Count"]
+        ).sort_values("Count", ascending=False)
+        fig = px.bar(
+            status_df, x="Status", y="Count",
+            color_discrete_sequence=[branding["primary_colour"]],
+            text="Count",
+        )
+        fig.update_traces(textposition="outside")
+        fig.update_layout(height=320, margin=dict(l=20, r=20, t=30, b=60), showlegend=False)
+        st.plotly_chart(fig, use_container_width=True)
+
+    if lr.issues:
+        st.markdown("#### Findings")
+        for issue in lr.issues:
+            if issue["count"] > 0:
+                st.warning(f"**{issue['type']}** — {issue['description']}")
+            else:
+                st.success(f"**{issue['type']}** — {issue['description']}")
+
+
+# ── Import/Export & Trade results view ────────────────────────────────────────
+
+def _render_trade_view(result: dict, branding: dict) -> None:
+    tr = result.get("trade_result")
+    if not tr:
+        return
+
+    render_section_divider(branding=branding)
+    render_step_header(5, "Import/Export & Trade Analysis", branding=branding)
+
+    m = tr.metrics
+    cols = st.columns(3)
+    with cols[0]:
+        render_kpi_row([("Total Records", f"{m.get('total_records', 0):,}")], branding)
+    with cols[1]:
+        hs_issues = sum(i["count"] for i in tr.issues if "HS" in i["type"] and i["count"] > 0)
+        render_kpi_row([("HS Code Issues", f"{hs_issues:,}")], branding)
+    with cols[2]:
+        render_kpi_row([("Issues Detected", f"{m.get('issues_found', 0)}")], branding)
+
+    if m.get("origin_counts"):
+        st.markdown("#### Top Origin Countries")
+        co_df = pd.DataFrame(
+            list(m["origin_counts"].items()), columns=["Country", "Count"]
+        ).sort_values("Count", ascending=False).head(10)
+        fig = px.bar(
+            co_df, x="Country", y="Count",
+            color_discrete_sequence=[branding["primary_colour"]],
+            text="Count",
+        )
+        fig.update_traces(textposition="outside")
+        fig.update_layout(height=320, margin=dict(l=20, r=20, t=30, b=60), showlegend=False)
+        st.plotly_chart(fig, use_container_width=True)
+
+    if tr.issues:
+        st.markdown("#### Findings")
+        for issue in tr.issues:
+            if issue["count"] > 0:
+                st.warning(f"**{issue['type']}** — {issue['description']}")
+            else:
+                st.success(f"**{issue['type']}** — {issue['description']}")
+
+
+# ── Finance & Accounting results view ─────────────────────────────────────────
+
+def _render_finance_view(result: dict, branding: dict) -> None:
+    fr = result.get("finance_result")
+    if not fr:
+        return
+
+    render_section_divider(branding=branding)
+    render_step_header(5, "Finance & Accounting Analysis", branding=branding)
+
+    m = fr.metrics
+    cols = st.columns(3)
+    with cols[0]:
+        render_kpi_row([("Total Entries", f"{m.get('total_entries', 0):,}")], branding)
+    with cols[1]:
+        render_kpi_row([("Unique Accounts", f"{m.get('unique_accounts', '—')}")], branding)
+    with cols[2]:
+        render_kpi_row([("Issues Detected", f"{m.get('issues_found', 0)}")], branding)
+
+    tb = m.get("trial_balance")
+    if tb:
+        balance_colour = "normal" if tb["in_balance"] else "inverse"
+        bal_cols = st.columns(3)
+        with bal_cols[0]:
+            st.metric("Total Debits", f"{tb['total_debits']:,.2f}")
+        with bal_cols[1]:
+            st.metric("Total Credits", f"{tb['total_credits']:,.2f}")
+        with bal_cols[2]:
+            st.metric(
+                "Balance Difference",
+                f"{tb['difference']:,.2f}",
+                delta="In Balance" if tb["in_balance"] else f"{tb['pct_diff']}% off",
+                delta_color="normal" if tb["in_balance"] else "inverse",
+            )
+
+    if m.get("account_type_counts"):
+        st.markdown("#### Account Type Distribution")
+        ac_df = pd.DataFrame(
+            list(m["account_type_counts"].items()), columns=["Type", "Count"]
+        ).sort_values("Count", ascending=False)
+        fig = px.bar(
+            ac_df, x="Type", y="Count",
+            color_discrete_sequence=[branding["primary_colour"]],
+            text="Count",
+        )
+        fig.update_traces(textposition="outside")
+        fig.update_layout(height=320, margin=dict(l=20, r=20, t=30, b=100), showlegend=False)
+        st.plotly_chart(fig, use_container_width=True)
+
+    if fr.issues:
+        st.markdown("#### Findings")
+        for issue in fr.issues:
+            if issue["count"] > 0:
+                st.warning(f"**{issue['type']}** — {issue['description']}")
+            else:
+                st.success(f"**{issue['type']}** — {issue['description']}")
+
+
+# ── Retail & Inventory results view ──────────────────────────────────────────
+
+def _render_retail_view(result: dict, branding: dict) -> None:
+    rr = result.get("retail_result")
+    if not rr:
+        return
+
+    render_section_divider(branding=branding)
+    render_step_header(5, "Retail & Inventory Analysis", branding=branding)
+
+    m = rr.metrics
+    cols = st.columns(4)
+    with cols[0]:
+        render_kpi_row([("Total Products", f"{m.get('total_products', 0):,}")], branding)
+    with cols[1]:
+        render_kpi_row([("Unique SKUs", f"{m.get('unique_skus', '—')}")], branding)
+    with cols[2]:
+        margin = m.get("avg_gross_margin_pct")
+        render_kpi_row([("Avg Gross Margin", f"{margin:.1f}%" if margin is not None else "—")], branding)
+    with cols[3]:
+        render_kpi_row([("Issues Detected", f"{m.get('issues_found', 0)}")], branding)
+
+    if m.get("avg_price") is not None or m.get("avg_cost") is not None:
+        price_cols = st.columns(2)
+        with price_cols[0]:
+            avg_p = m.get("avg_price")
+            st.metric("Avg Selling Price", f"£{avg_p:,.2f}" if avg_p is not None else "—")
+        with price_cols[1]:
+            avg_c = m.get("avg_cost")
+            st.metric("Avg Cost Price", f"£{avg_c:,.2f}" if avg_c is not None else "—")
+
+    if m.get("category_counts"):
+        st.markdown("#### Category Breakdown")
+        cat_df = pd.DataFrame(
+            list(m["category_counts"].items()), columns=["Category", "Count"]
+        ).sort_values("Count", ascending=False).head(12)
+        fig = px.bar(
+            cat_df, x="Category", y="Count",
+            color_discrete_sequence=[branding["primary_colour"]],
+            text="Count",
+        )
+        fig.update_traces(textposition="outside")
+        fig.update_layout(height=320, margin=dict(l=20, r=20, t=30, b=100), showlegend=False)
+        st.plotly_chart(fig, use_container_width=True)
+
+    if rr.issues:
+        st.markdown("#### Findings")
+        for issue in rr.issues:
+            if issue["count"] > 0:
+                st.warning(f"**{issue['type']}** — {issue['description']}")
+            else:
+                st.success(f"**{issue['type']}** — {issue['description']}")
