@@ -16,13 +16,19 @@ _DATASET_TYPES = [
     "🌐 Import/Export & Trade",
     "💰 Finance & Accounting",
     "🛍️ Retail & Inventory",
+    "💼 Consultants & Professional Services",
+    "🏥 Healthcare (Operational)",
+    "🏢 SME & Small Business",
 ]
 
-_CLINICAL_LABEL   = "🧬 Clinical Research & Trial Registers"
-_LOGISTICS_LABEL  = "📦 Logistics & Supply Chain"
-_TRADE_LABEL      = "🌐 Import/Export & Trade"
-_FINANCE_LABEL    = "💰 Finance & Accounting"
-_RETAIL_LABEL     = "🛍️ Retail & Inventory"
+_CLINICAL_LABEL     = "🧬 Clinical Research & Trial Registers"
+_LOGISTICS_LABEL    = "📦 Logistics & Supply Chain"
+_TRADE_LABEL        = "🌐 Import/Export & Trade"
+_FINANCE_LABEL      = "💰 Finance & Accounting"
+_RETAIL_LABEL       = "🛍️ Retail & Inventory"
+_CONSULTANT_LABEL   = "💼 Consultants & Professional Services"
+_HEALTHCARE_LABEL   = "🏥 Healthcare (Operational)"
+_SME_LABEL          = "🏢 SME & Small Business"
 
 _CLINICAL_INFO = (
     "Clinical Research mode applies additional validation on top of the "
@@ -59,6 +65,28 @@ _RETAIL_INFO = (
     "check digit), and identifies duplicate SKUs."
 )
 
+_CONSULTANT_INFO = (
+    "Consultants & Professional Services mode validates timesheet hours (flags entries "
+    "exceeding 24 hours), checks day rates and hourly rates for zeros or negatives, "
+    "formats project codes, calculates utilisation rate (billable vs total hours), "
+    "and detects budget overruns where actual hours exceed budgeted."
+)
+
+_HEALTHCARE_INFO = (
+    "Healthcare (Operational) mode validates NHS numbers using the Modulus 11 check "
+    "digit algorithm, checks ICD-10 diagnosis code format, standardises appointment "
+    "status labels, calculates waiting times (referral → appointment), flags 18-week "
+    "RTT breaches and high DNA rates, standardises staff categories, and validates "
+    "UK postcodes."
+)
+
+_SME_INFO = (
+    "SME & Small Business mode validates UK postcodes, NI numbers (AB123456C format), "
+    "VAT registration numbers (GB format), and Companies House numbers. It also detects "
+    "overdue invoices, standardises UK phone numbers to +44 E.164 format, normalises "
+    "payment terms (Net 30, Net 60, etc.), and flags duplicate invoice numbers."
+)
+
 
 def render_cleaning_options(branding: dict) -> CleaningOptions:
     """
@@ -77,11 +105,14 @@ def render_cleaning_options(branding: dict) -> CleaningOptions:
     )
 
     _INFO_MAP = {
-        _CLINICAL_LABEL:  _CLINICAL_INFO,
-        _LOGISTICS_LABEL: _LOGISTICS_INFO,
-        _TRADE_LABEL:     _TRADE_INFO,
-        _FINANCE_LABEL:   _FINANCE_INFO,
-        _RETAIL_LABEL:    _RETAIL_INFO,
+        _CLINICAL_LABEL:   _CLINICAL_INFO,
+        _LOGISTICS_LABEL:  _LOGISTICS_INFO,
+        _TRADE_LABEL:      _TRADE_INFO,
+        _FINANCE_LABEL:    _FINANCE_INFO,
+        _RETAIL_LABEL:     _RETAIL_INFO,
+        _CONSULTANT_LABEL: _CONSULTANT_INFO,
+        _HEALTHCARE_LABEL: _HEALTHCARE_INFO,
+        _SME_LABEL:        _SME_INFO,
     }
     if dataset_type in _INFO_MAP:
         st.info(_INFO_MAP[dataset_type])

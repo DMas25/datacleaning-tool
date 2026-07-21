@@ -18,6 +18,9 @@ from core.logistics_cleaner import apply_logistics_cleaning
 from core.trade_cleaner import apply_trade_cleaning
 from core.finance_cleaner import apply_finance_cleaning
 from core.retail_cleaner import apply_retail_cleaning
+from core.consultant_cleaner import apply_consultant_cleaning
+from core.healthcare_cleaner import apply_healthcare_cleaning
+from core.sme_cleaner import apply_sme_cleaning
 from core.profiler import build_quality_summary_df
 from core.insights_engine import generate_insights, detect_date_columns
 from core.ai_advisor import generate_ai_advisory
@@ -169,6 +172,15 @@ def render_results_panel(
 
     if "Retail" in options.dataset_type and result.get("retail_result"):
         _render_retail_view(result, branding)
+
+    if "Consultant" in options.dataset_type and result.get("consultant_result"):
+        _render_consultant_view(result, branding)
+
+    if "Healthcare" in options.dataset_type and result.get("healthcare_result"):
+        _render_healthcare_view(result, branding)
+
+    if "SME" in options.dataset_type and result.get("sme_result"):
+        _render_sme_view(result, branding)
 
     # ── Audit Intelligence (Professional+) ───────────────────────────────
     if has_feature(user_plan, "can_view_advanced_insights"):
@@ -485,10 +497,13 @@ def _run_processing(
     # ── Domain-specific cleaning passes ──────────────────────────────────
     clinical_profiles = None
     clinical_metrics  = None
-    logistics_result  = None
-    trade_result      = None
-    finance_result    = None
-    retail_result     = None
+    logistics_result   = None
+    trade_result       = None
+    finance_result     = None
+    retail_result      = None
+    consultant_result  = None
+    healthcare_result  = None
+    sme_result         = None
 
     if "Clinical Research" in options.dataset_type:
         nct_col = _detect_col(cleaned_df, "nct")
@@ -523,6 +538,18 @@ def _run_processing(
     if "Retail" in options.dataset_type:
         retail_result = apply_retail_cleaning(cleaned_df)
         cleaned_df = retail_result.cleaned_df
+
+    if "Consultant" in options.dataset_type:
+        consultant_result = apply_consultant_cleaning(cleaned_df)
+        cleaned_df = consultant_result.cleaned_df
+
+    if "Healthcare" in options.dataset_type:
+        healthcare_result = apply_healthcare_cleaning(cleaned_df)
+        cleaned_df = healthcare_result.cleaned_df
+
+    if "SME" in options.dataset_type:
+        sme_result = apply_sme_cleaning(cleaned_df)
+        cleaned_df = sme_result.cleaned_df
 
     quality_df           = build_quality_summary_df(df, cleaned_df, options.null_handling)
     date_cols            = detect_date_columns(cleaned_df)
@@ -578,6 +605,9 @@ def _run_processing(
         "trade_result":         trade_result,
         "finance_result":       finance_result,
         "retail_result":        retail_result,
+        "consultant_result":    consultant_result,
+        "healthcare_result":    healthcare_result,
+        "sme_result":           sme_result,
     }
 
 
@@ -988,6 +1018,188 @@ def _render_retail_view(result: dict, branding: dict) -> None:
     if rr.issues:
         st.markdown("#### Findings")
         for issue in rr.issues:
+            if issue["count"] > 0:
+                st.warning(f"**{issue['type']}** — {issue['description']}")
+            else:
+                st.success(f"**{issue['type']}** — {issue['description']}")
+
+
+# ── Consultants & Professional Services results view ──────────────────────────
+
+def _render_consultant_view(result: dict, branding: dict) -> None:
+    cr = result.get("consultant_result")
+    if not cr:
+        return
+
+    render_section_divider(branding=branding)
+    render_step_header(5, "Consultants & Professional Services Analysis", branding=branding)
+
+    m = cr.metrics
+    cols = st.columns(4)
+    with cols[0]:
+        render_kpi_row([("Total Rows", f"{m.get('total_rows', 0):,}")], branding)
+    with cols[1]:
+        render_kpi_row([("Unique Projects", f"{m.get('unique_projects', '—')}")], branding)
+    with cols[2]:
+        render_kpi_row([("Unique Clients", f"{m.get('unique_clients', '—')}")], branding)
+    with cols[3]:
+        util = m.get("utilisation_pct")
+        render_kpi_row([("Utilisation", f"{util:.1f}%" if util is not None else "—")], branding)
+
+    hour_cols = st.columns(3)
+    with hour_cols[0]:
+        total_b = m.get("total_billable_hours")
+        st.metric("Billable Hours", f"{total_b:,.1f}" if total_b is not None else "—")
+    with hour_cols[1]:
+        total_l = m.get("total_hours_logged")
+        st.metric("Total Hours Logged", f"{total_l:,.1f}" if total_l is not None else "—")
+    with hour_cols[2]:
+        overruns = m.get("overrun_count")
+        avg_over = m.get("avg_overrun_pct")
+        st.metric(
+            "Budget Overruns",
+            f"{overruns}" if overruns is not None else "—",
+            delta=f"avg +{avg_over:.1f}%" if avg_over else None,
+            delta_color="inverse" if overruns else "normal",
+        )
+
+    if m.get("status_counts"):
+        st.markdown("#### Engagement Status Breakdown")
+        s_df = pd.DataFrame(
+            list(m["status_counts"].items()), columns=["Status", "Count"]
+        ).sort_values("Count", ascending=False)
+        fig = px.bar(
+            s_df, x="Status", y="Count",
+            color_discrete_sequence=[branding["primary_colour"]],
+            text="Count",
+        )
+        fig.update_traces(textposition="outside")
+        fig.update_layout(height=300, margin=dict(l=20, r=20, t=30, b=60), showlegend=False)
+        st.plotly_chart(fig, use_container_width=True)
+
+    if cr.issues:
+        st.markdown("#### Findings")
+        for issue in cr.issues:
+            if issue["count"] > 0:
+                st.warning(f"**{issue['type']}** — {issue['description']}")
+            else:
+                st.success(f"**{issue['type']}** — {issue['description']}")
+
+
+# ── Healthcare (Operational) results view ─────────────────────────────────────
+
+def _render_healthcare_view(result: dict, branding: dict) -> None:
+    hr = result.get("healthcare_result")
+    if not hr:
+        return
+
+    render_section_divider(branding=branding)
+    render_step_header(5, "Healthcare (Operational) Analysis", branding=branding)
+
+    m = hr.metrics
+    cols = st.columns(4)
+    with cols[0]:
+        render_kpi_row([("Total Records", f"{m.get('total_records', 0):,}")], branding)
+    with cols[1]:
+        dna = m.get("dna_rate_pct")
+        render_kpi_row([("DNA Rate", f"{dna:.1f}%" if dna is not None else "—")], branding)
+    with cols[2]:
+        wt = (m.get("waiting_time_stats") or {}).get("avg_days")
+        render_kpi_row([("Avg Wait (days)", f"{wt:.1f}" if wt is not None else "—")], branding)
+    with cols[3]:
+        render_kpi_row([("Issues Detected", f"{m.get('issues_found', 0)}")], branding)
+
+    wt_stats = m.get("waiting_time_stats")
+    if wt_stats:
+        over_18 = wt_stats.get("over_18wk", 0)
+        wt_cols = st.columns(4)
+        with wt_cols[0]:
+            st.metric("Min Wait (days)", wt_stats.get("min_days", "—"))
+        with wt_cols[1]:
+            st.metric("Avg Wait (days)", wt_stats.get("avg_days", "—"))
+        with wt_cols[2]:
+            st.metric("Max Wait (days)", wt_stats.get("max_days", "—"))
+        with wt_cols[3]:
+            st.metric("18-Week Breaches", over_18, delta_color="inverse" if over_18 else "normal")
+
+    if m.get("status_counts"):
+        st.markdown("#### Appointment Status Breakdown")
+        apt_df = pd.DataFrame(
+            list(m["status_counts"].items()), columns=["Status", "Count"]
+        ).sort_values("Count", ascending=False)
+        fig = px.bar(
+            apt_df, x="Status", y="Count",
+            color_discrete_sequence=[branding["primary_colour"]],
+            text="Count",
+        )
+        fig.update_traces(textposition="outside")
+        fig.update_layout(height=300, margin=dict(l=20, r=20, t=30, b=80), showlegend=False)
+        st.plotly_chart(fig, use_container_width=True)
+
+    if hr.issues:
+        st.markdown("#### Findings")
+        for issue in hr.issues:
+            if issue["count"] > 0:
+                st.warning(f"**{issue['type']}** — {issue['description']}")
+            else:
+                st.success(f"**{issue['type']}** — {issue['description']}")
+
+
+# ── SME & Small Business results view ────────────────────────────────────────
+
+def _render_sme_view(result: dict, branding: dict) -> None:
+    sr = result.get("sme_result")
+    if not sr:
+        return
+
+    render_section_divider(branding=branding)
+    render_step_header(5, "SME & Small Business Analysis", branding=branding)
+
+    m = sr.metrics
+    cols = st.columns(4)
+    with cols[0]:
+        render_kpi_row([("Total Records", f"{m.get('total_records', 0):,}")], branding)
+    with cols[1]:
+        render_kpi_row([("Unique Customers", f"{m.get('unique_customers', '—')}")], branding)
+    with cols[2]:
+        overdue = m.get("overdue_invoices")
+        render_kpi_row([("Overdue Invoices", f"{overdue:,}" if overdue is not None else "—")], branding)
+    with cols[3]:
+        render_kpi_row([("Issues Detected", f"{m.get('issues_found', 0)}")], branding)
+
+    if m.get("total_invoice_value") is not None or m.get("avg_invoice_value") is not None:
+        inv_cols = st.columns(3)
+        with inv_cols[0]:
+            total_v = m.get("total_invoice_value")
+            st.metric("Total Invoice Value", f"£{total_v:,.2f}" if total_v is not None else "—")
+        with inv_cols[1]:
+            avg_v = m.get("avg_invoice_value")
+            st.metric("Avg Invoice Value", f"£{avg_v:,.2f}" if avg_v is not None else "—")
+        with inv_cols[2]:
+            avg_od = m.get("avg_days_overdue")
+            st.metric(
+                "Avg Days Overdue",
+                f"{avg_od:.0f}" if avg_od else "0",
+                delta_color="inverse" if avg_od and avg_od > 0 else "normal",
+            )
+
+    if m.get("terms_counts"):
+        st.markdown("#### Payment Terms Breakdown")
+        t_df = pd.DataFrame(
+            list(m["terms_counts"].items()), columns=["Terms", "Count"]
+        ).sort_values("Count", ascending=False)
+        fig = px.bar(
+            t_df, x="Terms", y="Count",
+            color_discrete_sequence=[branding["primary_colour"]],
+            text="Count",
+        )
+        fig.update_traces(textposition="outside")
+        fig.update_layout(height=300, margin=dict(l=20, r=20, t=30, b=100), showlegend=False)
+        st.plotly_chart(fig, use_container_width=True)
+
+    if sr.issues:
+        st.markdown("#### Findings")
+        for issue in sr.issues:
             if issue["count"] > 0:
                 st.warning(f"**{issue['type']}** — {issue['description']}")
             else:
