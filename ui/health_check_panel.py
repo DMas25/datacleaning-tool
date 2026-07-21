@@ -678,7 +678,7 @@ def _render_paywall(report: dict, email: str, check_id: Optional[int]) -> None:
                 "Excel exports",
                 "Full column-level fixes",
                 "Branded outputs",
-                "Unlimited runs",
+                "2,000 runs/month",
             ]
         )
         + f'</div></div>',
@@ -738,7 +738,7 @@ def _render_paywall(report: dict, email: str, check_id: Optional[int]) -> None:
         ("Executive PDF Report",       False, True),
         ("Interactive Dashboard",      False, True),
         ("Branded Outputs",            False, True),
-        ("Unlimited Analyses",         False, True),
+        ("2,000 Runs/Month",           False, True),
     ]
 
     tick = f'<span style="color:{SUCCESS};font-weight:700;">✓</span>'

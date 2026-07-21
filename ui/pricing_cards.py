@@ -19,7 +19,7 @@ _CTA_LABELS: dict[str, str] = {
 }
 
 _ENTERPRISE_FEATURES = [
-    "Unlimited runs",
+    "2,000 runs/month",
     "API access",
     "Custom integrations",
     "Branded report outputs",

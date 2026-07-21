@@ -248,9 +248,12 @@ def build_chart_gallery(
                 fig,
             ))
 
-    # Numeric distributions — automatically generated for the leading numeric columns
+    # Numeric distributions + box plots
     num_cols = numeric_columns(cleaned_df)
     for i, col in enumerate(num_cols[:max_numeric]):
+        col_series = cleaned_df[col].dropna()
+
+        # Histogram
         fig = px.histogram(
             cleaned_df, x=col, nbins=30,
             color_discrete_sequence=[palette[i % len(palette)]],
@@ -265,22 +268,81 @@ def build_chart_gallery(
             fig,
         ))
 
-    # Categorical frequency — automatically generated for the leading categorical columns
+        # Box plot (first numeric column only — shows quartiles + outliers at a glance)
+        if i == 0 and len(col_series) >= 5:
+            fig_box = go.Figure()
+            fig_box.add_trace(go.Box(
+                y=col_series,
+                name=col,
+                marker_color=branding["primary_colour"],
+                line_color=branding["primary_colour"],
+                boxmean=True,
+                whiskerwidth=0.6,
+            ))
+            fig_box.update_layout(
+                title=f"Value Range & Quartiles — {col}",
+                showlegend=False,
+            )
+            _premium_theme(fig_box, branding, height=380)
+            cards.append(ChartCard(
+                f"boxplot_{col}",
+                f"Value Range & Quartiles — {col}",
+                "Shows minimum, Q1, median (line), mean (×), Q3, maximum, and statistical outliers for quick anomaly spotting.",
+                fig_box,
+            ))
+
+    # Categorical frequency with % labels
     cat_cols = categorical_columns(cleaned_df, date_cols)
     for i, col in enumerate(cat_cols[:max_categorical]):
         freq_df = frequency_table(cleaned_df, col, top_n=8)
+        total = freq_df["Count"].sum() or 1
+        freq_df["Pct"] = (freq_df["Count"] / total * 100).round(1)
         fig = px.bar(
             freq_df, x=str(col), y="Count",
+            text=freq_df["Pct"].apply(lambda p: f"{p}%"),
             color_discrete_sequence=[palette[(i + 1) % len(palette)]],
             title=f"Top Categories — {col}",
         )
+        fig.update_traces(textposition="outside")
         _premium_theme(fig, branding, height=340)
         cards.append(ChartCard(
             f"freq_{col}",
             f"Top Categories — {col}",
-            f"Most frequently occurring values in '{col}'.",
+            f"Most frequently occurring values in '{col}', with percentage share of total records.",
             fig,
         ))
+
+    # Monthly value summary — triggers when a date and amount column coexist
+    _amount_kws = ["amount", "value", "total", "sum", "net", "gross", "price", "cost", "payment"]
+    _amount_col = next(
+        (c for c in num_cols if any(kw in c.lower() for kw in _amount_kws)),
+        None,
+    )
+    if date_cols and _amount_col:
+        try:
+            monthly = cleaned_df[[date_cols[0], _amount_col]].copy()
+            monthly[date_cols[0]] = pd.to_datetime(monthly[date_cols[0]], errors="coerce")
+            monthly = monthly.dropna(subset=[date_cols[0]])
+            monthly["Month"] = monthly[date_cols[0]].dt.to_period("M").dt.to_timestamp()
+            monthly_sum = monthly.groupby("Month")[_amount_col].sum().reset_index()
+            monthly_sum.columns = ["Month", "Total"]
+            if len(monthly_sum) >= 2:
+                fig_m = px.bar(
+                    monthly_sum, x="Month", y="Total",
+                    color_discrete_sequence=[branding["primary_colour"]],
+                    title=f"Monthly Total — {_amount_col}",
+                    text=monthly_sum["Total"].apply(lambda v: f"{v:,.0f}"),
+                )
+                fig_m.update_traces(textposition="outside")
+                _premium_theme(fig_m, branding, height=360)
+                cards.append(ChartCard(
+                    "monthly_value",
+                    f"Monthly Total — {_amount_col}",
+                    "Month-by-month sum of values — useful for spotting revenue/spend trends, gaps, and period-end spikes.",
+                    fig_m,
+                ))
+        except Exception:
+            pass
 
     # Trend — first detected date-like column
     if date_cols:

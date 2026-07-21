@@ -59,10 +59,10 @@ PLAN_CONFIG = {
         "can_view_advanced_insights": True,
         "can_view_premium_charts": True,
         "can_brand_reports": True,
-        "monthly_runs": None,
+        "monthly_runs": 2000,
         "max_rows_backend": 1000000,
         "max_file_mb_backend": 300,
-        "blurb": "Unlimited runs, API access, custom integrations, and dedicated support.",
+        "blurb": "2,000 runs/month, API access, custom integrations, and dedicated support.",
     },
 }
 

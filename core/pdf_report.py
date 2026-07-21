@@ -78,12 +78,143 @@ def _markdown_to_flowables(text: str, heading_style, bullet_style, body_style) -
     return flowables
 
 
+_AUDIT_SEVERITY_COLOURS = {
+    "high":   (colors.HexColor("#FEF2F2"), colors.HexColor("#DC2626")),
+    "medium": (colors.HexColor("#FFFBEB"), colors.HexColor("#D97706")),
+    "low":    (colors.HexColor("#EFF6FF"), colors.HexColor("#2563EB")),
+    "info":   (colors.HexColor("#F0FDF4"), colors.HexColor("#059669")),
+}
+_AUDIT_FILE_LABELS = {
+    "gl":             "General Ledger Export",
+    "bank_statement": "Bank Statement",
+    "invoice_list":   "Invoice / Purchase List",
+    "general":        "General Financial Data",
+}
+
+
+def _render_audit_section_pdf(
+    story: list,
+    ledger_analysis,
+    section_style, body_style, caption_style, bullet_style,
+    primary, light_fill,
+) -> None:
+    story.append(Paragraph("Audit Intelligence", section_style))
+    file_label = _AUDIT_FILE_LABELS.get(ledger_analysis.file_type, "Financial Data")
+    story.append(Paragraph(
+        f"Rules-based audit checks for bookkeeping and accounting datasets. "
+        f"File type detected: <b>{_escape_xml(file_label)}</b>. "
+        "Flags are observational — not a substitute for professional audit judgement.",
+        caption_style,
+    ))
+
+    # Severity summary counts
+    counts = {"high": 0, "medium": 0, "low": 0, "info": 0}
+    for flag in ledger_analysis.flags:
+        counts[flag.severity] = counts.get(flag.severity, 0) + 1
+
+    summary_row = [
+        [f"🔴 High Risk: {counts['high']}",
+         f"🟡 Medium: {counts['medium']}",
+         f"🔵 Low: {counts['low']}",
+         f"🟢 Clear: {counts['info']}"],
+    ]
+    summary_table = Table(summary_row, colWidths=[42 * mm, 42 * mm, 42 * mm, 42 * mm])
+    summary_table.setStyle(TableStyle([
+        ("FONTSIZE",     (0, 0), (-1, -1), 9),
+        ("FONTNAME",     (0, 0), (-1, -1), "Helvetica-Bold"),
+        ("BACKGROUND",   (0, 0), (-1, -1), light_fill),
+        ("GRID",         (0, 0), (-1, -1), 0.5, colors.HexColor("#E6ECF0")),
+        ("ALIGN",        (0, 0), (-1, -1), "CENTER"),
+        ("TOPPADDING",   (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING",(0, 0), (-1, -1), 6),
+    ]))
+    story.append(summary_table)
+    story.append(Spacer(1, 6))
+
+    # Benford table (digit distribution) if available
+    if ledger_analysis.benford_df is not None:
+        story.append(Paragraph("<b>Benford's Law — First Digit Distribution</b>", body_style))
+        bdf = ledger_analysis.benford_df
+        b_rows = [["Digit", "Observed %", "Expected %", "Deviation %"]]
+        for _, row in bdf.iterrows():
+            b_rows.append([
+                str(int(row["Digit"])),
+                f"{row['Observed %']}%",
+                f"{row['Expected %']}%",
+                f"{row['Deviation %']:+.1f}%",
+            ])
+        b_table = Table(b_rows, colWidths=[25 * mm, 38 * mm, 38 * mm, 38 * mm])
+        b_table.setStyle(TableStyle([
+            ("FONTSIZE",     (0, 0), (-1, -1), 9),
+            ("BACKGROUND",   (0, 0), (-1, 0), primary),
+            ("TEXTCOLOR",    (0, 0), (-1, 0), colors.white),
+            ("FONTNAME",     (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("ALIGN",        (1, 0), (-1, -1), "CENTER"),
+            ("GRID",         (0, 0), (-1, -1), 0.5, colors.HexColor("#E6ECF0")),
+            ("ROWBACKGROUNDS",(0, 1), (-1, -1), [colors.white, light_fill]),
+            ("TOPPADDING",   (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING",(0, 0), (-1, -1), 4),
+        ]))
+        story.append(b_table)
+        story.append(Paragraph(
+            "In naturally occurring financial data, leading digit 1 should appear ~30% of the time. "
+            "Significant deviation may indicate manipulation or estimation.",
+            caption_style,
+        ))
+        story.append(Spacer(1, 4))
+
+    # Audit flag detail table
+    non_info = [f for f in ledger_analysis.flags if f.severity != "info"]
+    if non_info:
+        story.append(Paragraph("<b>Audit Flags Requiring Attention</b>", body_style))
+        flag_rows = [["Severity", "Check", "Finding", "Records"]]
+        for flag in non_info:
+            bg, txt = _AUDIT_SEVERITY_COLOURS.get(flag.severity, _AUDIT_SEVERITY_COLOURS["info"])
+            flag_rows.append([
+                flag.severity.upper(),
+                flag.check,
+                _escape_xml(flag.finding[:180] + ("…" if len(flag.finding) > 180 else "")),
+                str(flag.count) if flag.count else "—",
+            ])
+        flag_table = Table(
+            flag_rows,
+            colWidths=[18 * mm, 35 * mm, 100 * mm, 17 * mm],
+        )
+        sty = [
+            ("FONTSIZE",     (0, 0), (-1, -1), 8.5),
+            ("BACKGROUND",   (0, 0), (-1, 0), primary),
+            ("TEXTCOLOR",    (0, 0), (-1, 0), colors.white),
+            ("FONTNAME",     (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("GRID",         (0, 0), (-1, -1), 0.5, colors.HexColor("#E6ECF0")),
+            ("VALIGN",       (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING",  (0, 0), (-1, -1), 5),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+            ("TOPPADDING",   (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING",(0, 0), (-1, -1), 4),
+            ("ROWBACKGROUNDS",(0, 1), (-1, -1), [colors.white, light_fill]),
+            ("WORDWRAP",     (2, 1), (2, -1), True),
+        ]
+        for i, flag in enumerate(non_info, start=1):
+            bg, txt = _AUDIT_SEVERITY_COLOURS.get(flag.severity, _AUDIT_SEVERITY_COLOURS["info"])
+            sty.append(("BACKGROUND", (0, i), (0, i), bg))
+            sty.append(("TEXTCOLOR",  (0, i), (0, i), txt))
+            sty.append(("FONTNAME",   (0, i), (0, i), "Helvetica-Bold"))
+
+        flag_table.setStyle(TableStyle(sty))
+        story.append(flag_table)
+    else:
+        story.append(Paragraph("No high or medium audit flags detected.", body_style))
+
+    story.append(Spacer(1, 8))
+
+
 def build_pdf_report(
     branding: dict,
     raw_df, cleaned_df,
     risk_summary: dict,
     chart_assets,
     ai_advisory: str | None = None,
+    ledger_analysis=None,
 ) -> bytes:
     """
     Builds a downloadable PDF executive summary: cover block, KPIs, data-quality
@@ -323,6 +454,13 @@ def build_pdf_report(
             "Risk is primarily driven by structurally expected missing data, not data corruption.",
             caption_style,
         ))
+
+    # ── Audit Intelligence ───────────────────────────────────────────────────
+    if ledger_analysis and ledger_analysis.flags:
+        _render_audit_section_pdf(
+            story, ledger_analysis, section_style, body_style, caption_style,
+            advisory_bullet_style, primary, light_fill,
+        )
 
     # ── Premium Chart Gallery ────────────────────────────────────────────────
     if chart_assets:

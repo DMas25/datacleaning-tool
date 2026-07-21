@@ -60,6 +60,7 @@ def generate_reports(
     risk_summary:          Dict,
     dictionary_df:         Optional[pd.DataFrame] = None,
     ai_advisory:           Optional[str] = None,
+    ledger_analysis=None,
 ) -> ExportBundle:
     """
     Generate both the Excel workbook and PDF executive summary in one call.
@@ -78,7 +79,7 @@ def generate_reports(
         ai_advisory=ai_advisory,
     )
 
-    pdf_bytes = build_pdf_report(branding, raw_df, cleaned_df, risk_summary, chart_assets, ai_advisory)
+    pdf_bytes = build_pdf_report(branding, raw_df, cleaned_df, risk_summary, chart_assets, ai_advisory, ledger_analysis)
     pdf_filename = excel_path.rsplit(".", 1)[0] + ".pdf"
 
     return ExportBundle(

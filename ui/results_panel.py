@@ -22,6 +22,7 @@ from core.feature_gate import feature_unlocked
 from services.entitlements import has_feature
 from services.subscription import get_user_plan_from_subscription
 from services.usage_tracker import can_run, increment_run
+from services.ledger_analyser import analyse_ledger
 from services.licence_manager_pg import (
     log_usage_event,
     get_runs_this_calendar_month,
@@ -32,6 +33,7 @@ from services.milestone_messaging import detect_milestone, build_milestone_messa
 from utils.session_helpers import get_user_email
 from ui.paywall import paywall_card, render_upgrade_cta_button
 from ui.upgrade_prompts import render_run_limit_trigger
+from ui.ledger_panel import render_ledger_panel
 from core.dashboard_builder import (
     get_numeric_columns,
     get_categorical_columns,
@@ -150,6 +152,20 @@ def render_results_panel(
     # ── Clinical Trial Register (Clinical Research mode only) ─────────────
     if "Clinical Research" in options.dataset_type:
         _render_clinical_trial_view(result, branding)
+
+    # ── Audit Intelligence (Professional+) ───────────────────────────────
+    if has_feature(user_plan, "can_view_advanced_insights"):
+        render_ledger_panel(result["ledger_analysis"], branding)
+    else:
+        render_section_divider(branding=branding)
+        render_step_header(6, "Audit Intelligence", branding=branding)
+        paywall_card(
+            "Audit Intelligence is locked",
+            "Upgrade to Professional or above to unlock Benford's Law analysis, "
+            "duplicate transaction detection, round-number testing, and more.",
+            key="audit_intelligence_lock",
+        )
+        render_upgrade_cta_button("professional", key_suffix="audit_lock")
 
     # ── Step 6: Data Insights ─────────────────────────────────────────────
     render_section_divider(branding=branding)
@@ -408,6 +424,7 @@ def _render_branding_test_form(result: dict, raw_df: pd.DataFrame, branding: dic
             chart_assets=result["chart_assets"],
             risk_summary=result["risk_summary"],
             ai_advisory=result.get("ai_advisory"),
+            ledger_analysis=result.get("ledger_analysis"),
         )
 
     result["excel_path"]   = export.excel_path
@@ -479,10 +496,17 @@ def _run_processing(
     ai_advisory = None
     if has_feature(user_plan, "can_view_advanced_insights") and _anthropic_key_configured():
         with st.spinner("Generating AI advisory…"):
-            ai_advisory = generate_ai_advisory(cleaned_df, plan_key=user_plan, risk_summary=risk_summary)
+            ai_advisory = generate_ai_advisory(
+                cleaned_df,
+                plan_key=user_plan,
+                risk_summary=risk_summary,
+                ledger_analysis=ledger_analysis,
+            )
         if ai_advisory and get_user_email():
             log_usage_event(get_user_email(), "ai_advisory", user_plan)
             st.session_state["follow_through_this_session"] = True
+
+    ledger_analysis = analyse_ledger(cleaned_df)
 
     export = generate_reports(
         branding=branding,
@@ -494,6 +518,7 @@ def _run_processing(
         chart_assets=chart_assets,
         risk_summary=risk_summary,
         ai_advisory=ai_advisory,
+        ledger_analysis=ledger_analysis,
     )
 
     return {
@@ -505,6 +530,7 @@ def _run_processing(
         "chart_assets":         chart_assets,
         "risk_summary":         risk_summary,
         "ai_advisory":          ai_advisory,
+        "ledger_analysis":      ledger_analysis,
         "excel_path":           export.excel_path,
         "pdf_bytes":            export.pdf_bytes,
         "pdf_filename":         export.pdf_filename,

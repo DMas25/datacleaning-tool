@@ -88,6 +88,36 @@ def _key_patterns(df: pd.DataFrame, date_cols: List[str]) -> List[str]:
                 f"In column '{col}', the value '{top_value}' represents {share}% of all entries."
             )
 
+    # Value concentration (Pareto): top 20% of records by rank drive what % of total value?
+    for col in df.select_dtypes(include=[np.number]).columns:
+        series = df[col].dropna()
+        if len(series) < 10 or series.sum() == 0 or (series < 0).any():
+            continue
+        sorted_vals = series.sort_values(ascending=False)
+        top_n = max(1, int(len(sorted_vals) * 0.2))
+        top_share = round((sorted_vals.iloc[:top_n].sum() / sorted_vals.sum()) * 100, 1)
+        if top_share >= 70:
+            observations.append(
+                f"Column '{col}' shows Pareto-style concentration: the top 20% of records "
+                f"account for {top_share}% of total value — a strong concentration signal."
+            )
+        break  # one value column is enough for this check
+
+    # Date range span
+    for col in date_cols:
+        try:
+            parsed = pd.to_datetime(df[col], errors="coerce").dropna()
+            if len(parsed) >= 2:
+                span_days = (parsed.max() - parsed.min()).days
+                if span_days > 0:
+                    observations.append(
+                        f"Date column '{col}' spans {span_days:,} days "
+                        f"({parsed.min().strftime('%d %b %Y')} to {parsed.max().strftime('%d %b %Y')})."
+                    )
+            break
+        except Exception:
+            continue
+
     # Strong correlations between numeric columns
     numeric_df = df.select_dtypes(include=[np.number])
     if numeric_df.shape[1] >= 2:
@@ -145,6 +175,19 @@ def _anomalies(df: pd.DataFrame) -> List[str]:
             f"in multiple casing/whitespace variants ({pct}% of records)."
         )
 
+    # Zero-value detection in numeric columns (can indicate unposted or placeholder entries)
+    for col in df.select_dtypes(include=[np.number]).columns:
+        series = df[col].dropna()
+        if len(series) == 0:
+            continue
+        zero_count = int((series == 0).sum())
+        zero_pct = round((zero_count / len(series)) * 100, 1)
+        if zero_pct >= 10:
+            observations.append(
+                f"Column '{col}' contains {zero_count:,} zero value(s) ({zero_pct}% of records). "
+                "High zero-value concentration may indicate unposted entries, placeholders, or data gaps."
+            )
+
     if not observations:
         observations.append("No duplicate rows, statistical outliers, or value-format inconsistencies were detected.")
 
@@ -161,9 +204,19 @@ def _distribution_observations(df: pd.DataFrame, date_cols: List[str]) -> List[s
 
         minimum, maximum, mean = series.min(), series.max(), series.mean()
         std = series.std()
+        skew = float(series.skew()) if len(series) >= 3 else 0.0
+
+        skew_note = ""
+        if abs(skew) >= 1.5:
+            direction = "right (positive)" if skew > 0 else "left (negative)"
+            skew_note = f" The distribution is strongly {direction}-skewed (skewness = {skew:.2f}), indicating a long tail of {'higher' if skew > 0 else 'lower'} values."
+        elif abs(skew) >= 0.75:
+            direction = "right" if skew > 0 else "left"
+            skew_note = f" Moderately {direction}-skewed (skewness = {skew:.2f})."
+
         observations.append(
             f"Column '{col}' ranges from {minimum:,.2f} to {maximum:,.2f}, "
-            f"with a mean of {mean:,.2f} and a standard deviation of {std:,.2f}."
+            f"with a mean of {mean:,.2f} and a standard deviation of {std:,.2f}.{skew_note}"
         )
 
     for col in [c for c in df.select_dtypes(include=["object"]).columns if str(c) not in date_cols]:

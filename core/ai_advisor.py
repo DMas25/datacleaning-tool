@@ -21,9 +21,14 @@ Returns None gracefully on any failure so callers never need to handle errors.
 """
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 import pandas as pd
 import streamlit as st
+
+if TYPE_CHECKING:
+    from services.ledger_analyser import LedgerAnalysis
 
 # ── Tier → model ──────────────────────────────────────────────────────────────
 
@@ -56,11 +61,35 @@ _SUMMARY_DEPTH: dict[str, dict] = {
 
 _PERSONA = (
     "You are a senior data intelligence analyst, productised within a SaaS platform "
-    "called ColtraDataAi (by Coltrane Ltd). You write for two audiences at once: a CEO "
-    "who needs a confident, non-technical read, and a data team who needs precise, "
-    "trustworthy technical detail. Avoid academic language, hedging, and generic filler — "
-    "every line must be specific to this dataset."
+    "called ColtraDataAi (by Coltrane Ltd). Your subscribers are primarily bookkeepers, "
+    "accountants, finance managers, and auditors at SMEs. You write for two audiences at "
+    "once: a practice owner or CFO who needs a confident, non-technical read, and a data "
+    "team who needs precise, trustworthy technical detail. Avoid academic language, "
+    "hedging, and generic filler — every line must be specific to this dataset. "
+    "When the dataset is financial, surface commercial and compliance implications "
+    "(VAT exposure, period-end cut-offs, supplier concentration risk, cash flow signals) "
+    "alongside the data quality analysis."
 )
+
+_ACCOUNTING_CONTEXT: dict[str, str] = {
+    "gl": (
+        "This is a General Ledger export. Prioritise: debit/credit balance integrity, "
+        "journal entry patterns, account code distribution, period-end concentrations, "
+        "and any unusual posting patterns that could indicate errors or manipulation. "
+        "In Key Data Insights, lead with cash flow and P&L signals where visible."
+    ),
+    "bank_statement": (
+        "This is a Bank Statement. Prioritise: cash flow rhythm, unusual transaction timing, "
+        "round-number payments, duplicate payments, and any large or irregular credits/debits. "
+        "In Key Data Insights, frame findings in terms of working capital and cash management."
+    ),
+    "invoice_list": (
+        "This is an Invoice or Purchase List. Prioritise: supplier concentration, duplicate "
+        "invoice numbers, round-number invoices, VAT-sensitive amounts, and any gaps in "
+        "invoice sequencing. In Key Data Insights, lead with supplier spend analysis and "
+        "payment pattern signals."
+    ),
+}
 
 _SECTION_SPEC = (
     "Return your analysis as markdown using EXACTLY these top-level headings, in this "
@@ -124,13 +153,16 @@ _PROMPT: dict[str, str] = {
 # ── Public API ────────────────────────────────────────────────────────────────
 
 def generate_ai_advisory(
-    df: pd.DataFrame, plan_key: str = "professional", risk_summary: dict | None = None,
+    df: pd.DataFrame,
+    plan_key: str = "professional",
+    risk_summary: dict | None = None,
+    ledger_analysis: "LedgerAnalysis | None" = None,
 ) -> str | None:
     """Return markdown advisory from Claude scaled to the subscriber's plan tier.
 
-    risk_summary, when provided, is the deterministic risk classification already
-    computed by ReportBuilder — folding it into the prompt keeps Claude's narrative
-    consistent with the risk figures the report renders elsewhere.
+    risk_summary is the deterministic risk classification from ReportBuilder.
+    ledger_analysis, when provided, injects accounting-specific audit context so
+    Claude's narrative is grounded in the actual file type and audit flags.
 
     Returns None on any failure — missing key, API error, unconfigured plan.
     """
@@ -154,6 +186,7 @@ def generate_ai_advisory(
         import anthropic
 
         summary = _build_data_summary(df, depth)
+
         if risk_summary:
             summary += (
                 f"\n\nDeterministic risk classification (treat as ground truth — do not "
@@ -161,7 +194,19 @@ def generate_ai_advisory(
                 f"Top issue = {risk_summary.get('top_issue')}. "
                 f"Structural missingness driven = {risk_summary.get('structural_missingness', False)}."
             )
-        prompt = prompt_tpl.format(summary=summary)
+
+        if ledger_analysis:
+            summary += _build_ledger_context(ledger_analysis)
+
+        # Build the prompt, optionally injecting accounting-domain guidance
+        accounting_note = ""
+        if ledger_analysis and ledger_analysis.file_type in _ACCOUNTING_CONTEXT:
+            accounting_note = (
+                f"\n\nAccounting domain context: "
+                f"{_ACCOUNTING_CONTEXT[ledger_analysis.file_type]}"
+            )
+
+        prompt = prompt_tpl.format(summary=summary) + accounting_note
 
         client   = anthropic.Anthropic(api_key=api_key)
         response = client.messages.create(
@@ -306,6 +351,38 @@ def _build_usage_summary(stats: dict) -> str:
 
 
 # ── Private helpers ───────────────────────────────────────────────────────────
+
+_FILE_TYPE_LABELS = {
+    "gl":             "General Ledger Export",
+    "bank_statement": "Bank Statement",
+    "invoice_list":   "Invoice / Purchase List",
+    "general":        "General Financial Data",
+}
+
+
+def _build_ledger_context(ledger_analysis: "LedgerAnalysis") -> str:
+    """Compact audit-findings block for injection into the advisory prompt."""
+    from services.ledger_analyser import LedgerAnalysis  # local to avoid circular import
+
+    parts = ["\n\nAudit Intelligence (treat as ground truth — do not contradict):"]
+    file_label = _FILE_TYPE_LABELS.get(ledger_analysis.file_type, "Financial Data")
+    parts.append(f"File type: {file_label}")
+
+    if ledger_analysis.amount_col:
+        parts.append(f"Amount column: {ledger_analysis.amount_col}")
+    if ledger_analysis.date_col:
+        parts.append(f"Date column: {ledger_analysis.date_col}")
+
+    actionable = [f for f in ledger_analysis.flags if f.severity in ("high", "medium")]
+    if actionable:
+        parts.append("Significant audit flags:")
+        for flag in actionable:
+            parts.append(f"  [{flag.severity.upper()}] {flag.check}: {flag.finding}")
+    else:
+        parts.append("No high or medium audit flags detected.")
+
+    return "\n".join(parts)
+
 
 def _build_data_summary(df: pd.DataFrame, depth: dict) -> str:
     """Compact statistical summary scaled to the tier's context-depth budget."""
