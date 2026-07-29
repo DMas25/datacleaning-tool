@@ -19,6 +19,7 @@ _DATASET_TYPES = [
     "💼 Consultants & Professional Services",
     "🏥 Healthcare (Operational)",
     "🏢 SME & Small Business",
+    "🏨 Hospitality & Accommodation",
 ]
 
 _CLINICAL_LABEL     = "🧬 Clinical Research & Trial Registers"
@@ -29,6 +30,7 @@ _RETAIL_LABEL       = "🛍️ Retail & Inventory"
 _CONSULTANT_LABEL   = "💼 Consultants & Professional Services"
 _HEALTHCARE_LABEL   = "🏥 Healthcare (Operational)"
 _SME_LABEL          = "🏢 SME & Small Business"
+_HOSPITALITY_LABEL  = "🏨 Hospitality & Accommodation"
 
 _CLINICAL_INFO = (
     "Clinical Research mode applies additional validation on top of the "
@@ -87,6 +89,15 @@ _SME_INFO = (
     "payment terms (Net 30, Net 60, etc.), and flags duplicate invoice numbers."
 )
 
+_HOSPITALITY_INFO = (
+    "Hospitality & Accommodation mode standardises booking references, validates "
+    "check-in / check-out date pairs (flags impossible and zero-night stays), "
+    "normalises room type labels (Double, Suite, etc.), standardises booking "
+    "status (Confirmed / Cancelled / No-Show) and channel values (OTA / Direct / "
+    "Corporate), validates guest counts, and produces ADR (average daily rate) "
+    "and revenue summaries."
+)
+
 
 def render_cleaning_options(branding: dict) -> CleaningOptions:
     """
@@ -111,8 +122,9 @@ def render_cleaning_options(branding: dict) -> CleaningOptions:
         _FINANCE_LABEL:    _FINANCE_INFO,
         _RETAIL_LABEL:     _RETAIL_INFO,
         _CONSULTANT_LABEL: _CONSULTANT_INFO,
-        _HEALTHCARE_LABEL: _HEALTHCARE_INFO,
-        _SME_LABEL:        _SME_INFO,
+        _HEALTHCARE_LABEL:   _HEALTHCARE_INFO,
+        _SME_LABEL:          _SME_INFO,
+        _HOSPITALITY_LABEL:  _HOSPITALITY_INFO,
     }
     if dataset_type in _INFO_MAP:
         st.info(_INFO_MAP[dataset_type])

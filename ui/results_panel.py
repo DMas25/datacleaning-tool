@@ -21,6 +21,7 @@ from core.retail_cleaner import apply_retail_cleaning
 from core.consultant_cleaner import apply_consultant_cleaning
 from core.healthcare_cleaner import apply_healthcare_cleaning
 from core.sme_cleaner import apply_sme_cleaning
+from core.hospitality_cleaner import apply_hospitality_cleaning
 from core.profiler import build_quality_summary_df
 from core.insights_engine import generate_insights, detect_date_columns
 from core.ai_advisor import generate_ai_advisory
@@ -181,6 +182,9 @@ def render_results_panel(
 
     if "SME" in options.dataset_type and result.get("sme_result"):
         _render_sme_view(result, branding)
+
+    if "Hospitality" in options.dataset_type and result.get("hospitality_result"):
+        _render_hospitality_view(result, branding)
 
     # ── Audit Intelligence (Professional+) ───────────────────────────────
     if has_feature(user_plan, "can_view_advanced_insights"):
@@ -495,15 +499,16 @@ def _run_processing(
     log_df               = cleaning_result.log_df
 
     # ── Domain-specific cleaning passes ──────────────────────────────────
-    clinical_profiles = None
-    clinical_metrics  = None
-    logistics_result   = None
-    trade_result       = None
-    finance_result     = None
-    retail_result      = None
-    consultant_result  = None
-    healthcare_result  = None
-    sme_result         = None
+    clinical_profiles    = None
+    clinical_metrics     = None
+    logistics_result     = None
+    trade_result         = None
+    finance_result       = None
+    retail_result        = None
+    consultant_result    = None
+    healthcare_result    = None
+    sme_result           = None
+    hospitality_result   = None
 
     if "Clinical Research" in options.dataset_type:
         nct_col = _detect_col(cleaned_df, "nct")
@@ -550,6 +555,10 @@ def _run_processing(
     if "SME" in options.dataset_type:
         sme_result = apply_sme_cleaning(cleaned_df)
         cleaned_df = sme_result.cleaned_df
+
+    if "Hospitality" in options.dataset_type:
+        hospitality_result = apply_hospitality_cleaning(cleaned_df)
+        cleaned_df = hospitality_result.cleaned_df
 
     quality_df           = build_quality_summary_df(df, cleaned_df, options.null_handling)
     date_cols            = detect_date_columns(cleaned_df)
@@ -608,6 +617,7 @@ def _run_processing(
         "consultant_result":    consultant_result,
         "healthcare_result":    healthcare_result,
         "sme_result":           sme_result,
+        "hospitality_result":   hospitality_result,
     }
 
 
@@ -1200,6 +1210,106 @@ def _render_sme_view(result: dict, branding: dict) -> None:
     if sr.issues:
         st.markdown("#### Findings")
         for issue in sr.issues:
+            if issue["count"] > 0:
+                st.warning(f"**{issue['type']}** — {issue['description']}")
+            else:
+                st.success(f"**{issue['type']}** — {issue['description']}")
+
+
+# ── Hospitality & Accommodation results view ──────────────────────────────────
+
+def _render_hospitality_view(result: dict, branding: dict) -> None:
+    hr = result.get("hospitality_result")
+    if not hr:
+        return
+
+    render_section_divider(branding=branding)
+    render_step_header(5, "Hospitality & Accommodation Analysis", branding=branding)
+
+    m = hr.metrics
+    cols = st.columns(4)
+    with cols[0]:
+        render_kpi_row([("Total Bookings", f"{m.get('total_bookings', 0):,}")], branding)
+    with cols[1]:
+        cancel = m.get("cancellation_rate_pct")
+        render_kpi_row([("Cancellation Rate", f"{cancel:.1f}%" if cancel is not None else "—")], branding)
+    with cols[2]:
+        adr = m.get("avg_daily_rate")
+        render_kpi_row([("Avg Daily Rate", f"£{adr:,.2f}" if adr is not None else "—")], branding)
+    with cols[3]:
+        render_kpi_row([("Issues Detected", f"{m.get('issues_found', 0)}")], branding)
+
+    stay_stats = m.get("stay_stats")
+    if stay_stats:
+        stay_cols = st.columns(4)
+        with stay_cols[0]:
+            st.metric("Avg Length of Stay", f"{stay_stats.get('avg_nights', '—')} nights")
+        with stay_cols[1]:
+            st.metric("Min Nights", stay_stats.get("min_nights", "—"))
+        with stay_cols[2]:
+            st.metric("Max Nights", stay_stats.get("max_nights", "—"))
+        with stay_cols[3]:
+            no_show_rate = m.get("no_show_rate_pct")
+            st.metric("No-Show Rate", f"{no_show_rate:.1f}%" if no_show_rate is not None else "—")
+
+    if m.get("total_revenue") is not None or m.get("avg_revenue") is not None:
+        rev_cols = st.columns(2)
+        with rev_cols[0]:
+            total_r = m.get("total_revenue")
+            st.metric("Total Revenue", f"£{total_r:,.2f}" if total_r is not None else "—")
+        with rev_cols[1]:
+            avg_r = m.get("avg_revenue")
+            st.metric("Avg Revenue / Booking", f"£{avg_r:,.2f}" if avg_r is not None else "—")
+
+    chart_cols = st.columns(2)
+
+    if m.get("status_counts"):
+        with chart_cols[0]:
+            st.markdown("#### Booking Status Breakdown")
+            s_df = pd.DataFrame(
+                list(m["status_counts"].items()), columns=["Status", "Count"]
+            ).sort_values("Count", ascending=False)
+            fig = px.bar(
+                s_df, x="Status", y="Count",
+                color_discrete_sequence=[branding["primary_colour"]],
+                text="Count",
+            )
+            fig.update_traces(textposition="outside")
+            fig.update_layout(height=300, margin=dict(l=20, r=20, t=30, b=60), showlegend=False)
+            st.plotly_chart(fig, use_container_width=True)
+
+    if m.get("channel_counts"):
+        with chart_cols[1]:
+            st.markdown("#### Booking Channel Breakdown")
+            ch_df = pd.DataFrame(
+                list(m["channel_counts"].items()), columns=["Channel", "Count"]
+            ).sort_values("Count", ascending=False)
+            fig = px.bar(
+                ch_df, x="Channel", y="Count",
+                color_discrete_sequence=[branding["secondary_colour"]],
+                text="Count",
+            )
+            fig.update_traces(textposition="outside")
+            fig.update_layout(height=300, margin=dict(l=20, r=20, t=30, b=80), showlegend=False)
+            st.plotly_chart(fig, use_container_width=True)
+
+    if m.get("room_type_counts"):
+        st.markdown("#### Room Type Breakdown")
+        rt_df = pd.DataFrame(
+            list(m["room_type_counts"].items()), columns=["Room Type", "Count"]
+        ).sort_values("Count", ascending=False).head(12)
+        fig = px.bar(
+            rt_df, x="Room Type", y="Count",
+            color_discrete_sequence=[branding["primary_colour"]],
+            text="Count",
+        )
+        fig.update_traces(textposition="outside")
+        fig.update_layout(height=300, margin=dict(l=20, r=20, t=30, b=100), showlegend=False)
+        st.plotly_chart(fig, use_container_width=True)
+
+    if hr.issues:
+        st.markdown("#### Findings")
+        for issue in hr.issues:
             if issue["count"] > 0:
                 st.warning(f"**{issue['type']}** — {issue['description']}")
             else:
