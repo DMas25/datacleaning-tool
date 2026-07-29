@@ -47,6 +47,9 @@ class ExportBundle:
     pdf_filename: str
     chart_assets: List[Tuple[ChartCard, bytes]]
     risk_summary: Dict
+    # Supabase Storage signed URLs (None when Storage is not configured or upload failed)
+    excel_url:    Optional[str] = None
+    pdf_url:      Optional[str] = None
 
 
 def generate_reports(
@@ -61,12 +64,13 @@ def generate_reports(
     dictionary_df:         Optional[pd.DataFrame] = None,
     ai_advisory:           Optional[str] = None,
     ledger_analysis=None,
+    storage_run_id:        Optional[str] = None,
 ) -> ExportBundle:
-    """
-    Generate both the Excel workbook and PDF executive summary in one call.
+    """Generate both the Excel workbook and PDF executive summary in one call.
 
-    Returns an ExportBundle containing paths / bytes ready for Streamlit
-    download buttons.
+    If Supabase Storage is configured and storage_run_id is provided, both
+    artefacts are uploaded and signed URLs are included in the returned bundle.
+    Callers that don't pass storage_run_id get the previous behaviour unchanged.
     """
     branding = _enforce_protected_branding(branding)
     builder = ReportBuilder(branding)
@@ -82,12 +86,25 @@ def generate_reports(
     pdf_bytes = build_pdf_report(branding, raw_df, cleaned_df, risk_summary, chart_assets, ai_advisory, ledger_analysis)
     pdf_filename = excel_path.rsplit(".", 1)[0] + ".pdf"
 
+    # ── Supabase Storage upload (non-blocking, graceful fallback) ─────────────
+    excel_url: Optional[str] = None
+    pdf_url:   Optional[str] = None
+    if storage_run_id:
+        try:
+            from services.storage_service import upload_excel, upload_pdf
+            excel_url = upload_excel(excel_path, storage_run_id)
+            pdf_url   = upload_pdf(pdf_bytes, storage_run_id)
+        except Exception:
+            pass  # Storage failure never blocks report delivery
+
     return ExportBundle(
         excel_path=excel_path,
         pdf_bytes=pdf_bytes,
         pdf_filename=pdf_filename,
         chart_assets=chart_assets,
         risk_summary=risk_summary,
+        excel_url=excel_url,
+        pdf_url=pdf_url,
     )
 
 

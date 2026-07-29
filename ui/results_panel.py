@@ -287,6 +287,8 @@ def render_results_panel(
         if excel_clicked and get_user_email():
             log_usage_event(get_user_email(), "export_excel", user_plan)
             st.session_state["follow_through_this_session"] = True
+        if result.get("excel_url"):
+            st.link_button("Permanent download link (1 hr) →", result["excel_url"])
         st.caption(
             "Full multi-sheet workbook: cleaned data, quality log, summary statistics, "
             "and an embedded premium chart gallery."
@@ -318,6 +320,8 @@ def render_results_panel(
         if pdf_clicked and get_user_email():
             log_usage_event(get_user_email(), "export_pdf", user_plan)
             st.session_state["follow_through_this_session"] = True
+        if result.get("pdf_url"):
+            st.link_button("Permanent download link (1 hr) →", result["pdf_url"])
         st.caption(
             f"Portable executive summary with the same premium charts as the Excel report.{branding_note}"
         )
@@ -582,6 +586,9 @@ def _run_processing(
             log_usage_event(get_user_email(), "ai_advisory", user_plan)
             st.session_state["follow_through_this_session"] = True
 
+    from services.storage_service import make_run_id, storage_configured
+    storage_run_id = make_run_id(get_user_email() or "") if storage_configured() else None
+
     export = generate_reports(
         branding=branding,
         raw_df=df,
@@ -593,6 +600,7 @@ def _run_processing(
         risk_summary=risk_summary,
         ai_advisory=ai_advisory,
         ledger_analysis=ledger_analysis,
+        storage_run_id=storage_run_id,
     )
 
     return {
@@ -608,6 +616,8 @@ def _run_processing(
         "excel_path":           export.excel_path,
         "pdf_bytes":            export.pdf_bytes,
         "pdf_filename":         export.pdf_filename,
+        "excel_url":            export.excel_url,
+        "pdf_url":              export.pdf_url,
         "clinical_profiles":    clinical_profiles,
         "clinical_metrics":     clinical_metrics,
         "logistics_result":     logistics_result,

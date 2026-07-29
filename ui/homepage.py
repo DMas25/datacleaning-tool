@@ -231,57 +231,23 @@ def _render_verify_step(branding: dict) -> None:
 
 
 def _handle_send_otp(email: str, branding: dict) -> None:
-    """Process the 'Send code' submission: generate OTP, send email, advance step."""
+    """Process the 'Send code' submission: trigger Supabase Auth OTP, advance step.
+
+    Supabase Auth handles code generation, secure storage, rate-limiting, and
+    email delivery — no Resend call or plaintext code is needed here.
+    """
     if not email or "@" not in email or "." not in email.split("@")[-1]:
         st.error("Please enter a valid email address.")
         return
 
     from services.auth_service import issue_otp
-    from services.transactional_email import send_email
 
     with st.spinner("Sending verification code…"):
-        ok, result = issue_otp(email)
+        ok, error = issue_otp(email)
 
     if not ok:
-        st.error(result)
+        st.error(error)
         return
-
-    # result is the plaintext code — email it immediately, never log or store it
-    code = result
-    formatted = f"{code[:3]} {code[3:]}"   # "847293" → "847 293" for readability
-
-    subject = "Your ColtraDataAi verification code"
-    body = (
-        f"Your sign-in verification code is:\n\n"
-        f"    {formatted}\n\n"
-        f"This code expires in 10 minutes and can only be used once.\n\n"
-        f"If you did not request this, you can safely ignore this email — "
-        f"no account changes will be made.\n\n"
-        f"ColtraDataAi by Coltrane Ltd\n"
-        f"{branding.get('contact_email', 'support@coltradata.com')}"
-    )
-
-    cfg = _get_email_cfg()
-    email_sent = send_email(cfg, email, subject, body)
-
-    if not email_sent:
-        # Dev / misconfigured Resend: fall back to showing the code in the UI.
-        # This branch only fires when RESEND_API_KEY is absent — never in production.
-        try:
-            is_dev = st.secrets.get("dev", {}).get("local_dev", False) or \
-                     st.secrets.get("dev", {}).get("testing_mode", False)
-        except Exception:
-            is_dev = True
-
-        if is_dev:
-            st.info(f"[DEV] Email not configured. Your code: **{formatted}**")
-        else:
-            contact = branding.get("contact_email", "support@coltradata.com")
-            st.error(
-                f"We couldn't send your verification code. "
-                f"Please contact [{contact}](mailto:{contact}) for access."
-            )
-            return
 
     st.session_state["_otp_email"] = email
     st.session_state["_otp_step"] = "verify"
@@ -302,6 +268,14 @@ def _handle_verify_otp(email: str, code: str, branding: dict) -> None:
         return
 
     # ── Authenticated ──────────────────────────────────────────────────────────
+    # Guarantee a subscription row exists before we read the plan from it.
+    # Non-fatal — if the row already exists the upsert is a no-op.
+    try:
+        from services.licence_manager_pg import ensure_free_subscriber
+        ensure_free_subscriber(email)
+    except Exception:
+        pass
+
     st.session_state["authenticated"] = True
     st.session_state["customer_email"] = email
     st.session_state["user_email"] = email

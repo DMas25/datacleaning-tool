@@ -66,3 +66,7 @@ uvicorn>=0.32.0,<1
 # psycopg2-binary has cp311/cp312/cp313 wheels; on cp314 Streamlit Cloud it installs
 # from source via manylinux — acceptable since it is only imported when DATABASE_URL is set.
 psycopg2-binary>=2.9.9
+
+# Supabase client — pure-Python (httpx + gotrue + postgrest), cp314 safe.
+# Used for Supabase Auth (OTP send/verify), and later for Storage (Phase 3).
+supabase>=2.0.0,<3
