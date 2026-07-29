@@ -20,8 +20,6 @@ _CTA_LABELS: dict[str, str] = {
 
 _ENTERPRISE_FEATURES = [
     "2,000 runs/month",
-    "API access",
-    "Custom integrations",
     "Branded report outputs",
     "Dedicated support + SLA",
 ]

@@ -10,6 +10,53 @@ from typing import List, Tuple
 import streamlit as st
 
 
+def inject_og_meta_tags(branding: dict) -> None:
+    """Best-effort override of Streamlit's default social meta tags.
+
+    Crawlers that execute JavaScript (Google, Bing) will pick these up.
+    LinkedIn's OGP scraper is server-side only — the reliable fix for
+    LinkedIn previews is a proxy page at coltradata.com with proper
+    og:tags that redirects to app.coltradata.com.
+    """
+    app_name = branding.get("app_name", "ColtraDataAi")
+    description = (
+        "Turn spreadsheets into boardroom-ready insights — "
+        "without hiring a data analyst."
+    )
+    st.markdown(
+        f"""
+        <script>
+        (function() {{
+            var tags = [
+                ['property', 'og:title',       '{app_name}'],
+                ['property', 'og:description', '{description}'],
+                ['property', 'og:site_name',   '{app_name}'],
+                ['property', 'og:type',        'website'],
+                ['property', 'og:url',         'https://app.coltradata.com'],
+                ['name',     'twitter:card',   'summary'],
+                ['name',     'twitter:title',  '{app_name}'],
+                ['name',     'twitter:description', '{description}'],
+                ['name',     'description',    '{description}'],
+            ];
+            tags.forEach(function(t) {{
+                var sel = 'meta[' + t[0] + '="' + t[1] + '"]';
+                var el = document.querySelector(sel);
+                if (el) {{
+                    el.setAttribute('content', t[2]);
+                }} else {{
+                    var m = document.createElement('meta');
+                    m.setAttribute(t[0], t[1]);
+                    m.setAttribute('content', t[2]);
+                    document.head.appendChild(m);
+                }}
+            }});
+        }})();
+        </script>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def inject_app_css(branding: dict) -> None:
     """Inject the full application CSS into the Streamlit page."""
     primary = branding["primary_colour"]
@@ -17,6 +64,14 @@ def inject_app_css(branding: dict) -> None:
     st.markdown(
         f"""
         <style>
+            /* ── Hide Streamlit chrome ───────────────────────────────── */
+            #MainMenu {{visibility: hidden;}}
+            footer {{visibility: hidden;}}
+            [data-testid="stToolbar"] {{visibility: hidden;}}
+            [data-testid="stDecoration"] {{display: none;}}
+            [data-testid="stStatusWidget"] {{visibility: hidden;}}
+            .stDeployButton {{display: none;}}
+
             /* ── Layout ─────────────────────────────────────────────── */
             .block-container {{
                 padding-top: 1.5rem;

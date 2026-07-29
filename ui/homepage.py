@@ -35,6 +35,12 @@ def check_password(branding: dict) -> bool:
         return True
 
     _inject_login_css(branding)
+
+    # Show branded landing page first; login form revealed when user clicks CTA.
+    if not st.session_state.get("_show_login"):
+        _render_landing_page(branding)
+        return False
+
     _render_login_header(branding)
 
     step = st.session_state.get("_otp_step", "email")
@@ -330,6 +336,77 @@ def _handle_verify_otp(email: str, code: str, branding: dict) -> None:
     st.rerun()
 
 
+# ── Pre-login landing page ────────────────────────────────────────────────────
+
+def _render_landing_page(branding: dict) -> None:
+    """Branded marketing page shown before the sign-in form."""
+    primary = branding["primary_colour"]
+    logo_path = branding.get("logo_path", "assets/logo/coltradata_logo.png")
+    logo_b64 = _encode_logo(logo_path)
+    store_url = "https://coltradata.com/pricing.html"
+    contact = branding.get("contact_email", "support@coltradata.com")
+
+    if logo_b64:
+        brand_html = (
+            f'<img src="data:image/png;base64,{logo_b64}" '
+            f'style="height:60px;width:auto;display:block;margin:0 auto 14px auto;" />'
+        )
+    else:
+        brand_html = (
+            f'<div style="font-size:2.4rem;font-weight:800;color:{primary};'
+            f'letter-spacing:-0.5px;line-height:1;">{branding["app_name"]}</div>'
+        )
+
+    st.markdown(
+        f"""
+        <div style="text-align:center;padding:56px 0 24px 0;">
+            {brand_html}
+            <div style="font-size:11.5px;letter-spacing:.28em;color:#657286;
+                        text-transform:uppercase;margin-top:10px;">
+                {branding['tagline']}
+            </div>
+            <div style="font-size:1.7rem;font-weight:800;color:{primary};margin-top:18px;
+                        line-height:1.3;max-width:580px;margin-left:auto;margin-right:auto;">
+                Turn spreadsheets into boardroom-ready insights
+            </div>
+            <div style="font-size:1rem;color:#657286;margin-top:10px;line-height:1.7;
+                        max-width:500px;margin-left:auto;margin-right:auto;">
+                Without hiring a data analyst. Upload a file, get a clean dataset and
+                a professional report in minutes — on any device.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    _, mid, _ = st.columns([1.5, 1, 1.5])
+    with mid:
+        if st.button("Sign in / Get started →", use_container_width=True, type="primary", key="_landing_signin"):
+            st.session_state["_show_login"] = True
+            st.rerun()
+
+    _render_login_features(branding)
+
+    st.markdown(
+        f"""
+        <div style="text-align:center;margin-top:2rem;padding-bottom:2rem;">
+            <a href="{store_url}" target="_blank"
+               style="display:inline-block;padding:10px 28px;
+                      border:2px solid {primary};color:{primary};border-radius:8px;
+                      font-size:0.85rem;font-weight:600;text-decoration:none;
+                      letter-spacing:0.02em;">
+                View Plans &amp; Pricing →
+            </a>
+            <div style="margin-top:1.2rem;font-size:0.73rem;color:#9CA3AF;">
+                &copy; 2026 {branding.get('company', 'Coltrane Ltd')} &nbsp;&mdash;&nbsp;
+                <a href="mailto:{contact}" style="color:{primary};text-decoration:none;">{contact}</a>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 # ── Informational sections on the login page ──────────────────────────────────
 
 def _render_signup_guide(branding: dict) -> None:
@@ -490,6 +567,11 @@ def _render_login_header(branding: dict) -> None:
         """,
         unsafe_allow_html=True,
     )
+    if st.button("← Back", key="_login_back_to_landing", use_container_width=False):
+        st.session_state.pop("_show_login", None)
+        st.session_state.pop("_otp_step", None)
+        st.session_state.pop("_otp_email", None)
+        st.rerun()
 
 
 def _render_login_features(branding: dict) -> None:

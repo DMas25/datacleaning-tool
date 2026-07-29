@@ -62,7 +62,7 @@ PLAN_CONFIG = {
         "monthly_runs": 2000,
         "max_rows_backend": 1000000,
         "max_file_mb_backend": 300,
-        "blurb": "2,000 runs/month, API access, custom integrations, and dedicated support.",
+        "blurb": "2,000 runs/month, branded client reports, and dedicated support with SLA.",
     },
 }
 
