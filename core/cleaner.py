@@ -26,6 +26,7 @@ class CleaningOptions:
     standardise_headers:  bool = True
     null_handling:        str  = "No Change"   # "No Change" | "Fill with blank" | "Fill with placeholder"
     dataset_type:         str  = "General"     # "General" | "Clinical Research"
+    column_preset:        str  = ""            # accounting software preset (see core/presets.py)
 
 
 @dataclass

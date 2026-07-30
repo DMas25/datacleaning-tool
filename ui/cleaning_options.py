@@ -7,6 +7,7 @@ import streamlit as st
 
 from core.cleaner import CleaningOptions
 from core.clinical_cleaner import ResearcherProfile
+from core.presets import PRESET_OPTIONS
 from ui.branding_components import render_step_header
 
 _DATASET_TYPES = [
@@ -129,6 +130,28 @@ def render_cleaning_options(branding: dict) -> CleaningOptions:
     if dataset_type in _INFO_MAP:
         st.info(_INFO_MAP[dataset_type])
 
+    # ── Accounting software preset ────────────────────────────────────────────
+    # Only shown for domains where accounting software exports are common.
+    _PRESET_DOMAINS = {_FINANCE_LABEL, _SME_LABEL, _RETAIL_LABEL, _HOSPITALITY_LABEL}
+    column_preset = ""
+    if dataset_type in _PRESET_DOMAINS:
+        column_preset = st.selectbox(
+            "Accounting software preset",
+            PRESET_OPTIONS,
+            index=0,
+            help=(
+                "If your file was exported from Xero, Sage 50, or QuickBooks, selecting "
+                "the matching preset renames any non-standard column names so they are "
+                "recognised correctly by the domain cleaner. Leave as 'None' for custom "
+                "or unknown exports."
+            ),
+        )
+        if column_preset and column_preset != "None":
+            st.caption(
+                f"Preset active — column names from **{column_preset}** exports will be "
+                "automatically mapped before cleaning runs."
+            )
+
     st.divider()
 
     # ── Standard cleaning options ──────────────────────────────────────────────
@@ -152,6 +175,7 @@ def render_cleaning_options(branding: dict) -> CleaningOptions:
         standardise_headers=standardise_headers,
         null_handling=null_handling,
         dataset_type=dataset_type,
+        column_preset=column_preset if column_preset != "None" else "",
     )
 
 

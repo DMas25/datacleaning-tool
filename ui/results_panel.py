@@ -114,6 +114,14 @@ def render_results_panel(
 
     st.success("Report generated successfully.")
 
+    preset_renames = result.get("preset_renames", {})
+    if preset_renames:
+        rename_summary = ", ".join(f"**{s}** → `{t}`" for s, t in preset_renames.items())
+        st.info(
+            f"Column preset applied — {len(preset_renames)} column(s) automatically mapped: "
+            + rename_summary
+        )
+
     kpi_cols = st.columns(5)
     with kpi_cols[0]:
         render_kpi_row([("Original Rows", f"{len(df):,}")], branding)
@@ -502,6 +510,14 @@ def _run_processing(
     cleaned_df           = cleaning_result.cleaned_df
     log_df               = cleaning_result.log_df
 
+    # ── Accounting software preset (column renames) ───────────────────────
+    # Applied after header standardisation (step 2) but before domain cleaners,
+    # so preset-renamed columns are found by domain keyword matching.
+    preset_renames: dict = {}
+    if options.column_preset:
+        from core.presets import apply_preset
+        cleaned_df, preset_renames = apply_preset(cleaned_df, options.column_preset)
+
     # ── Domain-specific cleaning passes ──────────────────────────────────
     clinical_profiles    = None
     clinical_metrics     = None
@@ -628,6 +644,7 @@ def _run_processing(
         "healthcare_result":    healthcare_result,
         "sme_result":           sme_result,
         "hospitality_result":   hospitality_result,
+        "preset_renames":       preset_renames,
     }
 
 
