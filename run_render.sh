@@ -52,6 +52,36 @@ pathlib.Path(".streamlit/secrets.toml").write_text(content)
 print("secrets.toml written successfully")
 PYEOF
 
+# Patch Streamlit's index.html to suppress its branding during cold-start loading.
+# This CSS applies before the Python server has responded, hiding chrome that our
+# inject_app_css() can't reach. Idempotent — safe to run on every deploy.
+python3 << 'PATCHEOF'
+import pathlib, subprocess, sys
+
+result = subprocess.run(
+    [sys.executable, "-c",
+     "import streamlit, os; print(os.path.join(os.path.dirname(streamlit.__file__), 'static', 'index.html'))"],
+    capture_output=True, text=True
+)
+index_html = pathlib.Path(result.stdout.strip())
+if not index_html.exists():
+    print("Streamlit index.html not found — skipping cold-start patch")
+else:
+    content = index_html.read_text(encoding="utf-8")
+    css = (
+        '<style>'
+        'header,[data-testid="stToolbar"],[data-testid="stDecoration"],'
+        '[data-testid="stStatusWidget"],footer,#MainMenu,.stDeployButton'
+        '{display:none!important;visibility:hidden!important}'
+        '</style>'
+    )
+    if css in content:
+        print("Streamlit index.html already patched — skipping")
+    else:
+        index_html.write_text(content.replace("</head>", css + "</head>", 1), encoding="utf-8")
+        print("Streamlit index.html patched — cold-start branding suppressed")
+PATCHEOF
+
 exec streamlit run app.py \
     --server.port "$PORT" \
     --server.address 0.0.0.0 \

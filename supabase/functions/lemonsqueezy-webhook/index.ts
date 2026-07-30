@@ -181,9 +181,15 @@ async function logWebhookEvent(
   eventType: string,
   payload: string
 ): Promise<void> {
+  let payloadJson: unknown;
+  try {
+    payloadJson = JSON.parse(payload);
+  } catch {
+    payloadJson = { raw: payload };
+  }
   await supabase
     .from("webhook_log")
-    .insert({ event_type: eventType, payload, received_at: new Date().toISOString() });
+    .insert({ event_type: eventType, payload: payloadJson, received_at: new Date().toISOString() });
 }
 
 // ── Payload extraction ────────────────────────────────────────────────────────

@@ -50,28 +50,7 @@ services:
       - key: PYTHON_VERSION
         value: "3.11.0"
 
-  # ── Webhook server (LemonSqueezy → Supabase) ────────────────────────────
-  - type: web
-    name: coltradata-webhook
-    runtime: python
-    plan: starter          # Starter ($7/mo) — must not sleep or webhooks are missed.
-    region: frankfurt
-
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn services.webhook_server:app --host 0.0.0.0 --port $PORT
-
-    # Render sends GET /health every 30 s. A non-2xx response triggers restart.
-    healthCheckPath: /health
-
-    envVars:
-      - key: LEMONSQUEEZY_WEBHOOK_SECRET
-        sync: false   # Paste from LemonSqueezy → Settings → Webhooks → signing secret
-
-      - key: RESEND_API_KEY
-        sync: false   # Same key as coltradata-app — sends licence key emails on purchase
-
-      - key: DATABASE_URL
-        sync: false   # Same Supabase connection string as coltradata-app above
-
-      - key: PYTHON_VERSION
-        value: "3.11.0"
+  # ── Webhook (LemonSqueezy → Supabase) ───────────────────────────────────
+  # Replaced by Supabase Edge Function on 2026-07-30.
+  # coltradata-webhook Render service was deleted; webhook now handled at:
+  # https://sfxtvbxoqyblxkyqmtgl.supabase.co/functions/v1/lemonsqueezy-webhook
