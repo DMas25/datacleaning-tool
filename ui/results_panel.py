@@ -38,6 +38,7 @@ from services.licence_manager_pg import (
     log_milestone_shown,
 )
 from services.milestone_messaging import detect_milestone, build_milestone_message
+from services.audit_service import log_cleaning_run
 from utils.session_helpers import get_user_email
 from ui.paywall import paywall_card, render_upgrade_cta_button
 from ui.upgrade_prompts import render_run_limit_trigger
@@ -94,6 +95,25 @@ def render_results_panel(
                 msg = build_milestone_message(milestone)
                 st.toast(f"{msg.headline} {msg.supporting_message} ({msg.cta})", icon="🎉")
                 log_milestone_shown(email, milestone)
+
+            # Audit trail — one row per completed cleaning run
+            _adf = result["cleaned_df"]
+            _tcells = _adf.shape[0] * _adf.shape[1]
+            _missing = int(_adf.isnull().sum().sum())
+            _ad = result.get("audit_data", {})
+            log_cleaning_run(
+                email=email,
+                plan=user_plan,
+                dataset_type=options.dataset_type,
+                rows_in=_ad.get("rows_in", len(df)),
+                rows_out=len(_adf),
+                cols_in=df.shape[1],
+                cols_out=_adf.shape[1],
+                completeness_pct=round((1 - _missing / max(_tcells, 1)) * 100, 1),
+                issues_found=_ad.get("issues_found", 0),
+                steps_log=_ad.get("steps_log", []),
+            )
+
         st.session_state[_RESULT_KEY] = result
         st.session_state[_INPUT_SHAPE_KEY] = df.shape
         # Sidebar run counter is rendered earlier in the script (before this
@@ -589,6 +609,20 @@ def _run_processing(
     from services.storage_service import make_run_id, storage_configured
     storage_run_id = make_run_id(get_user_email() or "") if storage_configured() else None
 
+    # Aggregate issues across all active domain cleaners for the audit log.
+    _domain_results = [
+        logistics_result, trade_result, finance_result, retail_result,
+        consultant_result, healthcare_result, sme_result, hospitality_result,
+    ]
+    _audit_issues = sum(
+        r.metrics.get("issues_found", 0) for r in _domain_results if r is not None
+    )
+    _audit_data = {
+        "rows_in":      len(df),
+        "steps_log":    cleaning_result.steps_taken,
+        "issues_found": _audit_issues,
+    }
+
     export = generate_reports(
         branding=branding,
         raw_df=df,
@@ -628,6 +662,7 @@ def _run_processing(
         "healthcare_result":    healthcare_result,
         "sme_result":           sme_result,
         "hospitality_result":   hospitality_result,
+        "audit_data":           _audit_data,
     }
 
 
