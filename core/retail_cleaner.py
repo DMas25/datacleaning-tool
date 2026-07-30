@@ -19,6 +19,8 @@ from typing import Optional
 import pandas as pd
 import numpy as np
 
+from core.column_mapper import _detect  # noqa: F401
+
 
 # ── Column keyword maps ───────────────────────────────────────────────────────
 
@@ -42,12 +44,6 @@ _BARCODE_KW   = ["barcode", "ean", "upc", "gtin", "ean13", "upc_a", "isbn",
                   "barcode_no"]
 
 
-def _detect(df: pd.DataFrame, keywords: list[str]) -> Optional[str]:
-    for col in df.columns:
-        cl = col.lower().replace(" ", "_")
-        if any(kw in cl for kw in keywords):
-            return col
-    return None
 
 
 # ── SKU standardisation ───────────────────────────────────────────────────────

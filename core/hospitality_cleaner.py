@@ -19,6 +19,8 @@ from typing import Optional
 
 import pandas as pd
 
+from core.column_mapper import _detect  # noqa: F401
+
 
 # ── Column keyword maps ───────────────────────────────────────────────────────
 
@@ -44,14 +46,6 @@ _CHANNEL_KW     = ["channel", "booking_channel", "source", "booking_source",
                     "origin", "distribution_channel", "res_source"]
 _PROPERTY_KW    = ["property", "hotel", "venue", "property_name",
                     "hotel_name", "venue_name", "site"]
-
-
-def _detect(df: pd.DataFrame, keywords: list[str]) -> Optional[str]:
-    for col in df.columns:
-        cl = col.lower().replace(" ", "_")
-        if any(kw in cl for kw in keywords):
-            return col
-    return None
 
 
 # ── Room type standardisation ─────────────────────────────────────────────────

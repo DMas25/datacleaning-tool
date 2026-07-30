@@ -17,6 +17,8 @@ from typing import Optional
 import pandas as pd
 import numpy as np
 
+from core.column_mapper import _detect  # noqa: F401 — re-exported for callers
+
 
 # ── Column keyword maps ───────────────────────────────────────────────────────
 
@@ -29,14 +31,6 @@ _DEST_KW      = ["destination", "dest", "receiver", "deliver", "consignee", "shi
 _DISPATCH_KW  = ["dispatch", "ship_date", "sent_date", "collection_date", "despatch", "pickup_date"]
 _DELIVERY_KW  = ["delivery_date", "delivered_date", "received_date", "actual_delivery", "arrival_date"]
 _WEIGHT_KW    = ["weight", "gross_weight", "net_weight", "kg", "mass"]
-
-
-def _detect(df: pd.DataFrame, keywords: list[str]) -> Optional[str]:
-    for col in df.columns:
-        cl = col.lower().replace(" ", "_")
-        if any(kw in cl for kw in keywords):
-            return col
-    return None
 
 
 # ── Status standardisation ────────────────────────────────────────────────────

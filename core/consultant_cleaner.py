@@ -15,6 +15,8 @@ from typing import Optional
 
 import pandas as pd
 
+from core.column_mapper import _detect  # noqa: F401
+
 
 # ── Column keyword maps ───────────────────────────────────────────────────────
 
@@ -36,14 +38,6 @@ _DATE_KW       = ["date", "work_date", "timesheet_date", "entry_date",
                    "period_date", "week_ending"]
 _STATUS_KW     = ["status", "project_status", "engagement_status",
                    "matter_status", "job_status"]
-
-
-def _detect(df: pd.DataFrame, keywords: list[str]) -> Optional[str]:
-    for col in df.columns:
-        cl = col.lower().replace(" ", "_")
-        if any(kw in cl for kw in keywords):
-            return col
-    return None
 
 
 # ── Status standardisation ────────────────────────────────────────────────────

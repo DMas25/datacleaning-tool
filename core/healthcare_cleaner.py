@@ -17,6 +17,8 @@ from typing import Optional
 
 import pandas as pd
 
+from core.column_mapper import _detect  # noqa: F401
+
 
 # ── Column keyword maps ───────────────────────────────────────────────────────
 
@@ -34,14 +36,6 @@ _STAFF_KW    = ["staff_category", "job_title", "role", "grade", "band",
 _POSTCODE_KW = ["postcode", "post_code", "zip", "postal_code"]
 _WARD_KW     = ["ward", "department", "specialty", "clinic", "division"]
 _PATIENT_KW  = ["patient_name", "name", "patient", "forename", "surname"]
-
-
-def _detect(df: pd.DataFrame, keywords: list[str]) -> Optional[str]:
-    for col in df.columns:
-        cl = col.lower().replace(" ", "_")
-        if any(kw in cl for kw in keywords):
-            return col
-    return None
 
 
 # ── NHS number validation (Modulus 11) ───────────────────────────────────────

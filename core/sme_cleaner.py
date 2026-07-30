@@ -18,10 +18,14 @@ from typing import Optional
 
 import pandas as pd
 
+from core.column_mapper import _detect  # noqa: F401
+
 
 # ── Column keyword maps ───────────────────────────────────────────────────────
 
-_POSTCODE_KW    = ["postcode", "post_code", "postal_code", "zip"]
+_POSTCODE_KW    = ["postcode", "post_code", "postal_code", "zip",
+                    # Xero / QuickBooks
+                    "zip_code", "postal"]
 _NI_KW          = ["ni_number", "national_insurance", "ni_no", "nino",
                     "ni_num", "national_ins"]
 _VAT_KW         = ["vat_number", "vat_reg", "vat_no", "vat_registration",
@@ -29,27 +33,39 @@ _VAT_KW         = ["vat_number", "vat_reg", "vat_no", "vat_registration",
 _CH_KW          = ["company_number", "companies_house", "co_number",
                     "company_no", "crn", "registered_number"]
 _INV_NO_KW      = ["invoice_number", "invoice_no", "inv_no", "invoice_ref",
-                    "inv_number"]
-_INV_DATE_KW    = ["invoice_date", "inv_date", "date_of_invoice"]
+                    "inv_number",
+                    # Xero / Sage / QuickBooks
+                    "invoice", "bill_no", "bill_number", "bill_ref", "txn_number",
+                    "transaction_no", "document_no", "doc_no"]
+_INV_DATE_KW    = ["invoice_date", "inv_date", "date_of_invoice",
+                    # Xero / Sage
+                    "bill_date", "transaction_date", "txn_date", "doc_date",
+                    "issued_date", "raised_date"]
 _DUE_DATE_KW    = ["due_date", "payment_due", "due", "date_due",
-                    "payment_due_date"]
+                    "payment_due_date",
+                    # Xero / QuickBooks
+                    "expiry_date", "due_by"]
 _PAYMENT_DATE_KW= ["payment_date", "paid_date", "date_paid", "settled_date",
-                    "cleared_date"]
+                    "cleared_date",
+                    # Xero / Sage
+                    "payment_received", "receipt_date", "date_cleared"]
 _AMOUNT_KW      = ["amount", "invoice_amount", "total", "value",
-                    "net_amount", "gross_amount", "subtotal"]
+                    "net_amount", "gross_amount", "subtotal",
+                    # Xero / Sage / QuickBooks
+                    "amount_due", "balance_due", "outstanding", "amt",
+                    "net", "gross", "balance", "line_amount"]
 _PHONE_KW       = ["phone", "telephone", "mobile", "tel", "contact_no",
-                    "phone_number", "mob"]
-_TERMS_KW       = ["payment_terms", "terms", "credit_terms", "net_terms"]
+                    "phone_number", "mob",
+                    # Common abbreviations
+                    "ph", "cell", "fax", "contact_phone"]
+_TERMS_KW       = ["payment_terms", "terms", "credit_terms", "net_terms",
+                    # Xero
+                    "default_terms", "credit_limit"]
 _CUSTOMER_KW    = ["customer", "client", "customer_name", "client_name",
-                    "debtor", "account_name"]
-
-
-def _detect(df: pd.DataFrame, keywords: list[str]) -> Optional[str]:
-    for col in df.columns:
-        cl = col.lower().replace(" ", "_")
-        if any(kw in cl for kw in keywords):
-            return col
-    return None
+                    "debtor", "account_name",
+                    # Xero / Sage: "Contact" is the standard field name
+                    "contact", "contact_name", "payee", "payer",
+                    "supplier", "vendor"]
 
 
 # ── UK postcode validation ────────────────────────────────────────────────────

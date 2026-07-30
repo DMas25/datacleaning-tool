@@ -18,28 +18,42 @@ from typing import Optional
 import pandas as pd
 import numpy as np
 
+from core.column_mapper import _detect  # noqa: F401
+
 
 # ── Column keyword maps ───────────────────────────────────────────────────────
 
 _ACCOUNT_KW   = ["account_code", "nominal", "gl_code", "acc_code", "account_no",
-                  "ledger_code", "nominal_code", "account_number"]
-_ACC_NAME_KW  = ["account_name", "account_desc", "ledger_desc", "acc_name", "description"]
-_DEBIT_KW     = ["debit", "dr", "debit_amount", "dr_amount"]
-_CREDIT_KW    = ["credit", "cr", "credit_amount", "cr_amount"]
-_JNL_KW       = ["journal_ref", "journal_no", "jnl_ref", "jnl_no", "reference", "journal_number"]
-_PERIOD_KW    = ["period", "accounting_period", "fiscal_period", "month", "period_no"]
-_VAT_KW       = ["vat_code", "tax_code", "vat", "tax", "vat_rate_code"]
-_CC_KW        = ["cost_centre", "cost_center", "cc_code", "department", "dept", "department_code"]
-_NARR_KW      = ["narrative", "description", "details", "memo", "particulars", "remarks"]
-_DATE_KW      = ["date", "posting_date", "transaction_date", "entry_date", "doc_date"]
-
-
-def _detect(df: pd.DataFrame, keywords: list[str]) -> Optional[str]:
-    for col in df.columns:
-        cl = col.lower().replace(" ", "_")
-        if any(kw in cl for kw in keywords):
-            return col
-    return None
+                  "ledger_code", "nominal_code", "account_number",
+                  # Sage 50 / Xero
+                  "n_c", "nc", "account", "sage_code", "ledger_no"]
+_ACC_NAME_KW  = ["account_name", "account_desc", "ledger_desc", "acc_name", "description",
+                  # Xero / Sage
+                  "account_type", "category_name"]
+_DEBIT_KW     = ["debit", "dr", "debit_amount", "dr_amount",
+                  # Sage 50 uses "debit" and "net"; QuickBooks uses "amount" with sign
+                  "debit_value", "debit_net"]
+_CREDIT_KW    = ["credit", "cr", "credit_amount", "cr_amount",
+                  "credit_value", "credit_net"]
+_JNL_KW       = ["journal_ref", "journal_no", "jnl_ref", "jnl_no", "reference", "journal_number",
+                  # Xero / Sage
+                  "source", "transaction_ref", "trans_ref", "batch_no", "batch_ref",
+                  "source_name", "source_ref"]
+_PERIOD_KW    = ["period", "accounting_period", "fiscal_period", "month", "period_no",
+                  # Xero / Sage
+                  "tax_period", "vat_period"]
+_VAT_KW       = ["vat_code", "tax_code", "vat", "tax", "vat_rate_code",
+                  # Xero: "Tax Rate", Sage: "T/C" or "tax_type"
+                  "tax_rate", "tax_type", "tc", "vat_type", "gst_code"]
+_CC_KW        = ["cost_centre", "cost_center", "cc_code", "department", "dept", "department_code",
+                  # Xero tracking categories / Sage departments
+                  "tracking", "tracking_category", "division", "branch", "profit_centre"]
+_NARR_KW      = ["narrative", "description", "details", "memo", "particulars", "remarks",
+                  # Xero / Sage / QuickBooks
+                  "comment", "transaction_desc", "note", "item_desc", "line_desc"]
+_DATE_KW      = ["date", "posting_date", "transaction_date", "entry_date", "doc_date",
+                  # Xero / Sage
+                  "trans_date", "trn_date", "transaction_dt", "value_date"]
 
 
 # ── Account code classification (UK nominal account ranges) ───────────────────

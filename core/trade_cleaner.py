@@ -16,6 +16,8 @@ from typing import Optional
 
 import pandas as pd
 
+from core.column_mapper import _detect  # noqa: F401
+
 
 # ── Column keyword maps ───────────────────────────────────────────────────────
 
@@ -33,14 +35,6 @@ _QTY_KW      = ["quantity", "qty", "net_weight", "gross_weight", "volume"]
 _DATE_KW     = ["date", "declaration_date", "entry_date", "clearance_date", "export_date"]
 _DIR_KW      = ["direction", "trade_direction", "flow", "trade_flow", "type"]
 _CUSTOMS_KW  = ["customs_ref", "entry_ref", "declaration_ref", "mrn", "customs_no"]
-
-
-def _detect(df: pd.DataFrame, keywords: list[str]) -> Optional[str]:
-    for col in df.columns:
-        cl = col.lower().replace(" ", "_")
-        if any(kw in cl for kw in keywords):
-            return col
-    return None
 
 
 # ── HS Code validation ────────────────────────────────────────────────────────
