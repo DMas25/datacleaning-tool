@@ -54,3 +54,23 @@ services:
   # Replaced by Supabase Edge Function on 2026-07-30.
   # coltradata-webhook Render service was deleted; webhook now handled at:
   # https://sfxtvbxoqyblxkyqmtgl.supabase.co/functions/v1/lemonsqueezy-webhook
+
+  # ── Enterprise API ───────────────────────────────────────────────────────
+  - type: web
+    name: coltradata-api
+    runtime: python
+    plan: starter          # Always-on — enterprise customers need zero cold starts.
+    region: frankfurt
+
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+
+      - key: SUPABASE_ANON_KEY
+        sync: false
+
+      - key: PYTHON_VERSION
+        value: "3.11.0"
