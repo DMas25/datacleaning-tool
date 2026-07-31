@@ -15,9 +15,9 @@ STORE_SLUG = "coltradataai"
 # ── Variant IDs (Live Mode) ────────────────────────────────────────────────
 STARTER_VARIANT_ID      = "1888469"
 PROFESSIONAL_VARIANT_ID = "1888467"
-BUSINESS_VARIANT_ID     = "1969069"
-ENTERPRISE_VARIANT_ID   = "1969095"
-API_VARIANT_ID          = ""   # TODO: create new Enterprise API variant in LS and paste ID here
+BUSINESS_VARIANT_ID     = "1969233"
+ENTERPRISE_VARIANT_ID   = "1969232"
+API_VARIANT_ID          = "1969231"
 
 # Legacy variant — grandfathered subscribers only. Do not remove.
 PREMIUM_VARIANT_ID      = "1888466"
