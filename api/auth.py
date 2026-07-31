@@ -21,9 +21,12 @@ async def verify_api_key(
     """Dependency: validates Bearer token against Supabase api_keys table."""
     key_hash = _hash_key(credentials.credentials)
 
-    from services.supabase_client import get_supabase_client
     try:
-        client = get_supabase_client()
+        import os
+        from supabase import create_client
+        _url = os.environ["SUPABASE_URL"].strip()
+        _key = os.environ["SUPABASE_ANON_KEY"].strip()
+        client = create_client(_url, _key)
         result = (
             client.table("api_keys")
             .select("id, email, label, is_active")
