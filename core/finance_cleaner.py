@@ -37,8 +37,17 @@ _DATE_KW      = ["date", "posting_date", "transaction_date", "entry_date", "doc_
 def _detect(df: pd.DataFrame, keywords: list[str]) -> Optional[str]:
     for col in df.columns:
         cl = col.lower().replace(" ", "_")
-        if any(kw in cl for kw in keywords):
-            return col
+        parts = set(cl.split("_"))
+        for kw in keywords:
+            # Multi-word keywords (contain "_") use substring match.
+            # Single-word keywords use word-boundary match to avoid e.g.
+            # "dr" matching "description" or "cr" matching "accruals".
+            if "_" in kw:
+                if kw in cl:
+                    return col
+            else:
+                if kw in parts:
+                    return col
     return None
 
 
