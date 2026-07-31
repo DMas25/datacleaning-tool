@@ -8,10 +8,11 @@ from config.plans import get_plan, PLAN_ORDER
 # Map plan keys to the tier names expected by lemonsqueezy_config.get_checkout_url.
 # Update the LS config to add Starter / Professional / Premium variants.
 _LS_TIER_MAP = {
-    "starter": "Starter",
+    "starter":      "Starter",
     "professional": "Professional",
-    "premium": "Premium",
-    "enterprise": "Enterprise",
+    "business":     "Business",
+    "enterprise":   "Enterprise",
+    "premium":      "Premium",  # legacy — grandfathered subscribers only
 }
 
 

@@ -15,36 +15,44 @@ STORE_SLUG = "coltradataai"
 # ── Variant IDs (Live Mode) ────────────────────────────────────────────────
 STARTER_VARIANT_ID      = "1888469"
 PROFESSIONAL_VARIANT_ID = "1888467"
-PREMIUM_VARIANT_ID      = "1888466"
+BUSINESS_VARIANT_ID     = ""   # TODO: create Business variant in LS and paste ID here
 ENTERPRISE_VARIANT_ID   = "1888462"
+API_VARIANT_ID          = ""   # TODO: create Enterprise API variant in LS and paste ID here
+
+# Legacy variant — grandfathered subscribers only. Do not remove.
+PREMIUM_VARIANT_ID      = "1888466"
 
 # ── Variant ID → plan key ──────────────────────────────────────────────────
-# Populate once variant IDs are known. Used by the webhook handler and
-# licence verifier to map LemonSqueezy variant IDs to internal plan keys.
 VARIANT_PLAN_MAP: dict[str, str] = {
     STARTER_VARIANT_ID:      "starter",
     PROFESSIONAL_VARIANT_ID: "professional",
-    PREMIUM_VARIANT_ID:      "premium",
     ENTERPRISE_VARIANT_ID:   "enterprise",
+    PREMIUM_VARIANT_ID:      "premium",   # legacy grandfathered
+    **({BUSINESS_VARIANT_ID: "business"} if BUSINESS_VARIANT_ID else {}),
+    **({API_VARIANT_ID:      "api"}       if API_VARIANT_ID      else {}),
 }
 
 # Legacy alias used by core/licence_verifier.py
-# Maps variant ID → capitalised tier name for the LS API validation path.
 VARIANT_TIER_MAP: dict[str, str] = {
     STARTER_VARIANT_ID:      "Starter",
     PROFESSIONAL_VARIANT_ID: "Professional",
-    PREMIUM_VARIANT_ID:      "Premium",
     ENTERPRISE_VARIANT_ID:   "Enterprise",
+    PREMIUM_VARIANT_ID:      "Premium",   # legacy grandfathered
+    **({BUSINESS_VARIANT_ID: "Business"}      if BUSINESS_VARIANT_ID else {}),
+    **({API_VARIANT_ID:      "Enterprise API"} if API_VARIANT_ID      else {}),
 }
 
 # ── Checkout URLs ──────────────────────────────────────────────────────────
 # Paste the LemonSqueezy "Buy link" for each plan here.
-# Leave as empty string until the account is approved; the UI shows "Coming soon".
+# Leave as empty string until created; the UI hides the button when blank.
 CHECKOUT_URLS: dict[str, str] = {
-    "Starter":      "https://coltradataai.lemonsqueezy.com/checkout/buy/d5d25833-3149-487f-a9d1-832c398d13e6",
-    "Professional": "https://coltradataai.lemonsqueezy.com/checkout/buy/a358b1c4-70b8-4196-ab47-fe22153a488d",
-    "Premium":      "https://coltradataai.lemonsqueezy.com/checkout/buy/c4a03a84-0d00-401d-8550-1f4974bc54b0",
-    "Enterprise":   "https://coltradataai.lemonsqueezy.com/checkout/buy/9c89a708-c7c3-4067-a2e9-720ea4df8991",
+    "Starter":          "https://coltradataai.lemonsqueezy.com/checkout/buy/d5d25833-3149-487f-a9d1-832c398d13e6",
+    "Professional":     "https://coltradataai.lemonsqueezy.com/checkout/buy/a358b1c4-70b8-4196-ab47-fe22153a488d",
+    "Business":         "",   # TODO: paste LS buy link once Business variant is created
+    "Enterprise":       "https://coltradataai.lemonsqueezy.com/checkout/buy/9c89a708-c7c3-4067-a2e9-720ea4df8991",
+    "Enterprise API":   "",   # TODO: paste LS buy link once API variant is created
+    # Legacy — do not remove
+    "Premium":          "https://coltradataai.lemonsqueezy.com/checkout/buy/c4a03a84-0d00-401d-8550-1f4974bc54b0",
 }
 
 

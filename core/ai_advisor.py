@@ -34,22 +34,25 @@ if TYPE_CHECKING:
 
 _MODEL: dict[str, str] = {
     "professional": "claude-haiku-4-5-20251001",
-    "premium":      "claude-sonnet-4-6",
+    "business":     "claude-sonnet-4-6",
     "enterprise":   "claude-opus-4-8",
+    "premium":      "claude-sonnet-4-6",  # legacy grandfathered tier
 }
 
 _MAX_TOKENS: dict[str, int] = {
     "professional": 1100,
-    "premium":      1900,
+    "business":     1900,
     "enterprise":   3600,
+    "premium":      1900,  # legacy grandfathered tier
 }
 
 # How many numeric / categorical columns to include in the prompt context.
 # Reduces input tokens for cheaper tiers without losing the key signals.
 _SUMMARY_DEPTH: dict[str, dict] = {
     "professional": {"num_cols": 8,  "cat_cols": 5,  "correlations": False},
-    "premium":      {"num_cols": 12, "cat_cols": 8,  "correlations": True},
+    "business":     {"num_cols": 12, "cat_cols": 8,  "correlations": True},
     "enterprise":   {"num_cols": 20, "cat_cols": 12, "correlations": True},
+    "premium":      {"num_cols": 12, "cat_cols": 8,  "correlations": True},  # legacy
 }
 
 # ── Prompt templates per tier ─────────────────────────────────────────────────

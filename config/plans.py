@@ -7,6 +7,9 @@ PLAN_CONFIG = {
         "can_view_advanced_insights": False,
         "can_view_premium_charts": False,
         "can_brand_reports": False,
+        "can_use_api": False,
+        "api_rows_per_call": 0,
+        "api_calls_per_month": 0,
         "monthly_runs": 3,
         "max_rows_backend": 5000,
         "max_file_mb_backend": 10,
@@ -14,30 +17,71 @@ PLAN_CONFIG = {
     },
     "starter": {
         "label": "Starter",
-        "price": "£9/month",
-        "can_download_excel": True,
-        "can_download_pdf": False,
-        "can_view_advanced_insights": False,
-        "can_view_premium_charts": False,
-        "can_brand_reports": False,
-        "monthly_runs": 20,
-        "max_rows_backend": 25000,
-        "max_file_mb_backend": 25,
-        "blurb": "Process larger datasets and export clean results to Excel.",
-    },
-    "professional": {
-        "label": "Professional",
         "price": "£29/month",
         "can_download_excel": True,
-        "can_download_pdf": True,
+        "can_download_pdf": False,
         "can_view_advanced_insights": True,
         "can_view_premium_charts": False,
         "can_brand_reports": False,
-        "monthly_runs": 100,
-        "max_rows_backend": 100000,
-        "max_file_mb_backend": 75,
-        "blurb": "Generate full reports and AI-powered insights to make faster decisions.",
+        "can_use_api": False,
+        "api_rows_per_call": 0,
+        "api_calls_per_month": 0,
+        "monthly_runs": 50,
+        "max_rows_backend": 50000,
+        "max_file_mb_backend": 25,
+        "blurb": "For consultants and small businesses — AI insights, Excel export, and 50 runs/month.",
     },
+    "professional": {
+        "label": "Professional",
+        "price": "£99/month",
+        "can_download_excel": True,
+        "can_download_pdf": True,
+        "can_view_advanced_insights": True,
+        "can_view_premium_charts": True,
+        "can_brand_reports": False,
+        "can_use_api": True,
+        "api_rows_per_call": 1000,
+        "api_calls_per_month": 100,
+        "monthly_runs": 200,
+        "max_rows_backend": 250000,
+        "max_file_mb_backend": 75,
+        "blurb": "For SMEs and operations teams — full reports, API access, and advanced analytics.",
+    },
+    "business": {
+        "label": "Business",
+        "price": "£299/month",
+        "can_download_excel": True,
+        "can_download_pdf": True,
+        "can_view_advanced_insights": True,
+        "can_view_premium_charts": True,
+        "can_brand_reports": True,
+        "can_use_api": True,
+        "api_rows_per_call": 10000,
+        "api_calls_per_month": None,  # unlimited
+        "monthly_runs": 1000,
+        "max_rows_backend": 1000000,
+        "max_file_mb_backend": 200,
+        "blurb": "For manufacturing, healthcare, retail, and logistics — industry templates, multi-user, unlimited API calls.",
+    },
+    "enterprise": {
+        "label": "Enterprise",
+        "price": "£999/month",
+        "can_download_excel": True,
+        "can_download_pdf": True,
+        "can_view_advanced_insights": True,
+        "can_view_premium_charts": True,
+        "can_brand_reports": True,
+        "can_use_api": True,
+        "api_rows_per_call": None,   # unlimited
+        "api_calls_per_month": None, # unlimited
+        "monthly_runs": None,        # unlimited
+        "max_rows_backend": None,    # unlimited
+        "max_file_mb_backend": 500,
+        "blurb": "White label, dedicated database, SLA, onboarding, custom AI workflows, and dedicated support.",
+    },
+    # ── Legacy plan — grandfathered at £59/month for existing subscribers ──────
+    # Not shown to new customers. Do not remove — existing Supabase records
+    # reference this key and must continue to resolve correctly.
     "premium": {
         "label": "Premium",
         "price": "£59/month",
@@ -46,27 +90,19 @@ PLAN_CONFIG = {
         "can_view_advanced_insights": True,
         "can_view_premium_charts": True,
         "can_brand_reports": True,
+        "can_use_api": False,
+        "api_rows_per_call": 0,
+        "api_calls_per_month": 0,
         "monthly_runs": 300,
         "max_rows_backend": 250000,
         "max_file_mb_backend": 150,
-        "blurb": "Scale high-volume data processing with premium charts and branded outputs.",
-    },
-    "enterprise": {
-        "label": "Enterprise",
-        "price": "£299/month",
-        "can_download_excel": True,
-        "can_download_pdf": True,
-        "can_view_advanced_insights": True,
-        "can_view_premium_charts": True,
-        "can_brand_reports": True,
-        "monthly_runs": 2000,
-        "max_rows_backend": 1000000,
-        "max_file_mb_backend": 300,
-        "blurb": "2,000 runs/month, branded client reports, and dedicated support with SLA.",
+        "blurb": "Legacy plan — grandfathered pricing for existing subscribers.",
     },
 }
 
-PLAN_ORDER = ["free", "starter", "professional", "premium", "enterprise"]
+# Canonical order for upgrade-path logic. "premium" is intentionally excluded
+# — it is a legacy plan, not a purchasable tier for new customers.
+PLAN_ORDER = ["free", "starter", "professional", "business", "enterprise"]
 
 
 def get_plan(plan_key: str) -> dict:
@@ -79,8 +115,9 @@ def can_feature(plan_key: str, feature: str) -> bool:
 
 def is_higher_plan(a: str, b: str) -> bool:
     """True if plan a is strictly higher than plan b."""
+    order = PLAN_ORDER + ["premium"]  # premium sits between professional and business
     try:
-        return PLAN_ORDER.index(a) > PLAN_ORDER.index(b)
+        return order.index(a) > order.index(b)
     except ValueError:
         return False
 

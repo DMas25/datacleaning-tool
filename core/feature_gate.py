@@ -19,8 +19,10 @@ _TIER_TO_PLAN: dict[str, str] = {
     "starter": "starter", "Starter": "starter",
     "pro": "professional", "Pro": "professional",
     "professional": "professional", "Professional": "professional",
-    "premium": "premium", "Premium": "premium",
+    "business": "business", "Business": "business",
     "enterprise": "enterprise", "Enterprise": "enterprise",
+    # Legacy — grandfathered subscribers only
+    "premium": "premium", "Premium": "premium",
 }
 _FEATURE_MAP: dict[str, str] = {
     "advanced_dashboards": "can_view_advanced_insights",
@@ -29,6 +31,7 @@ _FEATURE_MAP: dict[str, str] = {
     "export": "can_download_excel",
     "export_pdf": "can_download_pdf",
     "export_branding": "can_brand_reports",
+    "api_access": "can_use_api",
 }
 
 

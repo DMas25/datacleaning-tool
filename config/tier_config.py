@@ -1,12 +1,5 @@
 DEFAULT_TIER = "Free"
 
-# ---------------------------------------------------------------------------
-# Tier scaffolding for the SaaS pricing model.
-#
-# This is structural only — there is no live payment processor wired up.
-# `row_limit: None` means unlimited. Feature flags gate which sections of the
-# app are unlocked for the active tier.
-# ---------------------------------------------------------------------------
 TIERS = {
     "Free": {
         "label": "Free",
@@ -17,27 +10,29 @@ TIERS = {
             "ai_insights": False,
             "ai_advisory": False,
             "export": False,
+            "api_access": False,
         },
         "blurb": "Data cleaning and a basic summary dashboard for datasets up to 5,000 rows.",
     },
     "Starter": {
         "label": "Starter",
-        "price": "£9/month",
-        "row_limit": 25_000,
+        "price": "£29/month",
+        "row_limit": 50_000,
         "features": {
             "advanced_dashboards": False,
-            "ai_insights": False,
+            "ai_insights": True,
             "ai_advisory": False,
             "export": True,
             "export_pdf": False,
             "export_branding": False,
+            "api_access": False,
         },
-        "blurb": "Process larger datasets and export clean results to Excel.",
+        "blurb": "For consultants and small businesses — AI insights, Excel export, and 50 runs/month.",
     },
-    "Pro": {
-        "label": "Pro",
-        "price": "£29/month",
-        "row_limit": 100_000,
+    "Professional": {
+        "label": "Professional",
+        "price": "£99/month",
+        "row_limit": 250_000,
         "features": {
             "advanced_dashboards": True,
             "ai_insights": True,
@@ -45,13 +40,14 @@ TIERS = {
             "export": True,
             "export_pdf": True,
             "export_branding": False,
+            "api_access": True,
         },
-        "blurb": "Generate full reports and AI-powered insights to make faster decisions.",
+        "blurb": "For SMEs and operations teams — full reports, API access, and advanced analytics.",
     },
-    "Premium": {
-        "label": "Premium",
-        "price": "£59/month",
-        "row_limit": 250_000,
+    "Business": {
+        "label": "Business",
+        "price": "£299/month",
+        "row_limit": 1_000_000,
         "features": {
             "advanced_dashboards": True,
             "ai_insights": True,
@@ -59,12 +55,14 @@ TIERS = {
             "export": True,
             "export_pdf": True,
             "export_branding": True,
+            "api_access": True,
+            "bulk_upload": True,
         },
-        "blurb": "Scale high-volume data processing with premium charts and branded outputs.",
+        "blurb": "For manufacturing, healthcare, retail, and logistics — industry templates, multi-user, unlimited API calls.",
     },
     "Enterprise": {
         "label": "Enterprise",
-        "price": "£299/month",
+        "price": "£999/month",
         "row_limit": None,
         "features": {
             "advanced_dashboards": True,
@@ -76,8 +74,26 @@ TIERS = {
             "api_access": True,
             "white_label": True,
             "bulk_upload": True,
+            "dedicated_support": True,
+            "sla": True,
         },
-        "blurb": "API access, bulk uploads, PDF reports, custom branding, and priority processing.",
+        "blurb": "White label, dedicated database, SLA, onboarding, custom AI workflows, and dedicated support.",
+    },
+    # Legacy tier — grandfathered existing subscribers. Not shown on pricing page.
+    "Premium": {
+        "label": "Premium",
+        "price": "£59/month",
+        "row_limit": 250_000,
+        "features": {
+            "advanced_dashboards": True,
+            "ai_insights": True,
+            "ai_advisory": True,
+            "export": True,
+            "export_pdf": True,
+            "export_branding": True,
+            "api_access": False,
+        },
+        "blurb": "Legacy plan — grandfathered pricing for existing subscribers.",
     },
 }
 
