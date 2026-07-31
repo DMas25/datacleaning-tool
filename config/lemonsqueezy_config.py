@@ -48,9 +48,9 @@ VARIANT_TIER_MAP: dict[str, str] = {
 CHECKOUT_URLS: dict[str, str] = {
     "Starter":          "https://coltradataai.lemonsqueezy.com/checkout/buy/d5d25833-3149-487f-a9d1-832c398d13e6",
     "Professional":     "https://coltradataai.lemonsqueezy.com/checkout/buy/a358b1c4-70b8-4196-ab47-fe22153a488d",
-    "Business":         "",   # TODO: paste LS buy link for Business variant
+    "Business":         "https://coltradataai.lemonsqueezy.com/checkout/buy/4551704f-4fa4-45c5-9b11-6ef146964f78",
     "Enterprise":       "",   # Contact-only — no public checkout; use Book a Demo CTA
-    "Enterprise API":   "",   # TODO: paste LS buy link once Enterprise API variant is created
+    "Enterprise API":   "https://coltradataai.lemonsqueezy.com/checkout/buy/2de1db2f-2e4c-4a39-9585-c328afbfeafb",
     # Legacy — do not remove
     "Premium":          "https://coltradataai.lemonsqueezy.com/checkout/buy/c4a03a84-0d00-401d-8550-1f4974bc54b0",
 }
