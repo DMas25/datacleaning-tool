@@ -32,7 +32,7 @@ async def verify_api_key(
             .execute()
         )
     except Exception as exc:
-        raise HTTPException(status_code=503, detail="Auth service unavailable.") from exc
+        raise HTTPException(status_code=503, detail=f"Auth service unavailable: {exc}") from exc
 
     if result.data is None or not result.data.get("is_active"):
         raise HTTPException(status_code=401, detail="Invalid or inactive API key.")
