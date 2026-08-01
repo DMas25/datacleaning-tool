@@ -693,7 +693,7 @@ def _render_paywall(report: dict, email: str, check_id: Optional[int]) -> None:
     with col_trial:
         if starter_url:
             if st.button(
-                "Start Free Trial — £9/month",
+                "Start Free Trial — £29/month",
                 use_container_width=True,
                 type="primary",
                 key="hc_cta_trial",
@@ -710,7 +710,7 @@ def _render_paywall(report: dict, email: str, check_id: Optional[int]) -> None:
     with col_pro:
         if pro_url:
             if st.button(
-                "Upgrade to Professional — £29/month",
+                "Upgrade to Professional — £99/month",
                 use_container_width=True,
                 key="hc_cta_pro",
             ):

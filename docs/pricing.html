@@ -76,6 +76,18 @@
     .cta-enterprise { background: rgba(255,255,255,0.1); color: var(--white); border: 1.5px solid rgba(255,255,255,0.25); }
     .cta-enterprise:hover { background: rgba(255,255,255,0.2); }
 
+    /* Enterprise API banner */
+    .api-section { background: linear-gradient(135deg, #0d1e2e 0%, #1F4E79 100%); padding: 3rem 2rem; margin-top: 0; }
+    .api-inner { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: center; }
+    .api-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 0.4rem; }
+    .api-title { font-size: 1.6rem; font-weight: 900; color: var(--white); margin-bottom: 0.5rem; }
+    .api-price { font-size: 1.2rem; font-weight: 700; color: rgba(255,255,255,0.85); margin-bottom: 0.75rem; }
+    .api-features { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; list-style: none; }
+    .api-features li { font-size: 0.82rem; color: rgba(255,255,255,0.75); }
+    .api-features li::before { content: "✓ "; color: #5de88a; font-weight: 700; }
+    .api-cta { background: var(--white); color: var(--primary); font-weight: 700; font-size: 0.95rem; padding: 0.85rem 2rem; border-radius: 10px; text-decoration: none; white-space: nowrap; transition: all 0.2s; display: inline-block; }
+    .api-cta:hover { background: var(--secondary); transform: translateY(-1px); }
+
     .compare-section { background: var(--light); border-top: 1px solid var(--secondary); padding: 3.5rem 2rem; }
     .compare-inner { max-width: 1100px; margin: 0 auto; }
     .compare-title { font-size: 1.5rem; font-weight: 800; color: var(--primary); text-align: center; margin-bottom: 0.4rem; }
@@ -136,9 +148,10 @@
     .chat-send-btn { background: var(--primary); color: var(--white); border: none; padding: 0.75rem 1rem; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
     .chat-send-btn:hover { background: var(--accent); }
 
-    @media (max-width: 960px) { .pricing-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 640px) {
+    @media (max-width: 1100px) { .pricing-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 700px) {
       .pricing-grid { grid-template-columns: 1fr 1fr; }
+      .api-inner { grid-template-columns: 1fr; }
       .pricing-hero h1 { font-size: 1.8rem; }
       nav { padding: 0 1rem; }
       .nav-links a:not(:last-child):not(.btn-login):not(.btn-primary) { display: none; }
@@ -204,15 +217,16 @@
 
     <div class="plan-card">
       <div class="plan-name">Starter</div>
-      <div class="plan-price">£9 <span>/ month</span></div>
-      <div class="plan-blurb">For solo users who process regular uploads.</div>
+      <div class="plan-price">£29 <span>/ month</span></div>
+      <div class="plan-blurb">For solo users and consultants who process regular uploads.</div>
       <div class="plan-divider"></div>
       <ul class="plan-features">
-        <li>Up to 25,000 rows</li>
-        <li>Unlimited runs</li>
+        <li>Up to 50,000 rows</li>
+        <li>50 runs per month</li>
         <li>Everything in Free</li>
+        <li>AI-powered insights</li>
         <li>Excel export</li>
-        <li>Email support</li>
+        <li>Email support (24–48h)</li>
       </ul>
       <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/d5d25833-3149-487f-a9d1-832c398d13e6" class="plan-cta cta-paid" target="_blank" rel="noopener">Get Starter →</a>
     </div>
@@ -220,58 +234,82 @@
     <div class="plan-card featured">
       <div class="plan-badge">Most Popular</div>
       <div class="plan-name">Professional</div>
-      <div class="plan-price">£29 <span>/ month</span></div>
-      <div class="plan-blurb">Reports and AI insights for consultants and small teams.</div>
+      <div class="plan-price">£99 <span>/ month</span></div>
+      <div class="plan-blurb">Reports, AI insights, and API access for SMEs and operations teams.</div>
       <div class="plan-divider"></div>
       <ul class="plan-features">
-        <li>Up to 100,000 rows</li>
-        <li>Unlimited runs</li>
+        <li>Up to 250,000 rows</li>
+        <li>200 runs per month</li>
         <li>Everything in Starter</li>
         <li>Advanced dashboards</li>
-        <li>AI-powered insights</li>
         <li>PDF reports</li>
-        <li>Priority email support</li>
+        <li>API access (1k rows/call)</li>
+        <li>Priority email support (12–24h)</li>
       </ul>
       <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/a358b1c4-70b8-4196-ab47-fe22153a488d" class="plan-cta cta-featured" target="_blank" rel="noopener">Get Professional →</a>
     </div>
 
     <div class="plan-card">
-      <div class="plan-name">Premium</div>
-      <div class="plan-price">£59 <span>/ month</span></div>
-      <div class="plan-blurb">High-volume processing with branded, boardroom-ready outputs.</div>
+      <div class="plan-name">Business</div>
+      <div class="plan-price">£299 <span>/ month</span></div>
+      <div class="plan-blurb">High-volume processing with branded, boardroom-ready outputs and unlimited API calls.</div>
       <div class="plan-divider"></div>
       <ul class="plan-features">
-        <li>Up to 250,000 rows</li>
-        <li>Unlimited runs</li>
+        <li>Up to 1,000,000 rows</li>
+        <li>1,000 runs per month</li>
         <li>Everything in Professional</li>
         <li>AI advisory</li>
         <li>Branded report outputs</li>
-        <li>Chart galleries</li>
-        <li>Priority support</li>
+        <li>Unlimited API calls (10k rows/call)</li>
+        <li>Bulk upload</li>
+        <li>Priority support (same-day)</li>
       </ul>
-      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/c4a03a84-0d00-401d-8550-1f4974bc54b0" class="plan-cta cta-paid" target="_blank" rel="noopener">Get Premium →</a>
+      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/4551704f-4fa4-45c5-9b11-6ef146964f78" class="plan-cta cta-paid" target="_blank" rel="noopener">Get Business →</a>
     </div>
 
     <div class="plan-card enterprise-card">
       <div class="plan-name">Enterprise</div>
-      <div class="plan-price">£299 <span>/ month</span></div>
-      <div class="plan-blurb">Unlimited scale, white-label branding, and dedicated support.</div>
+      <div class="plan-price">from £999 <span>/ month</span></div>
+      <div class="plan-blurb">Unlimited scale, white-label branding, dedicated database, and SLA.</div>
       <div class="plan-divider"></div>
       <ul class="plan-features">
-        <li>Unlimited rows</li>
-        <li>Unlimited runs</li>
-        <li>Everything in Premium</li>
+        <li>Unlimited rows &amp; runs</li>
+        <li>Everything in Business</li>
         <li>White-label branding</li>
-        <li>Bulk upload</li>
-        <li>Priority processing</li>
+        <li>Dedicated database</li>
+        <li>SLA (&lt;4h response)</li>
+        <li>Custom AI workflows</li>
+        <li>Onboarding &amp; training</li>
+        <li>Dedicated support</li>
       </ul>
-      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/9c89a708-c7c3-4067-a2e9-720ea4df8991" class="plan-cta cta-enterprise" target="_blank" rel="noopener">Get Enterprise →</a>
+      <a href="mailto:sales@coltradata.com?subject=Enterprise%20Enquiry" class="plan-cta cta-enterprise">Book a Demo →</a>
     </div>
 
   </div>
   <p style="text-align:center;font-size:0.78rem;color:var(--muted);margin-top:1.75rem;">
     Payments processed securely by <strong>Lemon Squeezy</strong>. Cancel anytime from your billing portal.
   </p>
+</section>
+
+<section class="api-section">
+  <div class="api-inner">
+    <div>
+      <div class="api-label">For Developers</div>
+      <div class="api-title">Enterprise API</div>
+      <div class="api-price">£499 / month — standalone product</div>
+      <ul class="api-features">
+        <li>All 8 domain cleaners as REST endpoints</li>
+        <li>CSV &amp; JSON input support</li>
+        <li>Bearer token authentication</li>
+        <li>Usage analytics dashboard</li>
+        <li>Auto-delivered API key on purchase</li>
+        <li>Swagger / OpenAPI docs included</li>
+      </ul>
+    </div>
+    <div>
+      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/2de1db2f-2e4c-4a39-9585-c328afbfeafb" class="api-cta" target="_blank" rel="noopener">Get API Access →</a>
+    </div>
+  </div>
 </section>
 
 <section class="compare-section">
@@ -285,7 +323,7 @@
           <th>Free</th>
           <th>Starter</th>
           <th>Professional</th>
-          <th>Premium</th>
+          <th>Business</th>
           <th>Enterprise</th>
         </tr>
       </thead>
@@ -294,17 +332,17 @@
         <tr>
           <td>Row limit</td>
           <td>5,000</td>
-          <td>25,000</td>
-          <td class="hi">100,000</td>
-          <td>250,000</td>
+          <td>50,000</td>
+          <td class="hi">250,000</td>
+          <td>1,000,000</td>
           <td>Unlimited</td>
         </tr>
         <tr>
           <td>Runs per month</td>
           <td>3</td>
-          <td>Unlimited</td>
-          <td class="hi">Unlimited</td>
-          <td>Unlimited</td>
+          <td>50</td>
+          <td class="hi">200</td>
+          <td>1,000</td>
           <td>Unlimited</td>
         </tr>
         <tr class="section-row"><td colspan="6">Data Cleaning</td></tr>
@@ -325,7 +363,7 @@
           <td><span class="check">✓</span></td>
         </tr>
         <tr>
-          <td>Mixed-type handling</td>
+          <td>Domain-specific cleaners</td>
           <td><span class="check">✓</span></td>
           <td><span class="check">✓</span></td>
           <td class="hi"><span class="check">✓</span></td>
@@ -369,12 +407,12 @@
           <td>Chart galleries</td>
           <td><span class="dash">—</span></td>
           <td><span class="dash">—</span></td>
-          <td class="hi"><span class="dash">—</span></td>
+          <td class="hi"><span class="check">✓</span></td>
           <td><span class="check">✓</span></td>
           <td><span class="check">✓</span></td>
         </tr>
         <tr>
-          <td>Branded outputs</td>
+          <td>Branded report outputs</td>
           <td><span class="dash">—</span></td>
           <td><span class="dash">—</span></td>
           <td class="hi"><span class="dash">—</span></td>
@@ -385,7 +423,7 @@
         <tr>
           <td>AI-powered insights</td>
           <td><span class="dash">—</span></td>
-          <td><span class="dash">—</span></td>
+          <td><span class="check">✓</span></td>
           <td class="hi"><span class="check">✓</span></td>
           <td><span class="check">✓</span></td>
           <td><span class="check">✓</span></td>
@@ -398,13 +436,29 @@
           <td><span class="check">✓</span></td>
           <td><span class="check">✓</span></td>
         </tr>
+        <tr>
+          <td>Custom AI workflows</td>
+          <td><span class="dash">—</span></td>
+          <td><span class="dash">—</span></td>
+          <td class="hi"><span class="dash">—</span></td>
+          <td><span class="dash">—</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
         <tr class="section-row"><td colspan="6">Scale &amp; Integration</td></tr>
+        <tr>
+          <td>API access</td>
+          <td><span class="dash">—</span></td>
+          <td><span class="dash">—</span></td>
+          <td class="hi">1k rows/call</td>
+          <td>10k rows/call</td>
+          <td>Unlimited</td>
+        </tr>
         <tr>
           <td>Bulk upload</td>
           <td><span class="dash">—</span></td>
           <td><span class="dash">—</span></td>
           <td class="hi"><span class="dash">—</span></td>
-          <td><span class="dash">—</span></td>
+          <td><span class="check">✓</span></td>
           <td><span class="check">✓</span></td>
         </tr>
         <tr>
@@ -416,7 +470,7 @@
           <td><span class="check">✓</span></td>
         </tr>
         <tr>
-          <td>Priority processing</td>
+          <td>Dedicated database</td>
           <td><span class="dash">—</span></td>
           <td><span class="dash">—</span></td>
           <td class="hi"><span class="dash">—</span></td>
@@ -438,6 +492,14 @@
           <td><span class="dash">—</span></td>
           <td class="hi"><span class="check">✓</span></td>
           <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Dedicated support + SLA</td>
+          <td><span class="dash">—</span></td>
+          <td><span class="dash">—</span></td>
+          <td class="hi"><span class="dash">—</span></td>
+          <td><span class="dash">—</span></td>
           <td><span class="check">✓</span></td>
         </tr>
       </tbody>
@@ -475,12 +537,17 @@
 
   <div class="faq-item">
     <div class="faq-q" onclick="toggleFaq(this)">Can I upgrade or downgrade my plan?</div>
-    <div class="faq-a">Yes. To upgrade, simply purchase the new plan via the checkout link above — your subscription will update. To cancel or get help, email <a href="mailto:support@coltradata.com">support@coltradata.com</a>.</div>
+    <div class="faq-a">Yes. To upgrade, simply purchase the new plan via the checkout link above — your subscription will update automatically. To cancel or get help, email <a href="mailto:support@coltradata.com">support@coltradata.com</a>.</div>
   </div>
 
   <div class="faq-item">
-    <div class="faq-q" onclick="toggleFaq(this)">Do you offer team or multi-seat pricing?</div>
-    <div class="faq-a">The Enterprise plan is designed for large-scale use and includes white-label branding, bulk uploads, and priority processing. For custom team arrangements, contact us at <a href="mailto:support@coltradata.com">support@coltradata.com</a>.</div>
+    <div class="faq-q" onclick="toggleFaq(this)">How does Enterprise pricing work?</div>
+    <div class="faq-a">Enterprise starts from £999/month and is tailored to your organisation's scale, SLA requirements, and data volume. Contact us at <a href="mailto:sales@coltradata.com">sales@coltradata.com</a> to discuss your requirements and get a custom quote.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">What is the Enterprise API?</div>
+    <div class="faq-a">The Enterprise API is a standalone developer product that exposes all 8 ColtraDataAi domain cleaners as REST endpoints. At £499/month, it's designed for teams who want to embed data cleaning directly into their own systems or pipelines. Your API key is delivered automatically on purchase. Full Swagger docs available at <a href="https://coltradata-api.onrender.com/docs" target="_blank" rel="noopener">coltradata-api.onrender.com/docs</a>.</div>
   </div>
 </section>
 
@@ -521,8 +588,9 @@
   function toggleChat() { document.getElementById('chatWindow').classList.toggle('open'); }
   function toggleFaq(el) { el.closest('.faq-item').classList.toggle('open'); }
   const botRules = [
-    { k: ['which','choose','recommend','best','right','should'], a: 'Most users start with <strong>Professional (£29/mo)</strong> — up to 100k rows, AI insights, and PDF reports. If you only need exports, Starter (£9) is a great starting point.' },
-    { k: ['plan','price','cost','pricing','tier','starter','professional','premium','enterprise'], a: '5 plans available:<br>• Free – £0/mo (3 runs, 5k rows)<br>• Starter – £9/mo (25k rows, Excel export)<br>• Professional – £29/mo (100k rows, AI + PDF)<br>• Premium – £59/mo (250k rows, branded reports)<br>• Enterprise – £299/mo (unlimited rows &amp; runs, white-label branding)' },
+    { k: ['which','choose','recommend','best','right','should'], a: 'Most users start with <strong>Professional (£99/mo)</strong> — up to 250k rows, AI insights, PDF reports, and API access. If you only need basic exports, Starter (£29/mo) is a great starting point.' },
+    { k: ['plan','price','cost','pricing','tier','starter','professional','business','enterprise'], a: '5 plans available:<br>• Free – £0/mo (3 runs, 5k rows)<br>• Starter – £29/mo (50 runs, 50k rows, AI insights)<br>• Professional – £99/mo (200 runs, 250k rows, PDF + API)<br>• Business – £299/mo (1,000 runs, 1M rows, branded reports)<br>• Enterprise – from £999/mo (unlimited, white-label, SLA)' },
+    { k: ['api','developer','endpoint','rest','programmatic'], a: 'The <strong>Enterprise API</strong> (£499/mo) exposes all 8 domain cleaners as REST endpoints — CSV &amp; JSON input, Bearer token auth, auto-delivered key on purchase. <a href="#api-section">See details above ↑</a>' },
     { k: ['free','trial','no card','signup'], a: 'Free plan: 3 runs/month, up to 5,000 rows, no credit card required. <a href="https://app.coltradata.com">Start free →</a>' },
     { k: ['billing','cancel','refund','charge','payment'], a: 'Billed monthly via Lemon Squeezy. Cancel anytime from your billing portal. For refunds email <a href="mailto:support@coltradata.com">support@coltradata.com</a>.' },
     { k: ['activate','login','sign in','access','how do i start'], a: 'After purchase, go to <a href="https://app.coltradata.com">app.coltradata.com</a> and sign in with the same email. Your plan activates automatically — no licence key needed.' },
