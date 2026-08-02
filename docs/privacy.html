@@ -111,7 +111,7 @@
   <h3>5b. Accounting Software Data Exports (Xero, QuickBooks, Sage)</h3>
   <p>Many customers use ColtraDataAi to clean and validate data originally exported from accounting platforms such as <strong>Xero</strong>, <strong>QuickBooks</strong>, <strong>Sage</strong>, and similar software. When you export a CSV or Excel file from your accounting platform and upload it to ColtraDataAi:</p>
   <ul>
-    <li>The file is processed using the same in-memory approach as all other uploads — it is not stored after your session ends.</li>
+    <li>The file is processed using the same in-memory approach as all other uploads, it is not stored after your session ends.</li>
     <li>ColtraDataAi does <strong>not</strong> connect directly to Xero, QuickBooks, or Sage on your behalf. We do not request OAuth access to your accounting platform accounts.</li>
     <li>Any financial data within your export (transactions, invoices, ledger entries) is processed locally in our service and returned to you as cleaned output. We do not retain, analyse, or share this data.</li>
     <li>If a future direct integration with accounting platforms is introduced, this policy will be updated and you will be notified in advance.</li>
@@ -139,10 +139,10 @@
   <p>We use the following third-party services that may process some of your data as sub-processors:</p>
   <ul>
     <li><strong>LemonSqueezy:</strong> Payment processing and subscription management. Processes your payment details and billing information. <a href="https://www.lemonsqueezy.com/privacy" target="_blank" rel="noopener">LemonSqueezy Privacy Policy</a></li>
-    <li><strong>Supabase (West EU — Ireland):</strong> Database and authentication infrastructure. Stores your email address, subscription record, API key hash, API usage metadata, and temporarily stores exported report files (deleted after 1 hour). Supabase is GDPR-compliant and hosted in the EU. <a href="https://supabase.com/privacy" target="_blank" rel="noopener">Supabase Privacy Policy</a></li>
-    <li><strong>Render (Frankfurt, Germany — EU):</strong> Cloud hosting for the ColtraDataAi web application and the Enterprise API. Your session data and processed results are handled within Render's infrastructure during active processing. <a href="https://render.com/privacy" target="_blank" rel="noopener">Render Privacy Policy</a></li>
+    <li><strong>Supabase (West EU, Ireland):</strong> Database and authentication infrastructure. Stores your email address, subscription record, API key hash, API usage metadata, and temporarily stores exported report files (deleted after 1 hour). Supabase is GDPR-compliant and hosted in the EU. <a href="https://supabase.com/privacy" target="_blank" rel="noopener">Supabase Privacy Policy</a></li>
+    <li><strong>Render (Frankfurt, Germany, EU):</strong> Cloud hosting for the ColtraDataAi web application and the Enterprise API. Your session data and processed results are handled within Render's infrastructure during active processing. <a href="https://render.com/privacy" target="_blank" rel="noopener">Render Privacy Policy</a></li>
     <li><strong>Resend:</strong> Transactional email delivery. Used to send OTP authentication codes, licence keys, subscription confirmations, and support communications. Processes your email address. <a href="https://resend.com/privacy" target="_blank" rel="noopener">Resend Privacy Policy</a></li>
-    <li><strong>Anthropic:</strong> AI language model infrastructure. Used to generate AI-powered data insights for Business and Enterprise tier customers. Data submitted to the AI insights feature is processed via Anthropic's API. No personal identifiers from your account are sent — only the cleaned data summary and statistical observations. <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener">Anthropic Privacy Policy</a></li>
+    <li><strong>Anthropic:</strong> AI language model infrastructure. Used to generate AI-powered data insights for Business and Enterprise tier customers. Data submitted to the AI insights feature is processed via Anthropic's API. No personal identifiers from your account are sent, only the cleaned data summary and statistical observations. <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener">Anthropic Privacy Policy</a></li>
     <li><strong>YouTube (Google LLC):</strong> Embedded demo video on our website. YouTube may set cookies when the video player loads. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a></li>
   </ul>
   <p>Each third party operates under its own privacy policy and is responsible for compliance with applicable data protection laws. We maintain Data Processing Agreements with our key sub-processors where required by UK GDPR.</p>
@@ -212,7 +212,7 @@
   <h2>10. Security</h2>
   <p>We implement appropriate technical and organisational measures to protect your personal data against unauthorised access, loss, alteration, or misuse. These include:</p>
   <ul>
-    <li>API keys are stored as SHA-256 hashes — the raw key cannot be recovered from our database.</li>
+    <li>API keys are stored as SHA-256 hashes, the raw key cannot be recovered from our database.</li>
     <li>All data in transit is encrypted using TLS (HTTPS).</li>
     <li>Authentication uses time-limited, single-use one-time passcodes (OTP) rather than passwords.</li>
     <li>Our infrastructure is hosted in the EU (Ireland and Frankfurt) with security controls managed by Supabase and Render.</li>
@@ -223,10 +223,10 @@
   <h2>11. International Transfers</h2>
   <p>Our primary infrastructure is hosted within the European Economic Area (EEA):</p>
   <ul>
-    <li><strong>Supabase:</strong> West EU region (Ireland) — within the EEA.</li>
-    <li><strong>Render (application and API hosting):</strong> Frankfurt, Germany — within the EEA.</li>
+    <li><strong>Supabase:</strong> West EU region (Ireland), within the EEA.</li>
+    <li><strong>Render (application and API hosting):</strong> Frankfurt, Germany, within the EEA.</li>
   </ul>
-  <p>Some of our service providers may process data in the United States or other countries outside the UK or EEA (including LemonSqueezy, Resend, and Anthropic). Where such transfers occur, we ensure appropriate safeguards are in place — such as Standard Contractual Clauses (SCCs) or reliance on the UK's adequacy regulations — in accordance with UK GDPR requirements. A list of our sub-processors and the transfer mechanisms in place is available on request.</p>
+  <p>Some of our service providers may process data in the United States or other countries outside the UK or EEA (including LemonSqueezy, Resend, and Anthropic). Where such transfers occur, we ensure appropriate safeguards are in place, such as Standard Contractual Clauses (SCCs) or reliance on the UK's adequacy regulations, in accordance with UK GDPR requirements. A list of our sub-processors and the transfer mechanisms in place is available on request.</p>
 
   <h2>12. Children's Privacy</h2>
   <p>ColtraDataAi is not directed at children under the age of 16. We do not knowingly collect personal data from children. If you believe a child has provided us with personal information, please contact us and we will delete it promptly.</p>
