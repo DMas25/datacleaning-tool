@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 from fastapi import HTTPException, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from api.watchdog import CircuitState, supabase_breaker
+
 _bearer = HTTPBearer()
 
 
@@ -18,11 +20,25 @@ def _hash_key(raw_key: str) -> str:
 async def verify_api_key(
     credentials: HTTPAuthorizationCredentials = Security(_bearer),
 ) -> dict:
-    """Dependency: validates Bearer token against Supabase api_keys table."""
+    """
+    Dependency: validates Bearer token against Supabase api_keys table.
+    Checks the circuit breaker before attempting a Supabase call so that
+    a sustained outage fails fast (immediate 503) rather than blocking each
+    request for the full Supabase connection timeout.
+    """
+    if not supabase_breaker.can_attempt():
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Authentication service is temporarily unavailable. "
+                "The fault has been logged and the team has been alerted. "
+                "Please retry in a few minutes."
+            ),
+        )
+
     key_hash = _hash_key(credentials.credentials)
 
     try:
-        import os
         from supabase import create_client
         _url = os.environ["SUPABASE_URL"].strip()
         _key = os.environ["SUPABASE_ANON_KEY"].strip()
@@ -34,7 +50,10 @@ async def verify_api_key(
             .maybe_single()
             .execute()
         )
+        # Successful Supabase call - let the circuit breaker know
+        supabase_breaker.record_success()
     except Exception as exc:
+        supabase_breaker.record_failure()
         raise HTTPException(status_code=503, detail=f"Auth service unavailable: {exc}") from exc
 
     if result.data is None or not result.data.get("is_active"):

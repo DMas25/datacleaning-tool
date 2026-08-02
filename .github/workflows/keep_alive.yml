@@ -1,0 +1,42 @@
+name: API Keep-Alive
+
+# Pings the health endpoint every 10 minutes to prevent Render from sleeping
+# the coltradata-api service (Render free/starter tier sleeps after 15 min inactivity).
+#
+# GitHub Actions free tier: 2,000 minutes/month for private repos.
+# At ~10 minutes interval, this consumes approximately 4,320 runs/month.
+# Each run takes ~30 seconds, billed as 1 minute = ~4,320 min/month.
+# If this approaches the free-tier limit, switch to UptimeRobot (free, 50 monitors,
+# 5-minute interval, no GitHub minutes consumed): https://uptimerobot.com
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Keep-alive ping
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Ping /health
+        id: ping
+        run: |
+          HTTP_STATUS=$(curl -s -o /tmp/body.txt -w "%{http_code}" \
+            --max-time 30 \
+            --retry 2 \
+            --retry-delay 5 \
+            https://coltradata-api.onrender.com/health)
+          echo "status=$HTTP_STATUS" >> "$GITHUB_OUTPUT"
+          echo "HTTP status: $HTTP_STATUS"
+          cat /tmp/body.txt
+
+      - name: Fail if unhealthy
+        if: steps.ping.outputs.status != '200'
+        run: |
+          echo "Health check returned HTTP ${{ steps.ping.outputs.status }} - service may be starting or faulted."
+          echo "Check full status at: https://coltradata-api.onrender.com/health/detail"
+          echo "Check Render logs at: https://dashboard.render.com"
+          exit 1
