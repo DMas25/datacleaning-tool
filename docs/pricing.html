@@ -37,7 +37,8 @@
     .free-callout { display: inline-block; margin-top: 1.25rem; background: #EBF8F0; color: #1a6e3a; font-size: 0.88rem; font-weight: 600; padding: 0.4rem 1rem; border-radius: 100px; border: 1px solid #b2e4c5; }
 
     .pricing-section { padding: 3rem 2rem 4rem; max-width: 1200px; margin: 0 auto; }
-    .pricing-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.25rem; align-items: start; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1.1rem; align-items: start; }
+    .plan-card.api-card { background: #f0f6ff; border-color: #2E86AB; }
 
     .plan-card { background: var(--white); border: 1.5px solid var(--secondary); border-radius: 16px; padding: 1.6rem 1.3rem; display: flex; flex-direction: column; position: relative; transition: box-shadow 0.2s, transform 0.2s; }
     .plan-card:hover { box-shadow: 0 8px 32px rgba(31,78,121,0.12); transform: translateY(-2px); }
@@ -76,19 +77,8 @@
     .cta-enterprise { background: rgba(255,255,255,0.1); color: var(--white); border: 1.5px solid rgba(255,255,255,0.25); }
     .cta-enterprise:hover { background: rgba(255,255,255,0.2); }
 
-    /* Enterprise API banner */
-    .api-section { background: linear-gradient(135deg, #0d1e2e 0%, #1F4E79 100%); padding: 3rem 2rem; margin-top: 0; }
-    .api-inner { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: center; }
-    .api-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 0.4rem; }
-    .api-title { font-size: 1.6rem; font-weight: 900; color: var(--white); margin-bottom: 0.5rem; }
-    .api-price { font-size: 1.2rem; font-weight: 700; color: rgba(255,255,255,0.85); margin-bottom: 0.75rem; }
-    .api-features { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; list-style: none; }
-    .api-features li { font-size: 0.82rem; color: rgba(255,255,255,0.75); }
-    .api-features li::before { content: "✓ "; color: #5de88a; font-weight: 700; }
-    .api-cta { background: var(--white); color: var(--primary); font-weight: 700; font-size: 0.95rem; padding: 0.85rem 2rem; border-radius: 10px; text-decoration: none; white-space: nowrap; transition: all 0.2s; display: inline-block; }
-    .api-cta:hover { background: var(--secondary); transform: translateY(-1px); }
 
-    .compare-section { background: var(--light); border-top: 1px solid var(--secondary); padding: 3.5rem 2rem; }
+.compare-section { background: var(--light); border-top: 1px solid var(--secondary); padding: 3.5rem 2rem; }
     .compare-inner { max-width: 1100px; margin: 0 auto; }
     .compare-title { font-size: 1.5rem; font-weight: 800; color: var(--primary); text-align: center; margin-bottom: 0.4rem; }
     .compare-sub { text-align: center; color: var(--muted); font-size: 0.9rem; margin-bottom: 2.5rem; }
@@ -148,10 +138,9 @@
     .chat-send-btn { background: var(--primary); color: var(--white); border: none; padding: 0.75rem 1rem; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
     .chat-send-btn:hover { background: var(--accent); }
 
-    @media (max-width: 1100px) { .pricing-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 1300px) { .pricing-grid { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 700px) {
       .pricing-grid { grid-template-columns: 1fr 1fr; }
-      .api-inner { grid-template-columns: 1fr; }
       .pricing-hero h1 { font-size: 1.8rem; }
       nav { padding: 0 1rem; }
       .nav-links a:not(:last-child):not(.btn-login):not(.btn-primary) { display: none; }
@@ -267,6 +256,24 @@
       <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/4551704f-4fa4-45c5-9b11-6ef146964f78" class="plan-cta cta-paid" target="_blank" rel="noopener">Get Business →</a>
     </div>
 
+    <div class="plan-card api-card">
+      <div class="plan-badge" style="background:#2E86AB;">For Developers</div>
+      <div class="plan-name" style="color:#2E86AB;">Enterprise API</div>
+      <div class="plan-price">£499 <span>/ month</span></div>
+      <div class="plan-blurb">Standalone API access — all 8 domain cleaners as REST endpoints for your systems.</div>
+      <div class="plan-divider"></div>
+      <ul class="plan-features">
+        <li>All 8 domain cleaners via API</li>
+        <li>CSV &amp; JSON input support</li>
+        <li>Unlimited API calls</li>
+        <li>Bearer token authentication</li>
+        <li>Auto-delivered API key</li>
+        <li>Usage analytics dashboard</li>
+        <li>Swagger / OpenAPI docs</li>
+      </ul>
+      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/2de1db2f-2e4c-4a39-9585-c328afbfeafb" class="plan-cta cta-paid" target="_blank" rel="noopener" style="background:#2E86AB;">Get API Access →</a>
+    </div>
+
     <div class="plan-card enterprise-card">
       <div class="plan-name">Enterprise</div>
       <div class="plan-price">from £999 <span>/ month</span></div>
@@ -291,26 +298,6 @@
   </p>
 </section>
 
-<section class="api-section">
-  <div class="api-inner">
-    <div>
-      <div class="api-label">For Developers</div>
-      <div class="api-title">Enterprise API</div>
-      <div class="api-price">£499 / month — standalone product</div>
-      <ul class="api-features">
-        <li>All 8 domain cleaners as REST endpoints</li>
-        <li>CSV &amp; JSON input support</li>
-        <li>Bearer token authentication</li>
-        <li>Usage analytics dashboard</li>
-        <li>Auto-delivered API key on purchase</li>
-        <li>Swagger / OpenAPI docs included</li>
-      </ul>
-    </div>
-    <div>
-      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/2de1db2f-2e4c-4a39-9585-c328afbfeafb" class="api-cta" target="_blank" rel="noopener">Get API Access →</a>
-    </div>
-  </div>
-</section>
 
 <section class="compare-section">
   <div class="compare-inner">
