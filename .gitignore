@@ -48,3 +48,6 @@ artifacts/benchmark_history.json
 # Dev-only test data scripts and generated mock files
 generate_test_data.py
 mock_clinical_trials.csv
+
+# Supabase CLI temp files
+supabase/.temp/

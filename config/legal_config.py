@@ -6,7 +6,7 @@ exports, future legal pages) without duplicating text.
 """
 
 legal = {
-    "last_updated": "18 July 2026",
+    "last_updated": "2 August 2026",
     "privacy_email": "privacy@coltradata.com",
 
     "data_controller": (
@@ -21,12 +21,20 @@ legal = {
         "authentication — a one-time 6-digit code is sent to your email. No password "
         "is ever created or stored. The code itself is stored only as a one-way "
         "SHA-256 hash and expires after 10 minutes.\n"
-        "- *Account profile*: on your first login after purchasing a plan, we ask for "
-        "your name, company or organisation, and country (required), and optionally "
-        "your phone number and VAT number. We also ask optional questions about your "
-        "profession and industry to help us improve the product for your sector. "
-        "No job titles, personal addresses beyond country, or sensitive categories of "
-        "data are collected.\n"
+        "- *Account profile and onboarding form*: on your first login after purchasing "
+        "a plan, a one-time account setup form is shown before you can access the tool. "
+        "It collects your full name, company or organisation, and country — these three "
+        "fields are required to administer your subscription. Phone number and VAT number "
+        "are optional and used only for billing and invoicing purposes.\n"
+        "  The form also includes optional questions about your profession (for example, "
+        "Owner / Founder, Analyst, Consultant) and your industry (for example, Logistics, "
+        "Healthcare, Finance). Both fields default to 'Prefer not to say' and may be left "
+        "as such with no effect on your account or access. A free-text business activity "
+        "field (for example, 'freight brokerage', 'bookkeeping') is also optional. "
+        "If provided, this information is held only in aggregate and anonymised form for "
+        "internal product analysis — it is never linked back to your individual account "
+        "and is never shared externally. No job titles, personal addresses beyond country, "
+        "or sensitive categories of data are collected.\n"
         "- *Subscription data*: your plan tier, licence key, subscription status, and "
         "a count of how many times you have run the cleaning tool this month.\n"
         "- *Compliance consent records*: when you accept our Terms & Conditions and "
@@ -73,6 +81,17 @@ legal = {
         "See anthropic.com/privacy.\n"
         "We do not sell, rent, or share your personal data with any other third "
         "party for their own purposes.\n\n"
+        "**Enterprise plan data handling**\n\n"
+        "Subscribers on the Enterprise plan benefit from additional data isolation "
+        "measures. Account and subscription data for Enterprise customers is held in a "
+        "dedicated, isolated database environment that is not shared with other plan tiers. "
+        "Uploaded files are processed in memory only — identical to all other plans — and "
+        "are discarded at the end of each session with nothing retained. Enterprise "
+        "onboarding is conducted one-to-one with a member of the Coltrane team, giving "
+        "Enterprise customers the opportunity to discuss any specific data handling or "
+        "compliance requirements before going live. A formal service level agreement (SLA) "
+        "governing availability and support response commitments is provided in writing "
+        "at the point of activation.\n\n"
         "**How long we keep it**\n\n"
         "- *Uploaded datasets*: not retained — discarded at end of session.\n"
         "- *Authentication tokens (OTP)*: automatically expire after 10 minutes "
