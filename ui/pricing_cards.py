@@ -83,10 +83,12 @@ def _render_card(
     # ── Feature bullets ───────────────────────────────────────────────────────
     runs = plan["monthly_runs"]
     runs_label = "Unlimited runs/month" if runs is None else f"{runs} runs/month"
+    rows = plan["max_rows_backend"]
+    rows_label = "Unlimited rows" if rows is None else f"{rows:,} rows"
 
     bullets = (
         f'<li>{runs_label}</li>'
-        f'<li>{plan["max_rows_backend"]:,} rows</li>'
+        f'<li>{rows_label}</li>'
         f'<li>{plan["max_file_mb_backend"]} MB file size</li>'
     )
 
