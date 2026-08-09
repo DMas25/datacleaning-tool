@@ -317,7 +317,7 @@ def _render_landing_page(branding: dict) -> None:
     primary = branding["primary_colour"]
     logo_path = branding.get("logo_path", "assets/logo/coltradata_logo.png")
     logo_b64 = _encode_logo(logo_path)
-    store_url = "https://coltradata.com/pricing.html"
+    store_url = "https://app.coltradata.com/Pricing"
     contact = branding.get("contact_email", "support@coltradata.com")
 
     if logo_b64:
@@ -386,7 +386,7 @@ def _render_landing_page(branding: dict) -> None:
 def _render_signup_guide(branding: dict) -> None:
     """'How to get started' guide shown below the sign-in card."""
     primary = branding["primary_colour"]
-    store_url = "https://coltradata.com/pricing.html"
+    store_url = "https://app.coltradata.com/Pricing"
     contact = branding.get("contact_email", "support@coltradata.com")
 
     st.markdown(

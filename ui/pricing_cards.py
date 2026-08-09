@@ -131,6 +131,13 @@ def _render_card(
         label = _CTA_LABELS.get(plan_key, f"Get {plan['label']}")
         if url:
             st.link_button(label, url, use_container_width=True, type="primary")
+        elif plan_key == "enterprise":
+            st.link_button(
+                "Contact Sales →",
+                "mailto:sales@coltradata.com?subject=Enterprise%20Enquiry",
+                use_container_width=True,
+                type="primary",
+            )
         elif payments_live():
             st.button(
                 label,
@@ -144,11 +151,12 @@ def _render_card(
 
 def _render_reassurance_row() -> None:
     st.markdown("<br>", unsafe_allow_html=True)
-    c1, c2, c3 = st.columns(3)
+    c1, c2, c3, c4 = st.columns(4)
     items = [
         ("Cancel anytime", c1),
         ("No long-term contracts", c2),
-        ("Secure checkout via Lemon Squeezy", c3),
+        ("REST API available on paid plans", c3),
+        ("Secure checkout via Lemon Squeezy", c4),
     ]
     for text, col in items:
         with col:

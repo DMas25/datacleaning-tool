@@ -182,6 +182,14 @@ def _render_upgrade_ctas() -> None:
         if url:
             st.link_button(f"Upgrade to {plan['label']} →", url, use_container_width=True, type="primary")
             st.caption("You'll receive a licence key by email after payment. Enter it above to activate.")
+        elif selected == "enterprise":
+            st.link_button(
+                "Contact Sales →",
+                "mailto:sales@coltradata.com?subject=Enterprise%20Enquiry",
+                use_container_width=True,
+                type="primary",
+            )
+            st.caption("Enterprise is tailored to your scale. We'll respond within 1 business day.")
 
 
 def _render_dev_tier_override() -> None:
