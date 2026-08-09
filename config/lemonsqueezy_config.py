@@ -13,8 +13,8 @@
 STORE_SLUG = "coltradataai"
 
 # ── Variant IDs (Live Mode) ────────────────────────────────────────────────
-STARTER_VARIANT_ID      = "1888469"
-PROFESSIONAL_VARIANT_ID = "1888467"
+STARTER_VARIANT_ID      = "1969222"
+PROFESSIONAL_VARIANT_ID = "1969225"
 BUSINESS_VARIANT_ID     = "1969233"
 ENTERPRISE_VARIANT_ID   = "1969232"
 API_VARIANT_ID          = "1969231"
@@ -46,8 +46,8 @@ VARIANT_TIER_MAP: dict[str, str] = {
 # Paste the LemonSqueezy "Buy link" for each plan here.
 # Leave as empty string until created; the UI hides the button when blank.
 CHECKOUT_URLS: dict[str, str] = {
-    "Starter":          "https://coltradataai.lemonsqueezy.com/checkout/buy/d5d25833-3149-487f-a9d1-832c398d13e6",
-    "Professional":     "https://coltradataai.lemonsqueezy.com/checkout/buy/a358b1c4-70b8-4196-ab47-fe22153a488d",
+    "Starter":          "https://coltradataai.lemonsqueezy.com/checkout/buy/1969222",
+    "Professional":     "https://coltradataai.lemonsqueezy.com/checkout/buy/1969225",
     "Business":         "https://coltradataai.lemonsqueezy.com/checkout/buy/4551704f-4fa4-45c5-9b11-6ef146964f78",
     "Enterprise":       "",   # Contact-only — no public checkout; use Book a Demo CTA
     "Enterprise API":   "https://coltradataai.lemonsqueezy.com/checkout/buy/2de1db2f-2e4c-4a39-9585-c328afbfeafb",
