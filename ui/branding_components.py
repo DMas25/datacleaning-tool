@@ -66,10 +66,13 @@ def inject_app_css(branding: dict) -> None:
         <style>
             /* ── Hide Streamlit chrome ───────────────────────────────── */
             #MainMenu {{visibility: hidden;}}
+            header {{visibility: hidden;}}
             footer {{visibility: hidden;}}
+            [data-testid="stHeader"] {{display: none !important;}}
             [data-testid="stToolbar"] {{visibility: hidden;}}
             [data-testid="stDecoration"] {{display: none;}}
             [data-testid="stStatusWidget"] {{visibility: hidden;}}
+            [data-testid="stSidebarNav"] {{display: none !important;}}
             .stDeployButton {{display: none;}}
 
             /* ── Layout ─────────────────────────────────────────────── */

@@ -479,6 +479,11 @@ def _inject_login_css(branding: dict) -> None:
         <style>
             [data-testid="stSidebar"] {{ display: none !important; }}
             [data-testid="collapsedControl"] {{ display: none !important; }}
+            header {{ visibility: hidden !important; }}
+            [data-testid="stHeader"] {{ display: none !important; }}
+            [data-testid="stSidebarNav"] {{ display: none !important; }}
+            #MainMenu {{ visibility: hidden !important; }}
+            footer {{ visibility: hidden !important; }}
             [data-testid="stVerticalBlockBorderWrapper"] {{
                 border-left: none !important;
                 border: none !important;
