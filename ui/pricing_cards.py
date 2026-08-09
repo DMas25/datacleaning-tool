@@ -55,6 +55,7 @@ def render_pricing_cards(current_plan_key: str = "free") -> None:
             _render_card(plan_key, plan, is_current, featured)
 
     _render_reassurance_row()
+    _render_enterprise_api_callout()
 
 
 # ── Private helpers ───────────────────────────────────────────────────────────
@@ -164,6 +165,72 @@ def _render_reassurance_row() -> None:
                 f'<p style="text-align:center;font-size:0.8rem;color:#657286;">{text}</p>',
                 unsafe_allow_html=True,
             )
+
+
+def _render_enterprise_api_callout() -> None:
+    """Horizontal banner advertising the standalone Enterprise API developer product."""
+    from config.lemonsqueezy_config import get_checkout_url
+    api_url = get_checkout_url("Enterprise API")
+    cta_html = (
+        f'<a href="{api_url}" target="_blank" rel="noopener" '
+        f'style="display:inline-block;background:#2E86AB;color:white;font-weight:700;'
+        f'font-size:0.85rem;padding:0.65rem 1.5rem;border-radius:9px;text-decoration:none;'
+        f'white-space:nowrap;">Get API Access &#8594;</a>'
+        f'<p style="font-size:0.7rem;color:#5a6a7a;text-align:center;margin:5px 0 0;">API key delivered by email</p>'
+        if api_url else
+        f'<a href="mailto:sales@coltradata.com?subject=Enterprise%20API%20Enquiry" '
+        f'style="display:inline-block;background:#2E86AB;color:white;font-weight:700;'
+        f'font-size:0.85rem;padding:0.65rem 1.5rem;border-radius:9px;text-decoration:none;'
+        f'white-space:nowrap;">Contact Sales &#8594;</a>'
+    )
+
+    st.markdown(
+        f"""
+        <div style="
+            background:linear-gradient(135deg,#EBF4FF 0%,#E0F4F8 100%);
+            border:1.5px solid #2E86AB;
+            border-radius:16px;
+            padding:1.35rem 1.6rem;
+            margin-top:0.5rem;
+        ">
+            <div style="display:flex;gap:0.6rem;align-items:center;margin-bottom:0.7rem;">
+                <span style="background:#2E86AB;color:white;font-size:0.62rem;font-weight:700;
+                    letter-spacing:0.08em;text-transform:uppercase;padding:3px 10px;
+                    border-radius:100px;">For Developers</span>
+                <span style="font-size:0.75rem;color:#2E86AB;font-weight:600;">
+                    Standalone REST API — no app subscription required
+                </span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr auto;gap:2rem;align-items:center;">
+                <div>
+                    <p style="font-size:1.05rem;font-weight:800;color:#1F4E79;margin:0 0 4px;">
+                        Enterprise API
+                        <span style="font-size:0.88rem;font-weight:500;color:#111827;">
+                            &nbsp;&#8212;&nbsp;&#163;499<span style="font-size:0.78rem;
+                            font-weight:400;color:#5a6a7a;">/month</span>
+                        </span>
+                    </p>
+                    <p style="font-size:0.78rem;color:#4B5563;margin:0 0 0.7rem;line-height:1.55;">
+                        Integrate ColtraDataAi's cleaning engine directly into your own systems or pipelines.
+                        All 8 domain cleaners as REST endpoints. API key auto-delivered on purchase.
+                    </p>
+                    <div style="display:flex;flex-wrap:wrap;gap:3px 1.8rem;">
+                        <span style="font-size:0.74rem;color:#374151;">&#10003; All 8 domain cleaners (Logistics, Finance, Retail, Healthcare &amp; more)</span>
+                        <span style="font-size:0.74rem;color:#374151;">&#10003; CSV &amp; JSON input support</span>
+                        <span style="font-size:0.74rem;color:#374151;">&#10003; Unlimited API calls</span>
+                        <span style="font-size:0.74rem;color:#374151;">&#10003; Bearer token authentication</span>
+                        <span style="font-size:0.74rem;color:#374151;">&#10003; Swagger / OpenAPI docs</span>
+                        <span style="font-size:0.74rem;color:#374151;">&#10003; Usage analytics dashboard</span>
+                    </div>
+                </div>
+                <div style="text-align:center;flex-shrink:0;">
+                    {cta_html}
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def _inject_pricing_css() -> None:
