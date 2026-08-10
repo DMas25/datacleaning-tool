@@ -3,10 +3,59 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ColtraDataAi for Finance Teams: Faster Reporting Without the IT Queue</title>
-  <meta name="description" content="ColtraDataAi helps finance teams clean data exports and produce professional management reports independently, no IT dependency, no data analyst required." />
+  <title>Financial Data Cleaning Tool UK | Clean Finance Exports &amp; Reports | ColtraDataAi</title>
+  <meta name="description" content="Clean finance data exports independently - no IT, no analyst. Fix errors in ERP reports, budget files, and ledger exports. Works with SAP, Oracle, Xero, Sage, Dynamics. Start free." />
+  <meta name="twitter:description" content="Clean finance data exports independently - no IT, no analyst. Fix errors in ERP reports, budget files, and ledger exports. Works with SAP, Oracle, Xero, Sage, Dynamics. Start free." />
   <link rel="icon" type="image/png" href="assets/logo.png" />
   <meta name="theme-color" content="#1F4E79" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What finance data problems does ColtraDataAi fix?",
+        "acceptedAnswer": { "@type": "Answer", "text": "ColtraDataAi fixes common finance data issues: duplicate transaction entries, inconsistent cost centre or department codes, missing nominal codes, mismatched date formats between systems, and formatting errors that prevent data from reconciling correctly." }
+      },
+      {
+        "@type": "Question",
+        "name": "Does it work with SAP or Oracle exports?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. ColtraDataAi processes CSV and Excel exports from SAP, Oracle Financials, Dynamics 365, NetSuite, Workday, and most other ERP and finance systems. No integration required - export your file and upload it directly." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can it clean management accounts or budget files?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Upload your management accounts, budget variance, or cost centre summary files. ColtraDataAi standardises formats, flags anomalies, and produces a clean file ready for reporting or further analysis." }
+      },
+      {
+        "@type": "Question",
+        "name": "How does it help with month-end reporting data?",
+        "acceptedAnswer": { "@type": "Answer", "text": "ColtraDataAi is well suited to month-end work: it quickly identifies duplicate entries, blank or miscoded fields, and formatting inconsistencies that slow down consolidation and cause reconciliation errors." }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I need IT involvement to use it?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No. ColtraDataAi is self-service - finance team members can upload, clean, and download data independently without raising an IT ticket or waiting for analyst support." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can it handle multi-currency or multi-entity data?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. ColtraDataAi processes multi-currency files and can clean combined data from multiple entities or cost centres, standardising codes and formats across the whole file." }
+      },
+      {
+        "@type": "Question",
+        "name": "How long does it take to clean a finance data file?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Most finance exports clean in under two minutes. Larger consolidated files up to 250,000 rows typically complete within a minute." }
+      },
+      {
+        "@type": "Question",
+        "name": "Is financial data processed securely?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Files are processed securely and never permanently stored. ColtraDataAi is GDPR-compliant and does not retain your financial data after processing." }
+      }
+    ]
+  }
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --primary: #1F4E79; --accent: #2E86AB; --secondary: #D9E1F2; --light: #F8FAFC; --success: #46D324; --danger: #DC2626; --text: #1a2a3a; --muted: #5a6a7a; --white: #ffffff; --radius: 12px; }
@@ -118,6 +167,16 @@
     .chat-input { flex: 1; border: none; padding: 0.75rem 1rem; font-size: 0.88rem; outline: none; font-family: inherit; color: var(--text); }
     .chat-send-btn { background: var(--primary); color: var(--white); border: none; padding: 0.75rem 1rem; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
     .chat-send-btn:hover { background: var(--accent); }
+    .compat { background: var(--light); }
+    .compat-grid { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin-top: 2rem; }
+    .compat-tag { background: var(--white); border: 1px solid var(--secondary); border-radius: 8px; padding: 0.55rem 1.1rem; font-size: 0.88rem; font-weight: 600; color: var(--primary); }
+    .faq-list { display: flex; flex-direction: column; gap: 0.75rem; max-width: 780px; margin: 0 auto; }
+    .faq-item { background: var(--light); border: 1px solid var(--secondary); border-radius: var(--radius); overflow: hidden; }
+    .faq-q { width: 100%; text-align: left; background: none; border: none; padding: 1.1rem 1.4rem; font-size: 0.98rem; font-weight: 700; color: var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-family: inherit; gap: 1rem; }
+    .faq-q::after { content: "+"; font-size: 1.3rem; font-weight: 400; color: var(--accent); flex-shrink: 0; }
+    .faq-item.open .faq-q::after { content: "−"; }
+    .faq-a { display: none; padding: 0 1.4rem 1.1rem; font-size: 0.93rem; color: var(--muted); line-height: 1.65; }
+    .faq-item.open .faq-a { display: block; }
     @media (max-width: 768px) { nav { padding: 0 1rem; } .nav-links a:not(:last-child):not(.btn-login):not(.btn-primary) { display: none; } .nav-dropdown { display: none; } section { padding: 3.5rem 1.25rem; } }
     @media (max-width: 600px) { .chat-window { right: 0.75rem; left: 0.75rem; width: auto; } }
   </style>
@@ -247,6 +306,26 @@
   </div>
 </section>
 
+<section class="compat">
+  <div class="container text-center">
+    <div class="section-label">Compatible Systems</div>
+    <h2 class="section-title">Works With Your Existing Setup</h2>
+    <p class="section-subtitle">No integration required. Export your data as CSV or Excel and upload it directly.</p>
+    <div class="compat-grid">
+      <span class="compat-tag">SAP</span>
+      <span class="compat-tag">Oracle Financials</span>
+      <span class="compat-tag">Microsoft Dynamics 365</span>
+      <span class="compat-tag">Sage 200 / Intacct</span>
+      <span class="compat-tag">Xero</span>
+      <span class="compat-tag">QuickBooks</span>
+      <span class="compat-tag">NetSuite</span>
+      <span class="compat-tag">Workday</span>
+      <span class="compat-tag">Power BI exports</span>
+      <span class="compat-tag">Excel / CSV</span>
+    </div>
+  </div>
+</section>
+
 <section class="steps">
   <div class="container">
     <div class="text-center">
@@ -280,6 +359,50 @@
   </div>
 </section>
 
+<section id="faq">
+  <div class="container">
+    <div class="text-center">
+      <div class="section-label">Common Questions</div>
+      <h2 class="section-title">Finance Data Cleaning: FAQs</h2>
+      <p class="section-subtitle">Everything you need to know before you upload your first file.</p>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">What finance data problems does ColtraDataAi fix?</button>
+        <div class="faq-a">ColtraDataAi fixes common finance data issues: duplicate transaction entries, inconsistent cost centre or department codes, missing nominal codes, mismatched date formats between systems, and formatting errors that prevent data from reconciling correctly.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Does it work with SAP or Oracle exports?</button>
+        <div class="faq-a">Yes. ColtraDataAi processes CSV and Excel exports from SAP, Oracle Financials, Dynamics 365, NetSuite, Workday, and most other ERP and finance systems. No integration required - export your file and upload it directly.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Can it clean management accounts or budget files?</button>
+        <div class="faq-a">Yes. Upload your management accounts, budget variance, or cost centre summary files. ColtraDataAi standardises formats, flags anomalies, and produces a clean file ready for reporting or further analysis.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">How does it help with month-end reporting data?</button>
+        <div class="faq-a">ColtraDataAi is well suited to month-end work: it quickly identifies duplicate entries, blank or miscoded fields, and formatting inconsistencies that slow down consolidation and cause reconciliation errors.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Do I need IT involvement to use it?</button>
+        <div class="faq-a">No. ColtraDataAi is self-service - finance team members can upload, clean, and download data independently without raising an IT ticket or waiting for analyst support.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Can it handle multi-currency or multi-entity data?</button>
+        <div class="faq-a">Yes. ColtraDataAi processes multi-currency files and can clean combined data from multiple entities or cost centres, standardising codes and formats across the whole file.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">How long does it take to clean a finance data file?</button>
+        <div class="faq-a">Most finance exports clean in under two minutes. Larger consolidated files up to 250,000 rows typically complete within a minute.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Is financial data processed securely?</button>
+        <div class="faq-a">Yes. Files are processed securely and never permanently stored. ColtraDataAi is GDPR-compliant and does not retain your financial data after processing.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="closing">
   <div class="container">
     <h2>Ready to Close Faster and Report Sooner?</h2>
@@ -305,6 +428,7 @@
   <div class="chat-input-row"><input class="chat-input" id="chatInput" type="text" placeholder="Ask a question…" onkeydown="if(event.key==='Enter') sendMessage()" /><button class="chat-send-btn" onclick="sendMessage()">➤</button></div>
 </div>
 <script>
+  function toggleFaq(btn) { btn.closest('.faq-item').classList.toggle('open'); }
   function toggleChat() { document.getElementById('chatWindow').classList.toggle('open'); }
   const botRules = [
     { k: ['plan','price','cost','pricing','tier','starter','professional','business','enterprise'], a: '5 plans:<br>• Free – £0/mo<br>• Starter – £29/mo (50 runs, 50k rows)<br>• Professional – £99/mo (200 runs, 250k rows)<br>• Business – £299/mo (1M rows, branded reports)<br>• Enterprise – from £999/mo (contact sales)<br><br><a href="index.html#pricing">Full details →</a>' },

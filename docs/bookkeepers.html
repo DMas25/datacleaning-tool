@@ -3,10 +3,59 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ColtraDataAi for Bookkeepers &amp; Accountants: Clean Client Data in Minutes</title>
-  <meta name="description" content="ColtraDataAi helps bookkeepers and accountants clean messy client data before it hits accounting software. Save hours every client, every month." />
+  <title>Bookkeeper Data Cleaning Tool UK | Clean Client Spreadsheets Fast | ColtraDataAi</title>
+  <meta name="description" content="Clean messy client data before it hits your accounting software. Fix duplicates, coding errors, and format mismatches in minutes. Works with Xero, QuickBooks, Sage. Start free." />
+  <meta name="twitter:description" content="Clean messy client data before it hits your accounting software. Fix duplicates, coding errors, and format mismatches in minutes. Works with Xero, QuickBooks, Sage. Start free." />
   <link rel="icon" type="image/png" href="assets/logo.png" />
   <meta name="theme-color" content="#1F4E79" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What client data problems does ColtraDataAi fix for bookkeepers?",
+        "acceptedAnswer": { "@type": "Answer", "text": "ColtraDataAi fixes the data quality issues that slow down client work: duplicate transactions, inconsistent nominal or expense codes, missing VAT fields, mismatched date formats, and bank statement rows that won't import cleanly into accounting software." }
+      },
+      {
+        "@type": "Question",
+        "name": "Does it work with Xero or QuickBooks exports?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Export client data from Xero, QuickBooks, Sage, FreeAgent, or any accounting platform as CSV and upload it directly. No integration or plugin needed." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can it clean bank statement data before import?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. ColtraDataAi standardises bank statement exports - fixing date formats, removing duplicate rows, and flagging missing reference fields - so they import cleanly into your accounting software first time." }
+      },
+      {
+        "@type": "Question",
+        "name": "How does it help with month-end client work?",
+        "acceptedAnswer": { "@type": "Answer", "text": "ColtraDataAi is designed for exactly this workflow. Upload a client's raw export, clean it in minutes, download the corrected file and a data quality report, and proceed with reconciliation without manual row-by-row checks." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I use it across multiple clients?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. You can run separate cleaning sessions for different clients. Professional and Business plan holders can run multiple sessions per month at volume, making it practical for practices with a larger client base." }
+      },
+      {
+        "@type": "Question",
+        "name": "Does it flag errors without changing my original file?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. ColtraDataAi produces a clean output file and a separate data quality report. Your original uploaded file is never modified, so you retain a clear record of what the raw data looked like." }
+      },
+      {
+        "@type": "Question",
+        "name": "How long does it take to clean a client's spreadsheet?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Most client files clean in under two minutes. Standard transaction exports and bank statements typically process in seconds." }
+      },
+      {
+        "@type": "Question",
+        "name": "Is client data kept confidential and GDPR-compliant?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Files are processed securely and never permanently stored. ColtraDataAi is GDPR-compliant by design - client data is not retained after processing." }
+      }
+    ]
+  }
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -161,6 +210,16 @@
     .chat-input { flex: 1; border: none; padding: 0.75rem 1rem; font-size: 0.88rem; outline: none; font-family: inherit; color: var(--text); }
     .chat-send-btn { background: var(--primary); color: var(--white); border: none; padding: 0.75rem 1rem; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
     .chat-send-btn:hover { background: var(--accent); }
+    .compat { background: var(--light); }
+    .compat-grid { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin-top: 2rem; }
+    .compat-tag { background: var(--white); border: 1px solid var(--secondary); border-radius: 8px; padding: 0.55rem 1.1rem; font-size: 0.88rem; font-weight: 600; color: var(--primary); }
+    .faq-list { display: flex; flex-direction: column; gap: 0.75rem; max-width: 780px; margin: 0 auto; }
+    .faq-item { background: var(--light); border: 1px solid var(--secondary); border-radius: var(--radius); overflow: hidden; }
+    .faq-q { width: 100%; text-align: left; background: none; border: none; padding: 1.1rem 1.4rem; font-size: 0.98rem; font-weight: 700; color: var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-family: inherit; gap: 1rem; }
+    .faq-q::after { content: "+"; font-size: 1.3rem; font-weight: 400; color: var(--accent); flex-shrink: 0; }
+    .faq-item.open .faq-q::after { content: "−"; }
+    .faq-a { display: none; padding: 0 1.4rem 1.1rem; font-size: 0.93rem; color: var(--muted); line-height: 1.65; }
+    .faq-item.open .faq-a { display: block; }
 
     @media (max-width: 768px) {
       nav { padding: 0 1rem; }
@@ -326,6 +385,26 @@
 </section>
 
 <!-- Steps -->
+<section class="compat">
+  <div class="container text-center">
+    <div class="section-label">Compatible Systems</div>
+    <h2 class="section-title">Works With Your Existing Setup</h2>
+    <p class="section-subtitle">No integration required. Export your data as CSV or Excel and upload it directly.</p>
+    <div class="compat-grid">
+      <span class="compat-tag">Xero</span>
+      <span class="compat-tag">QuickBooks Online</span>
+      <span class="compat-tag">Sage 50 / Sage 200</span>
+      <span class="compat-tag">FreeAgent</span>
+      <span class="compat-tag">Kashflow</span>
+      <span class="compat-tag">Dext (Receipt Bank)</span>
+      <span class="compat-tag">AutoEntry</span>
+      <span class="compat-tag">Microsoft Excel</span>
+      <span class="compat-tag">Google Sheets</span>
+      <span class="compat-tag">Bank statement exports</span>
+    </div>
+  </div>
+</section>
+
 <section class="steps">
   <div class="container">
     <div class="text-center">
@@ -440,6 +519,50 @@
 </section>
 
 <!-- Closing CTA -->
+<section id="faq">
+  <div class="container">
+    <div class="text-center">
+      <div class="section-label">Common Questions</div>
+      <h2 class="section-title">Bookkeeper Data Cleaning: FAQs</h2>
+      <p class="section-subtitle">Everything you need to know before you upload your first file.</p>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">What client data problems does ColtraDataAi fix for bookkeepers?</button>
+        <div class="faq-a">ColtraDataAi fixes the data quality issues that slow down client work: duplicate transactions, inconsistent nominal or expense codes, missing VAT fields, mismatched date formats, and bank statement rows that won't import cleanly into accounting software.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Does it work with Xero or QuickBooks exports?</button>
+        <div class="faq-a">Yes. Export client data from Xero, QuickBooks, Sage, FreeAgent, or any accounting platform as CSV and upload it directly. No integration or plugin needed.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Can it clean bank statement data before import?</button>
+        <div class="faq-a">Yes. ColtraDataAi standardises bank statement exports - fixing date formats, removing duplicate rows, and flagging missing reference fields - so they import cleanly into your accounting software first time.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">How does it help with month-end client work?</button>
+        <div class="faq-a">ColtraDataAi is designed for exactly this workflow. Upload a client's raw export, clean it in minutes, download the corrected file and a data quality report, and proceed with reconciliation without manual row-by-row checks.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Can I use it across multiple clients?</button>
+        <div class="faq-a">Yes. You can run separate cleaning sessions for different clients. Professional and Business plan holders can run multiple sessions per month at volume, making it practical for practices with a larger client base.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Does it flag errors without changing my original file?</button>
+        <div class="faq-a">Yes. ColtraDataAi produces a clean output file and a separate data quality report. Your original uploaded file is never modified, so you retain a clear record of what the raw data looked like.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">How long does it take to clean a client's spreadsheet?</button>
+        <div class="faq-a">Most client files clean in under two minutes. Standard transaction exports and bank statements typically process in seconds.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Is client data kept confidential and GDPR-compliant?</button>
+        <div class="faq-a">Yes. Files are processed securely and never permanently stored. ColtraDataAi is GDPR-compliant by design - client data is not retained after processing.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="closing">
   <div class="container">
     <h2>Ready to Stop Cleaning Client Data by Hand?</h2>
@@ -488,6 +611,7 @@
 </div>
 
 <script>
+  function toggleFaq(btn) { btn.closest('.faq-item').classList.toggle('open'); }
   function toggleChat() { document.getElementById('chatWindow').classList.toggle('open'); }
   const botRules = [
     { k: ['plan','price','cost','pricing','tier','starter','professional','business','enterprise'], a: 'We offer 5 plans:<br>• Free – £0/mo (3 runs, 5k rows)<br>• Starter – £29/mo (50 runs, 50k rows)<br>• Professional – £99/mo (200 runs, 250k rows)<br>• Business – £299/mo (1,000 runs, 1M rows)<br>• Enterprise – from £999/mo (contact sales)<br><br><a href="index.html#pricing">See full plan details →</a>' },

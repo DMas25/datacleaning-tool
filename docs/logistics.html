@@ -3,10 +3,59 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ColtraDataAi for Logistics Companies: Turn Operational Data Into Clean, Reliable Records</title>
-  <meta name="description" content="ColtraDataAi helps logistics and supply chain teams clean shipment records, depot exports, and supplier data, so data errors stop causing operational mistakes." />
+  <title>Logistics Data Cleaning Tool UK | Clean Shipment &amp; Supply Chain Records | ColtraDataAi</title>
+  <meta name="description" content="Clean shipment records, depot exports, and supplier data fast. Fix address formats, duplicate consignments, and missing reference numbers. Works with TMS, WMS, and ERP exports. Start free." />
+  <meta name="twitter:description" content="Clean shipment records, depot exports, and supplier data fast. Fix address formats, duplicate consignments, and missing reference numbers. Works with TMS, WMS, and ERP exports. Start free." />
   <link rel="icon" type="image/png" href="assets/logo.png" />
   <meta name="theme-color" content="#1F4E79" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What logistics data problems does ColtraDataAi fix?",
+        "acceptedAnswer": { "@type": "Answer", "text": "ColtraDataAi fixes common supply chain data issues: duplicate consignment or shipment records, missing reference or tracking numbers, inconsistent depot or carrier names across files, blank address fields, and date format mismatches between systems." }
+      },
+      {
+        "@type": "Question",
+        "name": "Does it work with TMS or WMS system exports?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. ColtraDataAi processes CSV and Excel exports from CargoWise, Descartes, SAP TM, Oracle TMS, and most warehouse and transport management platforms. Export your data and upload directly - no integration required." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can it clean shipment manifests or delivery records?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. ColtraDataAi standardises manifest and delivery record files: removing duplicate entries, flagging missing delivery references, and standardising address and carrier name formats across the file." }
+      },
+      {
+        "@type": "Question",
+        "name": "How does it handle data from multiple depots or carriers?",
+        "acceptedAnswer": { "@type": "Answer", "text": "ColtraDataAi handles consolidated files where data comes from multiple depots, carriers, or regions with different naming conventions and formats. It standardises across the whole file regardless of source." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can it standardise supplier or carrier reference formats?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Inconsistent reference formats across carrier and supplier files are one of the most common logistics data problems. ColtraDataAi identifies and flags format inconsistencies so they can be resolved before data is used in reporting or billing." }
+      },
+      {
+        "@type": "Question",
+        "name": "Does it work for 3PL providers as well as own-fleet operators?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. ColtraDataAi is used by both 3PL providers managing multiple client datasets and own-fleet operators consolidating depot and vehicle data. Each cleaning session is independent and data is never mixed between clients." }
+      },
+      {
+        "@type": "Question",
+        "name": "How long does it take to clean a logistics data file?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Most shipment or depot export files clean in under two minutes. Larger consolidated manifests up to 250,000 rows typically complete within a minute." }
+      },
+      {
+        "@type": "Question",
+        "name": "Is operational data processed securely?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Files are processed securely and never permanently stored. ColtraDataAi is GDPR-compliant and does not retain your operational data after processing." }
+      }
+    ]
+  }
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --primary: #1F4E79; --accent: #2E86AB; --secondary: #D9E1F2; --light: #F8FAFC; --success: #46D324; --danger: #DC2626; --text: #1a2a3a; --muted: #5a6a7a; --white: #ffffff; --radius: 12px; }
@@ -118,6 +167,16 @@
     .chat-input { flex: 1; border: none; padding: 0.75rem 1rem; font-size: 0.88rem; outline: none; font-family: inherit; color: var(--text); }
     .chat-send-btn { background: var(--primary); color: var(--white); border: none; padding: 0.75rem 1rem; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
     .chat-send-btn:hover { background: var(--accent); }
+    .compat { background: var(--light); }
+    .compat-grid { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin-top: 2rem; }
+    .compat-tag { background: var(--white); border: 1px solid var(--secondary); border-radius: 8px; padding: 0.55rem 1.1rem; font-size: 0.88rem; font-weight: 600; color: var(--primary); }
+    .faq-list { display: flex; flex-direction: column; gap: 0.75rem; max-width: 780px; margin: 0 auto; }
+    .faq-item { background: var(--light); border: 1px solid var(--secondary); border-radius: var(--radius); overflow: hidden; }
+    .faq-q { width: 100%; text-align: left; background: none; border: none; padding: 1.1rem 1.4rem; font-size: 0.98rem; font-weight: 700; color: var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-family: inherit; gap: 1rem; }
+    .faq-q::after { content: "+"; font-size: 1.3rem; font-weight: 400; color: var(--accent); flex-shrink: 0; }
+    .faq-item.open .faq-q::after { content: "−"; }
+    .faq-a { display: none; padding: 0 1.4rem 1.1rem; font-size: 0.93rem; color: var(--muted); line-height: 1.65; }
+    .faq-item.open .faq-a { display: block; }
     @media (max-width: 768px) { nav { padding: 0 1rem; } .nav-links a:not(:last-child):not(.btn-login):not(.btn-primary) { display: none; } .nav-dropdown { display: none; } section { padding: 3.5rem 1.25rem; } }
     @media (max-width: 600px) { .chat-window { right: 0.75rem; left: 0.75rem; width: auto; } }
   </style>
@@ -247,6 +306,26 @@
   </div>
 </section>
 
+<section class="compat">
+  <div class="container text-center">
+    <div class="section-label">Compatible Systems</div>
+    <h2 class="section-title">Works With Your Existing Setup</h2>
+    <p class="section-subtitle">No integration required. Export your data as CSV or Excel and upload it directly.</p>
+    <div class="compat-grid">
+      <span class="compat-tag">SAP Transportation Management</span>
+      <span class="compat-tag">Oracle TMS</span>
+      <span class="compat-tag">CargoWise</span>
+      <span class="compat-tag">Descartes</span>
+      <span class="compat-tag">Microsoft Dynamics</span>
+      <span class="compat-tag">WMS exports</span>
+      <span class="compat-tag">Sage 200</span>
+      <span class="compat-tag">3PL system exports</span>
+      <span class="compat-tag">ERP exports</span>
+      <span class="compat-tag">Excel / CSV</span>
+    </div>
+  </div>
+</section>
+
 <section class="steps">
   <div class="container">
     <div class="text-center">
@@ -280,6 +359,50 @@
   </div>
 </section>
 
+<section id="faq">
+  <div class="container">
+    <div class="text-center">
+      <div class="section-label">Common Questions</div>
+      <h2 class="section-title">Logistics Data Cleaning: FAQs</h2>
+      <p class="section-subtitle">Everything you need to know before you upload your first file.</p>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">What logistics data problems does ColtraDataAi fix?</button>
+        <div class="faq-a">ColtraDataAi fixes common supply chain data issues: duplicate consignment or shipment records, missing reference or tracking numbers, inconsistent depot or carrier names across files, blank address fields, and date format mismatches between systems.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Does it work with TMS or WMS system exports?</button>
+        <div class="faq-a">Yes. ColtraDataAi processes CSV and Excel exports from CargoWise, Descartes, SAP TM, Oracle TMS, and most warehouse and transport management platforms. Export your data and upload directly - no integration required.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Can it clean shipment manifests or delivery records?</button>
+        <div class="faq-a">Yes. ColtraDataAi standardises manifest and delivery record files: removing duplicate entries, flagging missing delivery references, and standardising address and carrier name formats across the file.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">How does it handle data from multiple depots or carriers?</button>
+        <div class="faq-a">ColtraDataAi handles consolidated files where data comes from multiple depots, carriers, or regions with different naming conventions and formats. It standardises across the whole file regardless of source.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Can it standardise supplier or carrier reference formats?</button>
+        <div class="faq-a">Yes. Inconsistent reference formats across carrier and supplier files are one of the most common logistics data problems. ColtraDataAi identifies and flags format inconsistencies so they can be resolved before data is used in reporting or billing.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Does it work for 3PL providers as well as own-fleet operators?</button>
+        <div class="faq-a">Yes. ColtraDataAi is used by both 3PL providers managing multiple client datasets and own-fleet operators consolidating depot and vehicle data. Each cleaning session is independent and data is never mixed between clients.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">How long does it take to clean a logistics data file?</button>
+        <div class="faq-a">Most shipment or depot export files clean in under two minutes. Larger consolidated manifests up to 250,000 rows typically complete within a minute.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Is operational data processed securely?</button>
+        <div class="faq-a">Yes. Files are processed securely and never permanently stored. ColtraDataAi is GDPR-compliant and does not retain your operational data after processing.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="closing">
   <div class="container">
     <h2>Ready to Stop Operational Errors at the Source?</h2>
@@ -305,6 +428,7 @@
   <div class="chat-input-row"><input class="chat-input" id="chatInput" type="text" placeholder="Ask a question…" onkeydown="if(event.key==='Enter') sendMessage()" /><button class="chat-send-btn" onclick="sendMessage()">➤</button></div>
 </div>
 <script>
+  function toggleFaq(btn) { btn.closest('.faq-item').classList.toggle('open'); }
   function toggleChat() { document.getElementById('chatWindow').classList.toggle('open'); }
   const botRules = [
     { k: ['plan','price','pricing','tier'], a: '5 plans from Free to Enterprise. <a href="index.html#pricing">See full pricing →</a>' },
