@@ -206,7 +206,7 @@ def _render_enterprise_api_callout() -> None:
                     <p style="font-size:1.05rem;font-weight:800;color:#1F4E79;margin:0 0 4px;">
                         Enterprise API
                         <span style="font-size:0.88rem;font-weight:500;color:#111827;">
-                            &nbsp;&#8212;&nbsp;&#163;499<span style="font-size:0.78rem;
+                            &nbsp;&#8212;&nbsp;&#163;199<span style="font-size:0.78rem;
                             font-weight:400;color:#5a6a7a;">/month</span>
                         </span>
                     </p>

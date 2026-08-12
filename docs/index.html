@@ -778,6 +778,28 @@
     <div class="pricing-note-wrap">
       <span class="pricing-note">📱 All plans include full mobile access, no separate app purchase required.</span>
     </div>
+    <div style="margin-top:2rem;background:linear-gradient(135deg,#EBF4FF 0%,#E0F4F8 100%);border:1.5px solid #2E86AB;border-radius:16px;padding:1.5rem 2rem;display:flex;flex-wrap:wrap;gap:1.5rem;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="display:flex;gap:0.6rem;align-items:center;margin-bottom:0.6rem;">
+          <span style="background:#2E86AB;color:white;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:3px 10px;border-radius:100px;">For Developers</span>
+          <span style="font-size:0.78rem;color:#2E86AB;font-weight:600;">Standalone REST API - no app subscription required</span>
+        </div>
+        <p style="font-size:1.05rem;font-weight:800;color:#1F4E79;margin:0 0 4px;">Enterprise API <span style="font-size:0.88rem;font-weight:500;color:#111827;">- £199<span style="font-size:0.78rem;font-weight:400;color:#5a6a7a;">/month</span></span></p>
+        <p style="font-size:0.82rem;color:#4B5563;margin:0 0 0.75rem;max-width:620px;">Integrate ColtraDataAi's cleaning engine directly into your own systems or pipelines. All 8 domain cleaners as REST endpoints. API key auto-delivered on purchase.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:4px 1.5rem;">
+          <span style="font-size:0.75rem;color:#374151;">&#10003; All 8 domain cleaners</span>
+          <span style="font-size:0.75rem;color:#374151;">&#10003; CSV &amp; JSON input</span>
+          <span style="font-size:0.75rem;color:#374151;">&#10003; Unlimited API calls</span>
+          <span style="font-size:0.75rem;color:#374151;">&#10003; Bearer token auth</span>
+          <span style="font-size:0.75rem;color:#374151;">&#10003; Swagger / OpenAPI docs</span>
+          <span style="font-size:0.75rem;color:#374151;">&#10003; Usage analytics dashboard</span>
+        </div>
+      </div>
+      <div style="text-align:center;flex-shrink:0;">
+        <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/2f0f30f8-88d4-4bea-891c-9852507a439c" target="_blank" rel="noopener" style="display:inline-block;background:#2E86AB;color:white;font-weight:700;font-size:0.88rem;padding:0.7rem 1.6rem;border-radius:9px;text-decoration:none;white-space:nowrap;">Get API Access &#8594;</a>
+        <p style="font-size:0.7rem;color:#5a6a7a;text-align:center;margin:5px 0 0;">API key delivered by email</p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -962,7 +984,8 @@
   }
 
   const botRules = [
-    { k: ['plan','price','cost','pricing','tier','much','starter','professional','business','enterprise','subscription'], a: 'We offer 5 plans:<br>• Free – £0/mo (3 runs, 5k rows)<br>• Starter – £29/mo (50 runs, 50k rows)<br>• Professional – £99/mo (200 runs, 250k rows)<br>• Business – £299/mo (1,000 runs, 1M rows)<br>• Enterprise – from £999/mo (contact sales)<br><br><a href="#pricing">See full plan details →</a>' },
+    { k: ['plan','price','cost','pricing','tier','much','starter','professional','business','enterprise','subscription'], a: 'We offer 5 plans:<br>• Free – £0/mo (3 runs, 5k rows)<br>• Starter – £29/mo (50 runs, 50k rows)<br>• Professional – £99/mo (200 runs, 250k rows)<br>• Business – £299/mo (1,000 runs, 1M rows)<br>• Enterprise – from £999/mo (contact sales)<br><br>We also offer the <strong>Enterprise API</strong> at £199/mo - a standalone REST API with no app subscription required. <a href="#pricing">See full plan details →</a>' },
+    { k: ['api','developer','endpoint','rest','programmatic','pipeline','integrate','integration'], a: 'The <strong>Enterprise API</strong> (£199/mo) exposes all 8 domain cleaners as REST endpoints: CSV &amp; JSON input, Bearer token auth, auto-delivered key on purchase. No app subscription required. <a href="#pricing">See details →</a>' },
     { k: ['free','trial','no card','signup','sign up','register'], a: 'Our Free plan lets you try ColtraDataAi with 3 cleaning runs/month and up to 5,000 rows, no credit card required. <a href="https://app.coltradata.com">Start free →</a>' },
     { k: ['file','format','excel','csv','upload','xlsx','xls','size','mb'], a: 'ColtraDataAi accepts Excel (.xlsx, .xls) and CSV (.csv) files. Size limits: 10 MB (Free) · 25 MB (Starter) · 75 MB (Professional) · 150 MB (Premium) · 300 MB (Enterprise).' },
     { k: ['secure','privacy','data','gdpr','safe','store','stored','share'], a: 'Your data is processed securely and never permanently stored or shared with third parties. We are GDPR-compliant. <a href="privacy.html">Read our Privacy Policy →</a>' },
