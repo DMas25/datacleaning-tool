@@ -20,8 +20,8 @@ def inject_og_meta_tags(branding: dict) -> None:
     """
     app_name = branding.get("app_name", "ColtraDataAi")
     description = (
-        "Turn spreadsheets into boardroom-ready insights — "
-        "without hiring a data analyst."
+        "Turn spreadsheets into boardroom-ready insights - "
+        "spend less time preparing data and more time making decisions."
     )
     st.markdown(
         f"""
