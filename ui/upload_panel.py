@@ -27,6 +27,20 @@ _FILE_TYPE_LABELS = {
     "general":        ("General Dataset",        "Standard cleaning and statistical analysis will run."),
 }
 
+# Maps user-facing domain labels (from cleaning_options.py) to upload-panel display text.
+# Used to override "General Dataset detected" once the user explicitly picks a domain.
+_DOMAIN_DISPLAY_LABELS = {
+    "🧬 Clinical Research & Trial Registers": ("Clinical Research Dataset",           "NCT ID normalisation, researcher name standardisation, and trial registry validation will run."),
+    "📦 Logistics & Supply Chain":            ("Logistics & Supply Chain Dataset",    "Shipment status, transit times, date order validation, and duplicate tracking checks will run."),
+    "🌐 Import/Export & Trade":               ("Import/Export & Trade Dataset",       "HS code validation, country mapping, currency standardisation, and declared value checks will run."),
+    "💰 Finance & Accounting":                ("Finance & Accounting Dataset",        "VAT/tax code validation, trial balance check, and nominal account normalisation will run."),
+    "🛍️ Retail & Inventory":                 ("Retail & Inventory Dataset",          "SKU validation, margin checks, barcode validation, and stock level analysis will run."),
+    "💼 Consultants & Professional Services": ("Consultancy & Services Dataset",      "Timesheet validation, day rate checks, utilisation rate, and budget overrun detection will run."),
+    "🏥 Healthcare (Operational)":            ("Healthcare Dataset",                  "NHS number validation, ICD-10 checks, RTT breach flags, and appointment status analysis will run."),
+    "🏢 SME & Small Business":                ("SME & Small Business Dataset",        "VAT number, NI number, Companies House, postcode, and overdue invoice checks will run."),
+    "🏨 Hospitality & Accommodation":         ("Hospitality Dataset",                 "Check-in/out validation, booking reference standardisation, and ADR/revenue analysis will run."),
+}
+
 
 def render_upload_panel(branding: dict, tier_row_limit: Optional[int], tier_name: str = "Free") -> Optional[pd.DataFrame]:
     """
@@ -78,13 +92,23 @@ def render_upload_panel(branding: dict, tier_row_limit: Optional[int], tier_name
 
     st.success(f"File loaded: **{uploaded_file.name}**")
 
+    # If the user has already chosen a domain in Step 2, reflect that choice here
+    # so the upload summary stays consistent with their selection.
+    user_domain = st.session_state.get("dataset_type_select", "General")
+    if user_domain and user_domain != "General" and user_domain in _DOMAIN_DISPLAY_LABELS:
+        display_label, display_hint = _DOMAIN_DISPLAY_LABELS[user_domain]
+        metric_header = "Dataset type"
+    else:
+        display_label, display_hint = type_label, type_hint
+        metric_header = "Type detected"
+
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("Rows", f"{len(df):,}")
     m2.metric("Columns", str(len(df.columns)))
     m3.metric("File size", f"{file_size_mb:.1f} MB")
-    m4.metric("Type detected", type_label)
+    m4.metric(metric_header, display_label)
 
-    st.caption(f"**{type_label}** detected — {type_hint}")
+    st.caption(f"**{display_label}** — {display_hint}")
 
     with st.expander("Preview first 5 rows", expanded=False):
         st.dataframe(df.head(5), use_container_width=True)

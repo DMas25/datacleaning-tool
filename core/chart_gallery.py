@@ -141,6 +141,9 @@ def render_chart_images(cards: List[ChartCard]) -> List[Tuple[ChartCard, bytes]]
         return []
 
 
+_CHART_SAMPLE_ROWS = 8_000  # max rows fed to Plotly for per-record charts
+
+
 def build_chart_gallery(
     raw_df: pd.DataFrame,
     cleaned_df: pd.DataFrame,
@@ -159,6 +162,16 @@ def build_chart_gallery(
         "#E67E22",
         branding["secondary_colour"],
     ])
+
+    # For charts that plot individual records (histograms, box plots, scatter),
+    # sample down to a fixed row count so Plotly serialisation and Kaleido
+    # PNG rendering stay fast regardless of dataset size.  Aggregate charts
+    # (bar charts from value_counts, donut charts from summary stats) always
+    # use the full dataset because they plot pre-computed counts, not raw rows.
+    if len(cleaned_df) > _CHART_SAMPLE_ROWS:
+        _plot_df = cleaned_df.sample(n=_CHART_SAMPLE_ROWS, random_state=42)
+    else:
+        _plot_df = cleaned_df
 
     # Missing values by column
     missing_by_col = cleaned_df.isnull().sum().sort_values(ascending=False)
@@ -248,14 +261,14 @@ def build_chart_gallery(
                 fig,
             ))
 
-    # Numeric distributions + box plots
+    # Numeric distributions + box plots — use sampled data for rendering speed
     num_cols = numeric_columns(cleaned_df)
     for i, col in enumerate(num_cols[:max_numeric]):
-        col_series = cleaned_df[col].dropna()
+        col_series = _plot_df[col].dropna()
 
         # Histogram
         fig = px.histogram(
-            cleaned_df, x=col, nbins=30,
+            _plot_df, x=col, nbins=30,
             color_discrete_sequence=[palette[i % len(palette)]],
             title=f"Distribution — {col}",
         )
@@ -362,8 +375,8 @@ def build_chart_gallery(
                 fig,
             ))
 
-    # Correlation heatmap
-    corr = correlation_matrix(cleaned_df)
+    # Correlation heatmap — sampled for speed on large datasets
+    corr = correlation_matrix(_plot_df)
     if corr is not None:
         fig = px.imshow(
             corr, text_auto=".2f",

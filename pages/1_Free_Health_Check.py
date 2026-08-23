@@ -40,6 +40,10 @@ st.markdown(
             ← Back to ColtraDataAi
         </a>
         &nbsp;·&nbsp;
+        <a href="/Live_Demo" style="color:{BRAND['primary_colour']};text-decoration:none;">
+            🎬 Try Live Demo
+        </a>
+        &nbsp;·&nbsp;
         <a href="/docs/privacy.html" style="color:#9CA3AF;text-decoration:none;">Privacy Policy</a>
         &nbsp;·&nbsp; {BRAND['legal_line']}
     </div>

@@ -30,7 +30,7 @@ import streamlit as st
 
 
 def check_password(branding: dict) -> bool:
-    """Email OTP authentication gate. Returns True when authenticated."""
+    """OTP authentication gate (email or phone). Returns True when authenticated."""
     if st.session_state.get("authenticated"):
         return True
 
@@ -45,7 +45,7 @@ def check_password(branding: dict) -> bool:
 
     step = st.session_state.get("_otp_step", "email")
     if step == "email":
-        _render_email_step(branding)
+        _render_input_step(branding)
     else:
         _render_verify_step(branding)
 
@@ -140,8 +140,8 @@ def render_footer(branding: dict) -> None:
 
 # ── Login steps ───────────────────────────────────────────────────────────────
 
-def _render_email_step(branding: dict) -> None:
-    """Step 1: email input form."""
+def _render_input_step(branding: dict) -> None:
+    """Step 1: choose sign-in method (email or phone) and request a code."""
     primary = branding["primary_colour"]
     _, mid, _ = st.columns([1, 1.4, 1])
     with mid:
@@ -154,21 +154,37 @@ def _render_email_step(branding: dict) -> None:
                             margin-bottom:0.3rem;letter-spacing:0.01em;">
                     Sign in or get started
                 </div>
-                <div style="font-size:0.78rem;color:#657286;margin-bottom:1.1rem;">
-                    Enter your email — we'll send a 6-digit verification code.
-                    No password needed.
+                <div style="font-size:0.78rem;color:#657286;margin-bottom:1rem;">
+                    We'll send a 6-digit verification code — no password needed.
                 </div>
             """,
             unsafe_allow_html=True,
         )
-        email = st.text_input(
-            "Email address",
+        method = st.radio(
+            "Sign in with",
+            ["Email", "Phone (SMS)"],
+            horizontal=True,
+            key="_login_method_radio",
             label_visibility="collapsed",
-            placeholder="your@email.com",
-            key="_login_email",
         )
-        if st.button("Send verification code →", use_container_width=True, type="primary"):
-            _handle_send_otp(email.strip(), branding)
+        if method == "Email":
+            email = st.text_input(
+                "Email address",
+                label_visibility="collapsed",
+                placeholder="your@email.com",
+                key="_login_email",
+            )
+            if st.button("Send verification code →", use_container_width=True, type="primary", key="_send_email_otp"):
+                _handle_send_otp(email.strip(), branding)
+        else:
+            phone = st.text_input(
+                "Phone number",
+                label_visibility="collapsed",
+                placeholder="+44 7700 900000",
+                key="_login_phone",
+            )
+            if st.button("Send verification code →", use_container_width=True, type="primary", key="_send_phone_otp"):
+                _handle_send_phone_otp(phone.strip(), branding)
         st.markdown(
             """
             <div style="margin-top:1rem;text-align:center;font-size:0.72rem;color:#9CA3AF;">
@@ -181,9 +197,15 @@ def _render_email_step(branding: dict) -> None:
 
 
 def _render_verify_step(branding: dict) -> None:
-    """Step 2: 6-digit OTP entry form."""
+    """Step 2: 6-digit OTP entry — works for both email and phone flows."""
     primary = branding["primary_colour"]
-    otp_email = st.session_state.get("_otp_email", "")
+    method = st.session_state.get("_login_method", "email")
+    if method == "phone":
+        contact = st.session_state.get("_otp_phone", "")
+        delivery_hint = "SMS codes typically arrive within 30 seconds."
+    else:
+        contact = st.session_state.get("_otp_email", "")
+        delivery_hint = "Check your spam / junk folder if it hasn't arrived within a minute."
     _, mid, _ = st.columns([1, 1.4, 1])
     with mid:
         st.markdown(
@@ -197,8 +219,8 @@ def _render_verify_step(branding: dict) -> None:
                 </div>
                 <div style="font-size:0.8rem;color:#657286;margin-bottom:1.1rem;line-height:1.55;">
                     A 6-digit code was sent to
-                    <strong style="color:#1F2937;">{otp_email}</strong>.<br/>
-                    Check your spam / junk folder if it hasn't arrived within a minute.
+                    <strong style="color:#1F2937;">{contact}</strong>.<br/>
+                    {delivery_hint}
                 </div>
             """,
             unsafe_allow_html=True,
@@ -211,7 +233,10 @@ def _render_verify_step(branding: dict) -> None:
             key="_login_otp_code",
         )
         if st.button("Verify & Sign in", use_container_width=True, type="primary"):
-            _handle_verify_otp(otp_email, code, branding)
+            if method == "phone":
+                _handle_verify_phone_otp(contact, code, branding)
+            else:
+                _handle_verify_otp(contact, code, branding)
         st.markdown("</div>", unsafe_allow_html=True)
         st.markdown(
             f"""
@@ -224,9 +249,12 @@ def _render_verify_step(branding: dict) -> None:
             """,
             unsafe_allow_html=True,
         )
-        if st.button("← Use a different email", key="_otp_back", use_container_width=False):
+        back_label = "← Use a different number" if method == "phone" else "← Use a different email"
+        if st.button(back_label, key="_otp_back", use_container_width=False):
             st.session_state.pop("_otp_step", None)
             st.session_state.pop("_otp_email", None)
+            st.session_state.pop("_otp_phone", None)
+            st.session_state.pop("_login_method", None)
             st.rerun()
 
 
@@ -251,6 +279,90 @@ def _handle_send_otp(email: str, branding: dict) -> None:
 
     st.session_state["_otp_email"] = email
     st.session_state["_otp_step"] = "verify"
+    st.session_state["_login_method"] = "email"
+    st.rerun()
+
+
+def _handle_send_phone_otp(phone: str, branding: dict) -> None:
+    """Request an SMS OTP for the given phone number via Supabase Auth."""
+    phone = phone.replace(" ", "")
+    if not phone or not phone.startswith("+"):
+        st.error("Please include your country code, e.g. +44 7700 900000.")
+        return
+
+    from services.auth_service import issue_phone_otp
+
+    with st.spinner("Sending verification code…"):
+        ok, error = issue_phone_otp(phone)
+
+    if not ok:
+        st.error(error)
+        return
+
+    st.session_state["_otp_phone"] = phone
+    st.session_state["_otp_step"] = "verify"
+    st.session_state["_login_method"] = "phone"
+    st.rerun()
+
+
+def _handle_verify_phone_otp(phone: str, code: str, branding: dict) -> None:
+    """Verify SMS OTP, resolve the account email, and authenticate the session."""
+    code = code.replace(" ", "").strip()
+
+    from services.auth_service import verify_phone_otp
+
+    with st.spinner("Verifying…"):
+        valid, supabase_email, error = verify_phone_otp(phone, code)
+
+    if not valid:
+        st.error(error)
+        return
+
+    email = supabase_email
+    if not email:
+        from services.licence_manager_pg import get_email_by_phone
+        email = get_email_by_phone(phone) or ""
+
+    if not email:
+        st.error(
+            "Phone verified, but no account was found for this number. "
+            "Please sign in with your email first, then update your phone number via the onboarding form."
+        )
+        return
+
+    try:
+        from services.licence_manager_pg import ensure_free_subscriber
+        ensure_free_subscriber(email)
+    except Exception:
+        pass
+
+    st.session_state["authenticated"] = True
+    st.session_state["customer_email"] = email
+    st.session_state["user_email"] = email
+
+    admin_email = _get_admin_email()
+    if admin_email and email.lower() == admin_email.lower():
+        st.session_state["is_admin"] = True
+        st.session_state["plan_key"] = "enterprise"
+        st.session_state["onboarding_complete"] = True  # admin never needs onboarding
+
+    _PLAN_DISPLAY = {
+        "starter": "Starter", "professional": "Professional",
+        "premium": "Premium", "enterprise": "Enterprise",
+    }
+    try:
+        from services.licence_manager_pg import get_by_email
+        sub = get_by_email(email)
+        if sub and sub.get("status") == "active" and sub.get("plan") not in (None, "", "free"):
+            plan_key = sub["plan"]
+            st.session_state["account_tier"] = _PLAN_DISPLAY.get(plan_key, plan_key.capitalize())
+            st.session_state["plan_key"] = plan_key
+    except Exception:
+        pass
+
+    st.session_state.pop("_otp_step", None)
+    st.session_state.pop("_otp_phone", None)
+    st.session_state.pop("_login_method", None)
     st.rerun()
 
 
@@ -286,6 +398,7 @@ def _handle_verify_otp(email: str, code: str, branding: dict) -> None:
     if admin_email and email.lower() == admin_email.lower():
         st.session_state["is_admin"] = True
         st.session_state["plan_key"] = "enterprise"
+        st.session_state["onboarding_complete"] = True  # admin never needs onboarding
 
     # Auto-activate paid plan from subscription record — no licence key entry needed.
     # The webhook stores the plan against the email; we load it here on first sign-in.
@@ -306,6 +419,8 @@ def _handle_verify_otp(email: str, code: str, branding: dict) -> None:
     # Clean up OTP step state
     st.session_state.pop("_otp_step", None)
     st.session_state.pop("_otp_email", None)
+    st.session_state.pop("_otp_phone", None)
+    st.session_state.pop("_login_method", None)
 
     st.rerun()
 
@@ -410,7 +525,7 @@ def _render_signup_guide(branding: dict) -> None:
                         </div>
                         <div style="font-size:0.76rem;color:#657286;margin-top:2px;line-height:1.5;">
                             Click <em>View Plans &amp; Pricing</em> below.
-                            Select Starter, Professional, Premium, or Enterprise
+                            Select Starter, Professional, Business, or Enterprise
                             and complete checkout via Lemon Squeezy.
                             A subscription confirmation email will be sent to you —
                             if it doesn't arrive, check your <strong>spam&nbsp;/&nbsp;junk</strong> folder.

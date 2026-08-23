@@ -75,16 +75,19 @@ log_app_start_once()
 #     Processing", reason) — users hit a branded upgrade prompt instead of
 #     a red error box
 #
-# Plan matrix  (config/plans.py)
-# ┌──────────────┬───────┬─────┬──────────┬──────────┬───────────┐
-# │ Plan         │ Excel │ PDF │ Insights │ Branding │ Max rows  │
-# ├──────────────┼───────┼─────┼──────────┼──────────┼───────────┤
-# │ free         │  —    │  —  │    —     │    —     │     5,000 │
-# │ starter      │  ✓    │  —  │    —     │    —     │    25,000 │
-# │ professional │  ✓    │  ✓  │    ✓     │    —     │   100,000 │
-# │ premium      │  ✓    │  ✓  │    ✓     │    ✓     │   250,000 │
-# │ enterprise   │  ✓    │  ✓  │    ✓     │    ✓     │ 1,000,000 │
-# └──────────────┴───────┴─────┴──────────┴──────────┴───────────┘
+# Plan matrix  (config/plans.py) — updated 2026-07-31
+# ┌─────────────────┬───────┬─────┬──────────┬──────────┬───────────┐
+# │ Plan            │ Excel │ PDF │ Insights │ Branding │ Max rows  │
+# ├─────────────────┼───────┼─────┼──────────┼──────────┼───────────┤
+# │ free            │  —    │  —  │    —     │    —     │     5,000 │
+# │ starter         │  ✓    │  —  │    —     │    —     │    50,000 │
+# │ professional    │  ✓    │  ✓  │    ✓     │    —     │   250,000 │
+# │ business        │  ✓    │  ✓  │    ✓     │    ✓     │ 1,000,000 │
+# │ enterprise      │  ✓    │  ✓  │    ✓     │    ✓     │ unlimited │
+# │ enterprise_api  │  ✓    │  ✓  │    ✓     │    ✓     │ unlimited │
+# │ ~~premium~~     │  ✓    │  ✓  │    ✓     │    ✓     │   250,000 │  ← legacy grandfathered only
+# └─────────────────┴───────┴─────┴──────────┴──────────┴───────────┘
+# Note: "premium" plan key is kept in PLAN_CONFIG for grandfathered subscribers — do not remove.
 # =============================================================================
 
 # ── Page configuration ────────────────────────────────────────────────────────

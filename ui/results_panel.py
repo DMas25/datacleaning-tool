@@ -82,8 +82,10 @@ def render_results_panel(
             render_run_limit_trigger(user_plan)
             st.stop()
         st.session_state.pop(_RESULT_KEY, None)
-        with st.spinner("Processing dataset…"):
-            result = _run_processing(df, options, branding, user_plan)
+        _status = st.status("Processing dataset…", expanded=True)
+        with _status:
+            result = _run_processing(df, options, branding, user_plan, _status)
+        _status.update(label="Report ready.", state="complete", expanded=False)
         increment_run()
         st.session_state["runs_this_session"] = st.session_state.get("runs_this_session", 0) + 1
         if get_user_email():
@@ -148,9 +150,9 @@ def render_results_panel(
     else:
         paywall_card(
             "Premium visual analytics are locked",
-            "Upgrade to Premium or above to unlock enhanced visual storytelling and premium charts.",
+            "Upgrade to Professional or above to unlock enhanced visual storytelling and premium charts.",
         )
-        render_upgrade_cta_button("premium", key_suffix="charts_lock")
+        render_upgrade_cta_button("professional", key_suffix="charts_lock")
 
     # ── Distribution & trend analysis (Professional+) ─────────────────────
     if has_feature(user_plan, "can_view_advanced_insights"):
@@ -251,7 +253,8 @@ def render_results_panel(
             _model_labels = {
                 "professional": "Haiku · fast analysis",
                 "premium":      "Sonnet · enhanced analysis",
-                "enterprise":   "Opus · comprehensive analysis",
+                "enterprise":   "Sonnet · comprehensive analysis",
+                "business":     "Sonnet · enhanced analysis",
             }
             st.caption(f"Model: {_model_labels.get(user_plan, 'AI analysis')}")
 
@@ -356,9 +359,9 @@ def render_results_panel(
     else:
         paywall_card(
             "Branded report outputs are locked",
-            "Upgrade to Premium or Enterprise to unlock branded reports and client-facing presentation outputs.",
+            "Upgrade to Business or Enterprise to unlock branded reports and client-facing presentation outputs.",
         )
-        render_upgrade_cta_button("premium", key_suffix="branding_lock")
+        render_upgrade_cta_button("business", key_suffix="branding_lock")
 
     # ── Step 8: Email Report Delivery ─────────────────────────────────────
     render_section_divider(branding=branding)
@@ -430,7 +433,7 @@ def _render_email_delivery_section(result: dict, user_plan: str) -> None:
 
 
 def _render_branding_test_form(result: dict, raw_df: pd.DataFrame, branding: dict) -> None:
-    """Lets an Enterprise/Premium tester swap in a custom logo and regenerate
+    """Lets an Enterprise/Business tester swap in a custom logo and regenerate
     the Excel/PDF downloads with it, to verify the branded-output capability.
 
     This is co-branding, not white-labelling: the logo image is the only
@@ -504,8 +507,15 @@ def _detect_col(df: pd.DataFrame, *keywords: str) -> Optional[str]:
 
 def _run_processing(
     df: pd.DataFrame, options: CleaningOptions, branding: dict, user_plan: str,
+    status=None,
 ) -> dict:
     """Apply cleaning, build quality metrics, generate reports, return result dict."""
+
+    def _step(msg: str) -> None:
+        if status is not None:
+            status.write(msg)
+
+    _step("Cleaning dataset…")
     cleaning_result      = apply_cleaning(df, options)
     cleaned_df           = cleaning_result.cleaned_df
     log_df               = cleaning_result.log_df
@@ -531,6 +541,7 @@ def _run_processing(
     hospitality_result   = None
 
     if "Clinical Research" in options.dataset_type:
+        _step("Applying Clinical Research cleaner…")
         nct_col = _detect_col(cleaned_df, "nct")
         inv_col = _detect_col(cleaned_df, "investigator", "principal_inv", "pi_name")
         raw_unique_count  = int(df[inv_col].nunique()) if inv_col and inv_col in df.columns else 0
@@ -549,59 +560,71 @@ def _run_processing(
         }
 
     if "Logistics" in options.dataset_type:
+        _step("Applying Logistics cleaner…")
         logistics_result = apply_logistics_cleaning(cleaned_df)
         cleaned_df = logistics_result.cleaned_df
 
     if "Import/Export" in options.dataset_type:
+        _step("Applying Import/Export cleaner…")
         trade_result = apply_trade_cleaning(cleaned_df)
         cleaned_df = trade_result.cleaned_df
 
     if "Finance" in options.dataset_type:
+        _step("Applying Finance cleaner…")
         finance_result = apply_finance_cleaning(cleaned_df)
         cleaned_df = finance_result.cleaned_df
 
     if "Retail" in options.dataset_type:
+        _step("Applying Retail cleaner…")
         retail_result = apply_retail_cleaning(cleaned_df)
         cleaned_df = retail_result.cleaned_df
 
     if "Consultant" in options.dataset_type:
+        _step("Applying Consultant cleaner…")
         consultant_result = apply_consultant_cleaning(cleaned_df)
         cleaned_df = consultant_result.cleaned_df
 
     if "Healthcare" in options.dataset_type:
+        _step("Applying Healthcare cleaner…")
         healthcare_result = apply_healthcare_cleaning(cleaned_df)
         cleaned_df = healthcare_result.cleaned_df
 
     if "SME" in options.dataset_type:
+        _step("Applying SME cleaner…")
         sme_result = apply_sme_cleaning(cleaned_df)
         cleaned_df = sme_result.cleaned_df
 
     if "Hospitality" in options.dataset_type:
+        _step("Applying Hospitality cleaner…")
         hospitality_result = apply_hospitality_cleaning(cleaned_df)
         cleaned_df = hospitality_result.cleaned_df
 
+    _step("Building quality metrics…")
     quality_df           = build_quality_summary_df(df, cleaned_df, options.null_handling)
     date_cols            = detect_date_columns(cleaned_df)
 
+    _step("Generating charts…")
     quality_breakdown_df, risk_summary, chart_assets = build_chart_and_risk(
         branding, df, cleaned_df, date_cols=date_cols
     )
 
+    _step("Running audit intelligence…")
     ledger_analysis = analyse_ledger(cleaned_df)
 
     ai_advisory = None
     if has_feature(user_plan, "can_view_advanced_insights") and _anthropic_key_configured():
-        with st.spinner("Generating AI advisory…"):
-            ai_advisory = generate_ai_advisory(
-                cleaned_df,
-                plan_key=user_plan,
-                risk_summary=risk_summary,
-                ledger_analysis=ledger_analysis,
-            )
+        _step("Generating AI advisory (this may take 20-30 seconds)…")
+        ai_advisory = generate_ai_advisory(
+            cleaned_df,
+            plan_key=user_plan,
+            risk_summary=risk_summary,
+            ledger_analysis=ledger_analysis,
+        )
         if ai_advisory and get_user_email():
             log_usage_event(get_user_email(), "ai_advisory", user_plan)
             st.session_state["follow_through_this_session"] = True
 
+    _step("Building reports…")
     from services.storage_service import make_run_id, storage_configured
     storage_run_id = make_run_id(get_user_email() or "") if storage_configured() else None
 

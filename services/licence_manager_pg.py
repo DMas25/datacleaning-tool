@@ -253,6 +253,29 @@ def get_by_email(email: str) -> Optional[dict]:
     return dict(row) if row else None
 
 
+def get_email_by_phone(phone: str) -> Optional[str]:
+    """Return the email linked to a customer_profiles phone number, or None."""
+    phone = phone.strip().replace(" ", "")
+    with _conn() as cur:
+        cur.execute(
+            "SELECT email FROM customer_profiles WHERE REPLACE(phone, ' ', '') = %s",
+            (phone,),
+        )
+        row = cur.fetchone()
+    return row["email"] if row else None
+
+
+def get_customer_profile(email: str) -> Optional[dict]:
+    """Return customer profile row from customer_profiles, or None."""
+    with _conn() as cur:
+        cur.execute(
+            "SELECT * FROM customer_profiles WHERE email = %s",
+            (email.lower().strip(),),
+        )
+        row = cur.fetchone()
+    return dict(row) if row else None
+
+
 def get_by_subscription_id(subscription_id: str) -> Optional[dict]:
     with _conn() as cur:
         cur.execute(

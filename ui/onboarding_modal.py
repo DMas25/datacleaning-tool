@@ -14,6 +14,7 @@ import streamlit as st
 
 from services.licence_manager_pg import (
     get_by_email,
+    get_customer_profile,
     save_compliance_consent,
     update_customer_profile,
     update_subscription_profile,
@@ -59,12 +60,28 @@ def needs_onboarding(email: str) -> bool:
     Returns False when:
       - The session flag "onboarding_complete" is already set (avoids a DB
         round-trip on every rerun after onboarding is done)
+      - The user is an admin (admin email bypass — no onboarding gate for operators)
       - The plan is "free" (free users are not put through onboarding)
-      - The subscription row already has a non-empty customer_name (onboarding
+      - The customer_profiles row already has a non-empty customer_name (onboarding
         was completed in a previous session)
     """
     if st.session_state.get("onboarding_complete"):
         return False
+
+    if st.session_state.get("is_admin"):
+        return False
+
+    # Secondary admin check — guards against edge cases where is_admin wasn't
+    # written to session state (e.g. fault recovery reset).
+    if email:
+        try:
+            admin_email = st.secrets.get("admin", {}).get("admin_email", "")
+            if admin_email and email.lower() == admin_email.lower():
+                st.session_state["is_admin"] = True
+                st.session_state["onboarding_complete"] = True
+                return False
+        except Exception:
+            pass
 
     plan = st.session_state.get("plan_key", "free")
     if plan == "free":
@@ -77,8 +94,14 @@ def needs_onboarding(email: str) -> bool:
     if row is None:
         return False
 
-    # customer_name column may not exist yet in the current SQLite schema
-    customer_name = row.get("customer_name", "") or ""
+    # customer_name lives in customer_profiles (separate table in PostgreSQL),
+    # not in subscriptions. Read from the correct table.
+    try:
+        profile = get_customer_profile(email)
+        customer_name = (profile.get("customer_name", "") or "") if profile else ""
+    except Exception:
+        customer_name = ""
+
     if customer_name and customer_name != "Not provided":
         # Already completed in a previous session — mark the flag so we don't
         # hit the DB again this session.
@@ -177,7 +200,15 @@ def show_onboarding_modal(email: str) -> None:
 
     st.caption("\\* Required. Your information is processed in accordance with our Privacy Policy and never sold.")
 
-    if st.button("Complete setup", type="primary", use_container_width=True):
+    col_submit, col_skip = st.columns([3, 1])
+    with col_skip:
+        if st.button("Skip for now", use_container_width=True):
+            st.session_state["onboarding_complete"] = True
+            st.rerun()
+    with col_submit:
+        submit = st.button("Complete setup", type="primary", use_container_width=True)
+
+    if submit:
         errors = []
         if not customer_name.strip():
             errors.append("full name")

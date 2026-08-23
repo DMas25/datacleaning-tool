@@ -7,15 +7,17 @@ _SUPPORT_TIERS: dict[str, list[str]] = {
     "free":         ["Email support (48–72h)"],
     "starter":      ["Email support (24–48h)"],
     "professional": ["Priority email support (12–24h)"],
-    "premium":      ["Priority support (same-day response)"],
+    "business":     ["Priority support (same-day)"],
     "enterprise":   ["Dedicated support + SLA (&lt;4h)"],
+    "premium":      ["Priority support (same-day)"],  # legacy grandfathered only
 }
 
 _CTA_LABELS: dict[str, str] = {
-    "starter":      "Upgrade to Starter",
+    "starter":      "Get Starter",
     "professional": "Get Professional",
-    "premium":      "Scale with Premium",
-    "enterprise":   "Upgrade to Enterprise",
+    "business":     "Get Business",
+    "enterprise":   "Book a Demo",
+    "premium":      "Scale with Premium",  # legacy grandfathered only — no active checkout
 }
 
 _ENTERPRISE_FEATURES = [

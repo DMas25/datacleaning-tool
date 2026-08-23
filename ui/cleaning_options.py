@@ -112,6 +112,7 @@ def render_cleaning_options(branding: dict) -> CleaningOptions:
         "Dataset type",
         _DATASET_TYPES,
         index=0,
+        key="dataset_type_select",
         help="Select 'Clinical Research' to enable ID validation, zfill registry "
              "normalisation, and the researcher → trial sequence results view.",
     )
