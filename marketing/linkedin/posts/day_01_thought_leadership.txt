@@ -1,0 +1,19 @@
+Bad data is not a tech problem. It never was.
+
+I learned that sitting at a tax desk in Zimbabwe, watching small business owners arrive with spreadsheets held together by hope and inconsistent formatting. Duplicate entries. Missing VAT numbers. Dates written three different ways in the same column. Supplier names that changed slightly every time someone typed them.
+
+The books were not wrong because the businesses were failing. The books were wrong because no one had ever given these owners a reliable way to clean what they had before it reached the accountant.
+
+That stayed with me.
+
+Years later, working as a UK trade consultant across AfCFTA corridors and UK-Africa trade routes, I saw the same problem at a different scale. Importers, logistics teams, compliance officers - all dealing with data that was too messy to trust and too large to fix by hand.
+
+So I built ColtraDataAi. Not an analytics platform. Not an advisory tool. A domain-specific data cleaning engine that looks at your spreadsheet and tells you exactly what is wrong with it - before it causes a problem downstream.
+
+Eight industry cleaners. Finance, logistics, retail, trade, healthcare, hospitality, consultancy, and SME. Built for the people who actually handle the data, not just the people who commission reports about it.
+
+The problem is not new. The tool finally is.
+
+Follow for 30 days of content on data quality, AI, and what clean data means for your business.
+
+#DataQuality #FounderStory #SME #UKBusiness #AfCFTA #ColtraDataAi

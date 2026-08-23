@@ -1,0 +1,17 @@
+It does one thing. It does it well.
+
+ColtraDataAi is not an analytics platform. It does not generate forecasts, send alerts, or tell you how to run your business. It cleans your data and tells you what is wrong with it.
+
+Here is what that looks like in practice:
+
+Upload a CSV or connect via API. Choose your industry cleaner - Finance, Logistics, Retail, Trade, Healthcare, SME, Consulting, or Hospitality. The engine runs validation checks specific to that domain. You get a cleaned dataset, a flagged issues report, a KPI summary, and exportable Excel and PDF outputs.
+
+That is the whole product.
+
+No dashboards to configure. No six-week onboarding. No AI assistant interpreting what your data means. Just a clean file and a clear picture of where your data had problems before it got there.
+
+Bookkeepers receiving messy client exports, ops managers dealing with inconsistent supplier data, and developers building pipelines that need structured inputs all use it for that exact problem.
+
+Start free at app.coltradata.com - no card required.
+
+#DataCleaning #ColtraDataAi #SME #DataTools #Productivity

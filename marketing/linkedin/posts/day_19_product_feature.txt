@@ -1,0 +1,17 @@
+Cleaned data is only useful if someone can read it.
+
+ColtraDataAi produces three outputs after every cleaning run - and all three are ready to hand to a client or senior stakeholder without touching a formatting tool.
+
+The Excel report is multi-sheet: cleaned data, flagged issues, summary statistics, and charts in one file. Nothing buried, nothing missing.
+
+The PDF executive summary pulls the key KPI highlights into a clean, branded document. Open it, send it, done.
+
+The dashboard view gives a visual breakdown of what was found across the dataset - duplicates, format errors, missing values, validation flags - laid out so the picture is clear at a glance.
+
+Every output carries your branding. No white-label reformatting required before it goes to a client or into a board pack.
+
+One cleaning run. Three outputs. Zero reformatting.
+
+See a sample report - link in comments.
+
+#DataReporting #ExcelReports #DataQuality #ColtraDataAi #DataValidation #SMETools

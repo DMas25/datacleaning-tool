@@ -1,0 +1,20 @@
+Operational healthcare data breaks in predictable ways. Most teams don't catch it until the billing run.
+
+Appointment logs, staff scheduling files, and billing records sit at the core of healthcare operations. They are not clinical records - but the data quality problems inside them are just as disruptive.
+
+The ColtraDataAi Healthcare cleaner runs 35-plus validation checks built around the specific ways this data goes wrong.
+
+That includes:
+
+- Status code drift (appointment statuses that shift inconsistently across exports)
+- Duplicate patient IDs appearing across separate records
+- Impossible appointment sequences (a discharge logged before an admission)
+- Missing or zero billing amounts on completed appointments
+
+These are not edge cases. They are routine problems in operational datasets that have passed through multiple hands - reception systems, scheduling tools, finance exports - before anyone looks at them closely.
+
+The cleaner surfaces these issues clearly and specifically. What the data contains, what is missing, what conflicts with itself. No interpretation beyond that.
+
+Healthcare ops teams: explore the full check list at app.coltradata.com.
+
+#HealthcareTech #DataQuality #HealthcareOperations #NHS #ColtraDataAi

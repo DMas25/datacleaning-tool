@@ -1,0 +1,21 @@
+Accounting automation didn't arrive all at once. It crept in.
+
+Bank reconciliation. Then OCR receipt capture. Then AI transaction categorisation. Each one quietly became standard - and most practices can't imagine going back.
+
+The next wave is already forming.
+
+Automated pre-submission data validation. Anomaly detection at the point of ingestion. Structured quality reports built directly into the workflow - not patched on at the end when a client's file is already a mess.
+
+The shift matters because the bottleneck is moving. Categorising transactions faster is useful. But if the underlying data is inconsistent, duplicated, or structurally broken, faster processing just delivers errors more efficiently.
+
+Data quality has to come first - before the analysis, before the submission.
+
+That's the gap ColtraDataAi sits in. A Finance and Accounting cleaner that flags duplicate entries, inconsistent date formats, missing reference fields, negative balances, and currency mismatches - before the data goes anywhere else.
+
+It doesn't interpret the numbers. It tells you what's wrong with them. What you do from there is your call.
+
+We're early in this cycle. The practices building quality checks into their ingestion workflow now are the ones who won't be firefighting in 2029.
+
+What accounting automation are you already using? Comment below.
+
+#AccountingTech #FinTech #Automation #AI #ColtraDataAi #DataQuality

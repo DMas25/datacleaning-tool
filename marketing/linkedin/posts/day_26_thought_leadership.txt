@@ -1,0 +1,19 @@
+Every data tool wants to be your entire data stack.
+
+Clean it. Analyse it. Visualise it. Predict from it. Tell you what to do next. The pitch sounds compelling until you are three integrations deep and the "insights" being surfaced do not match your industry, your data structure, or your actual question.
+
+ColtraDataAi does one thing.
+
+It cleans domain-specific data and tells you exactly what was wrong with it - duplicate records, mismatched formats, invalid identifiers, structural inconsistencies across eight industry categories. Then it stops.
+
+It does not interpret the results. It does not advise on next steps. That is the accountant's job. The analyst's job. The operator's job. The person who knows the business.
+
+We built it that way on purpose.
+
+A tool that knows its boundaries is more trustworthy than one that overreaches. When a data cleaning report tells you that 14% of your supplier records have missing VAT numbers, that is a fact about your data. What you do with that fact belongs to a human with context.
+
+Practitioners work with clean data. They do not need another platform interpreting it for them.
+
+What do you think: focused tools or all-in-one platforms? Share your view in the comments.
+
+#ProductPhilosophy #SaaS #DataTools #ThoughtLeadership #ColtraDataAi

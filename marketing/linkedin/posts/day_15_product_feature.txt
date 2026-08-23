@@ -1,0 +1,17 @@
+Manual upload workflows break at scale.
+
+When your team is processing thousands of records across multiple domains, clicking through a UI is not a pipeline. It is a bottleneck.
+
+The ColtraDataAi Enterprise API exposes all eight domain cleaners through a single REST endpoint: POST /v1/clean/{domain}. Send CSV or JSON. Get back a cleaned dataset and a structured findings object that flags exactly what was wrong with the incoming data.
+
+Every call is authenticated via Bearer token. Usage is logged per request. Swagger docs are included so your developers know the schema.
+
+The eight domains available via API: Finance & Accounting, Logistics & Supply Chain, Retail & Inventory, Import/Export & Trade, Healthcare (Operational), Consultants & Professional Services, SME & Small Business, and Hospitality & Accommodation.
+
+Built on FastAPI. Deployed at coltradata-api.onrender.com.
+
+If you are building a data pipeline and need domain-specific validation at the ingestion layer, integrate this endpoint.
+
+Enterprise API starts at £499/month. Docs at coltradata-api.onrender.com/docs.
+
+#API #EnterpriseData #DataEngineering #FastAPI #ColtraDataAi #DataQuality

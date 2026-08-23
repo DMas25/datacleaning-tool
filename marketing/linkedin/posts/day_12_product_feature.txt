@@ -1,0 +1,17 @@
+Generic data cleaning tools find empty cells.
+
+They don't know that a negative average daily rate is impossible. They don't flag a zero-night hotel stay as an error. They won't tell you that 'OTA' and 'Online Travel Agency' are the same channel appearing twice in your source data.
+
+That distinction matters.
+
+A generic cleaner applies universal rules: fill blanks, remove duplicates, flag nulls. It has no idea what your data is supposed to represent. So it passes records that are technically complete but operationally wrong.
+
+A domain-specific cleaner knows the rules of the industry. In hospitality, it understands rate logic, stay duration constraints, and channel naming conventions. In import/export, it validates HS codes, flags missing incoterms, and catches inconsistent country-of-origin formats. In finance, it checks that transaction references follow expected patterns and that VAT figures align with declared values.
+
+That context is not a feature add-on. It is the entire point.
+
+ColtraDataAi was built with eight dedicated industry cleaners because data problems are not generic. They are specific to the workflows, terminology, and logic of each sector. The cleaner needs to understand the domain before it can meaningfully validate the data.
+
+Explore all eight domain cleaners at app.coltradata.com.
+
+#DataCleaning #DomainExpertise #DataQuality #ColtraDataAi #SME

@@ -1,0 +1,17 @@
+Three months of transactions. Five date formats. Duplicate rows. And the bookkeeper fixes it before the real work even starts.
+
+This is one of the most common patterns in small business accounting - and it barely gets talked about.
+
+Bookkeepers are skilled professionals. Reconciling accounts, spotting discrepancies, keeping a business financially coherent - that is the work. But a significant chunk of their time goes somewhere else entirely: cleaning up what the client sent over.
+
+Inconsistent category labels. Merged cells. Amounts in the wrong columns. Currency fields with text in them. None of it is complicated to fix. All of it takes time. And none of it is why a bookkeeper trained.
+
+The harder truth is that this data could arrive clean. The client's systems often have the right data - it just leaves in a chaotic state. A validation step before it gets sent would catch most of it.
+
+ColtraDataAi runs exactly those checks. The Finance and Accounting cleaner flags duplicate transactions, inconsistent date formats, missing reference fields, and currency mismatches - before the file reaches anyone who has to act on it.
+
+The bookkeeper still does the bookkeeping. They just do not have to start by doing the cleaning.
+
+Bookkeepers: what is the most common data error you fix for clients? Comment below.
+
+#Bookkeeping #AccountingTech #SME #DataQuality #UKAccounting #ColtraDataAi

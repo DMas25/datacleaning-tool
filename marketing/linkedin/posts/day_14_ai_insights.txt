@@ -1,0 +1,19 @@
+LLMs are not data validators. They are language models.
+
+This distinction matters more than most people realise when they start exploring AI tools for data quality work.
+
+Large language models are genuinely impressive at interpretation, summarisation, and generating structured outputs from unstructured text. Ask one to explain a trend, draft a summary, or classify a piece of free-form input - it performs well.
+
+Ask it to validate 50,000 rows of supplier invoice data against domain-specific formatting rules, and the picture changes fast.
+
+LLMs hallucinate missing values rather than flagging them. They miss systematic duplicates that a rule-based check catches immediately. They apply logic inconsistently across rows because they are predicting tokens, not executing deterministic validation logic.
+
+For structured tabular data, domain-aware rule engines outperform general-purpose AI every time. Not because AI is bad - but because the task requires precision and repeatability, not probabilistic language generation.
+
+The right division of labour: use structured validation to clean and flag the data, then use LLMs to help interpret what those flags mean in context.
+
+ColtraDataAi sits on the validation side of that line. Eight domain-specific cleaners, rule-based logic, consistent outputs. No hallucinated corrections.
+
+See how domain-aware validation differs from AI summarisation at app.coltradata.com.
+
+#LLM #AI #DataValidation #StructuredData #DataQuality #ColtraDataAi

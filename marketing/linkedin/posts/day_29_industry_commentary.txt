@@ -1,0 +1,15 @@
+Every business decision you only as good as the data underneath it.
+
+Every forecast. Every budget. Every operational change. Every investment case. Each one traces back to a number, a record, a file that someone compiled and passed along. If that source data is inconsistent, duplicated, or incorrectly formatted, the decision built on it is unstable - regardless of how sophisticated the analysis on top looks.
+
+The problem is not that businesses ignore data quality. It is that they treat it as a downstream concern. Something to investigate when a report throws up an anomaly. Something to clean up after the fact.
+
+By then, decisions have already been made.
+
+Verify the foundation before you build on it. The same logic applies to your data before it feeds a model, a dashboard, a budget, or a board presentation.
+
+The businesses that consistently make better decisions are not always the ones with the best analysts. They are often the ones who sorted out their data quality first.
+
+What is the biggest data quality issue your team deals with?
+
+#DataQuality #BusinessStrategy #DataDriven #ColtraDataAi

@@ -1,0 +1,17 @@
+Nobody talks about data cleaning at conferences.
+
+They talk about AI. They talk about predictive analytics, real-time dashboards, and machine learning pipelines. The stage lights go up on the insight, not the infrastructure that made it possible.
+
+But every dashboard has a foundation. And that foundation is a dataset someone had to clean before any of it meant anything.
+
+Duplicate records. Inconsistent date formats. Currency fields with mixed symbols. Supplier names entered six different ways. These are not edge cases - they are the normal state of business data, especially at SME level where manual entry and disconnected systems are still the everyday reality.
+
+The insight does not become untrustworthy at the analytics stage. It becomes untrustworthy the moment the raw data goes in dirty. Everything built on top of it inherits that problem, quietly.
+
+Data quality is infrastructure. Not overhead. Not a junior task to sort before the real work begins. Infrastructure - the kind that determines whether anything downstream is worth trusting.
+
+The industry has spent a decade celebrating what data can do. It is worth spending some time on whether the data is actually ready to do it.
+
+What is your take: is data quality finally getting the attention it deserves?
+
+#DataQuality #DataStrategy #SMEOperations #DataValidation #ColtraDataAi #DataCleaning #Infrastructure

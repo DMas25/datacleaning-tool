@@ -1,0 +1,17 @@
+Booking data doesn't clean itself before revenue reporting. But most teams act like it does.
+
+Hotels and accommodation operators pull booking exports into spreadsheets or PMS reports and run their numbers. The problem is the data underneath those numbers is rarely consistent.
+
+ColtraDataAi's Hospitality cleaner flags the issues before they reach the report.
+
+Duplicate booking references. Check-in and check-out sequences that produce zero-night or impossibly long stays. Room type labels that vary by channel - "Dbl", "Double Room", "DBL STD" - treated as separate categories. Booking source fields that mix OTA names, direct labels, and corporate codes with no consistent format.
+
+Once the data is validated and normalised, the cleaner produces a clean KPI summary: cancellation rate, no-show rate, average daily rate, total revenue, and average revenue per booking.
+
+It doesn't interpret those numbers. It surfaces what the data shows - accurately, consistently, and without the manual cleanup that usually happens the night before a revenue meeting.
+
+If your ADR looks off or your channel mix doesn't add up, the issue is often in the data, not the strategy.
+
+Try the Hospitality cleaner free at app.coltradata.com.
+
+#Hospitality #HotelData #RevenueManagement #DataQuality #ColtraDataAi

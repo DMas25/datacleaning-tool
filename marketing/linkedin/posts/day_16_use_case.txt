@@ -1,0 +1,19 @@
+Dirty stock data doesn't just sit in a spreadsheet. It moves downstream - into your P&L, your reorder triggers, and your margin calculations.
+
+The ColtraDataAi Retail and Inventory cleaner flags the errors that cause that damage before they travel any further.
+
+What it catches:
+
+- Negative stock quantities that shouldn't exist
+- Duplicate SKUs creating phantom inventory
+- Price fields formatted in inconsistent or unrecognised currency formats
+- Products missing category assignments
+- Unit-of-measure labels that don't match across records (each, pcs, unit, EA - all meaning the same thing, all treated differently)
+
+None of these are rare edge cases. They're routine. And left unchecked, they distort your inventory valuation, misfire your reorder signals, and quietly erode the accuracy of your margins.
+
+The cleaner surfaces what the data actually contains - clearly, consistently, before anything downstream relies on it.
+
+Try the Inventory cleaner free at app.coltradata.com.
+
+#Retail #Inventory #DataQuality #StockManagement #ColtraDataAi #RetailTech

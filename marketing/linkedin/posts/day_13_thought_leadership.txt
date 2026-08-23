@@ -1,0 +1,17 @@
+AfCFTA is not primarily a tariff story. It is a data story.
+
+When goods move across African cross-border corridors today, the data that follows them arrives in fragments. Different classification systems. Inconsistent product naming. Currency fields mixed with text. Date formats that shift country to country. HS codes entered manually, inconsistently, or not at all.
+
+Before any business can report on that trade, they have a cleaning problem. Not an analytics problem. A cleaning problem.
+
+This is not unique to Africa. But it is more visible there because the systems are newer and the standards are still being harmonised. AfCFTA is building the framework. The data infrastructure is catching up.
+
+The businesses operating inside these corridors right now - importers, exporters, freight forwarders, compliance teams - are dealing with this gap today. Spreadsheets that don't match. Records that can't be reconciled. Reports that take days to prepare because the underlying data is inconsistent.
+
+ColtraDataAi has a dedicated Import/Export and Trade cleaner built to handle exactly this kind of data - flagging classification mismatches, format inconsistencies, and structural errors across trade datasets.
+
+Coltrane Ltd and ColtraDataAi were both built with this corridor in mind.
+
+If you work in African cross-border trade and recognise this problem, explore app.coltradata.com.
+
+#AfCFTA #AfricanTrade #TradeData #DataQuality #ColtraDataAi #UKAfrica

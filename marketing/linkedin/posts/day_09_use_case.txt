@@ -1,0 +1,19 @@
+Dirty logistics data does not wait for a convenient moment to cause problems.
+
+A duplicate shipment ID looks harmless in a spreadsheet. In an active supply chain, it creates confusion over what has moved, what has not, and who is responsible for what.
+
+The ColtraDataAi Logistics and Supply Chain cleaner works through the specific failure points that appear repeatedly in real operations data:
+
+- Duplicate shipment IDs
+- Transit times recorded as zero or negative days
+- Missing or inconsistent carrier codes
+- Weight and unit mismatches across records
+- Destination formats that do not align across the dataset
+
+Each issue gets flagged individually. The output is a structured report your operations or planning team can work from directly - no manual hunting through rows, no guessing where the problem started.
+
+The cleaner does not interpret what the data means for your business. It shows you precisely where the data breaks down. What happens next is your call.
+
+Supply chain teams: try the Logistics cleaner free. Start with app.coltradata.com.
+
+#Logistics #SupplyChain #DataQuality #Operations #ColtraDataAi

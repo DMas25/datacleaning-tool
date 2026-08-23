@@ -1,0 +1,19 @@
+Most analysts aren't doing analysis. They're cleaning spreadsheets.
+
+Industry surveys put data preparation time at 60 to 80% of a data professional's working week. That's not a skills problem. That's an infrastructure problem.
+
+Businesses spend on dashboards. They spend on BI tools. They invest in analysts. Then they feed all of it with data that hasn't been validated, standardised, or checked for consistency.
+
+The output looks polished. The input is chaos.
+
+The question most teams ask is: "What does our data show us?"
+
+The question they should be asking first is: "Is our data in a state where it can show anything reliable?"
+
+Those are very different questions. And skipping the second one doesn't make the first one easier - it just makes the answer less trustworthy.
+
+Data cleaning isn't a junior task to be skipped. It's the foundation everything else sits on.
+
+What percentage of your team's time goes to data prep? Honest answers only.
+
+#DataAnalytics #DataEngineering #Productivity #ThoughtLeadership #ColtraDataAi

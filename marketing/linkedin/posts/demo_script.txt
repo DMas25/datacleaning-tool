@@ -1,0 +1,187 @@
+ColtraDataAi - Live Demo Script
+Version 1.0 | 2026-08-14
+===============================================================
+FORMAT NOTES
+  - VOICEOVER: Read this aloud exactly as written when recording.
+    Aim for a calm, direct delivery. No filler. No enthusiasm performance.
+  - [LIVE]: Delivery guidance for a real call - adapt freely, this is
+    a prompt not a constraint.
+  - [SCREEN]: What to have visible or what to click at that moment.
+  - Total runtime (recording): approx. 2.5 minutes at a measured pace.
+  - For a live sales call, expand each section with questions and pauses.
+    Budget 5-8 minutes including prospect interaction.
+
+DOMAIN PLACEHOLDER
+  Replace [DOMAIN] with one of the following before recording or presenting.
+  Pair it with the [KEY FINDING] for that domain (see substitution table below).
+
+  Domain              | [DOMAIN] label              | [KEY FINDING]
+  --------------------|-----------------------------|-----------------------------------------
+  Finance             | Finance and Accounting      | invalid VAT codes and a trial balance that does not close
+  Logistics           | Logistics and Supply Chain  | delivery dates recorded before dispatch dates
+  Trade               | Import/Export and Trade     | negative declared values and non-standard HS codes
+  Retail              | Retail and Inventory        | items where cost price exceeds selling price
+  SME                 | SME and Small Business      | overdue invoices and invalid UK VAT numbers
+  Consultants         | Consultants and Services    | timesheet entries exceeding 24 hours in a single day
+  Healthcare          | Healthcare Operations       | NHS numbers failing Mod 11 validation
+  Hospitality         | Hospitality                 | check-out dates recorded before check-in
+  Clinical            | Clinical Research           | the same researcher appearing under multiple name variants
+
+===============================================================
+PART 1 - COLD OPEN (0:00 - 0:20)
+===============================================================
+
+[SCREEN: ColtraDataAi landing page or the Live Demo page loading]
+
+VOICEOVER:
+Most data quality problems are invisible until they have already caused a
+problem. A report built on bad data does not tell you it is wrong. It just
+gives you the wrong answer.
+
+[LIVE: "Before I show you the tool - does that sound familiar in your work?
+What does bad data actually cost you in a typical month?" - wait for the
+answer. This is the most important moment of the call.]
+
+===============================================================
+PART 2 - THE PROBLEM SETUP (0:20 - 0:50)
+===============================================================
+
+[SCREEN: Stay on landing page or navigate to the demo tab for [DOMAIN]]
+
+VOICEOVER:
+The [DOMAIN] cleaner inside ColtraDataAi is built for exactly this. It
+runs a structured set of domain-specific validation checks against your
+data before it reaches anyone who needs to rely on it.
+
+Not generic checks. Checks that were written specifically for [DOMAIN]
+data - the inconsistencies and errors that show up repeatedly in that
+kind of dataset and that a spreadsheet formula will not catch.
+
+[LIVE: "What does your current process look like for checking a new file
+before it goes into your system?" - this surfaces manual pain, positions
+the product.]
+
+===============================================================
+PART 3 - RAW DATA (0:50 - 1:15)
+===============================================================
+
+[SCREEN: Navigate to app.coltradata.com/Live_Demo if not already there.
+Click the [DOMAIN] tab. Let the raw data table load and sit on screen
+for a moment before speaking.]
+
+VOICEOVER:
+This is a sample dataset that represents what we typically see from a
+[DOMAIN] export. It looks fine at a glance. Columns are populated. There
+is data in every row.
+
+But it contains [KEY FINDING], along with a number of other issues that
+are easy to miss when you are reviewing a file manually.
+
+[LIVE: "I will let you read the data for a second. What do you notice?"
+- give them time. They rarely spot everything. That contrast lands harder
+when the results appear.]
+
+===============================================================
+PART 4 - RUN THE DEMO (1:15 - 1:25)
+===============================================================
+
+[SCREEN: Click the "Run Demo - See what ColtraDataAi finds" button.
+Let the spinner run. Do not talk over this moment - let the silence work.]
+
+VOICEOVER:
+[SAY NOTHING during the spinner. Let the pause build the anticipation.]
+
+[LIVE: If they ask "how long does it take?" - "On a real file, a few
+seconds per thousand rows. On this sample it is near-instant."]
+
+===============================================================
+PART 5 - THE FINDINGS (1:25 - 2:00)
+===============================================================
+
+[SCREEN: The results section appears. Keep the findings list visible.
+Point at specific rows in the issues list as you describe them.]
+
+VOICEOVER:
+These are the findings. Each line is a specific category of issue - the
+type, a plain-English description, and the count of affected rows.
+
+The ones flagged in amber are problems. The ones in green passed the check.
+
+What you are looking at is a structured audit of the dataset. It tells
+you exactly what the data contains and where the problems are - without
+interpretation, without advisory language, and without asking you to
+trust a human's judgment about what they reviewed and what they missed.
+
+[LIVE: Walk through the flagged findings one by one, reading the type
+and count aloud. Then ask: "If that came into your system unflagged -
+what would happen downstream?" Let them answer. The answer is usually the
+sale.]
+
+===============================================================
+PART 6 - THE CLEANED DATA (2:00 - 2:20)
+===============================================================
+
+[SCREEN: Scroll down to the "Cleaned data - after processing" table.
+Point out changes in key columns - standardised values, removed duplicates.]
+
+VOICEOVER:
+And this is the cleaned version. Duplicates removed. Standardised values
+where the cleaner could normalise them automatically. And where it could
+not fix something without a human decision, it has flagged it rather than
+guessing.
+
+You get the cleaned dataset, a flagged row report, and a plain-language
+summary of what changed. All three ready to hand straight to whoever
+needs them.
+
+[LIVE: "Does your current process produce anything like this as an output -
+or is it more of a word-of-mouth 'I checked it' kind of handoff?"]
+
+===============================================================
+PART 7 - CTA (2:20 - 2:40)
+===============================================================
+
+[SCREEN: Scroll to the CTA section at the bottom. Or navigate back to
+the pricing page depending on the conversation.]
+
+VOICEOVER:
+The free plan gives you three runs to start - no credit card required.
+You can upload your own data today and see exactly what it finds.
+
+If you already know you need this regularly, the Starter plan is twenty-
+nine pounds a month and covers fifty runs per month. Professional is
+ninety-nine and adds PDF reports, advanced insights, and two hundred runs.
+
+The link is in the description.
+
+[LIVE: "Based on what you just saw - how many files a month would you
+realistically want to run through this?" - this sizes the right plan
+without you having to push one. They self-select.]
+
+===============================================================
+CLOSING NOTES FOR LIVE CALLS
+===============================================================
+
+If they ask "how is this different from just writing formulas in Excel?":
+  "Excel formulas check what you tell them to check. This checks what
+   we know goes wrong in [DOMAIN] data - based on the patterns that
+   cause problems repeatedly. You do not have to build the logic. It is
+   already there."
+
+If they ask "what about data security / does my data leave my system?":
+  "The file is processed in memory. It is never written to disk. We do
+   not store, share, or retain any file content. The output exists in
+   your session only."
+
+If they ask "can we try it with our actual data?":
+  "Yes - that is exactly what the free plan is for. Sign up, upload a
+   real file, and you will see findings within seconds. You do not need
+   to commit to anything until you have seen it on your own data."
+
+If they go quiet after the findings reveal:
+  Do not fill the silence. Let them sit with what they just saw.
+  That pause is where the value lands.
+
+===============================================================
+END OF SCRIPT
+===============================================================
