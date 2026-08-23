@@ -35,14 +35,14 @@ if TYPE_CHECKING:
 _MODEL: dict[str, str] = {
     "professional": "claude-haiku-4-5-20251001",
     "business":     "claude-sonnet-4-6",
-    "enterprise":   "claude-opus-4-8",
+    "enterprise":   "claude-sonnet-4-6",  # Sonnet: 3-5x faster than Opus, still full-depth
     "premium":      "claude-sonnet-4-6",  # legacy grandfathered tier
 }
 
 _MAX_TOKENS: dict[str, int] = {
     "professional": 1100,
     "business":     1900,
-    "enterprise":   3600,
+    "enterprise":   2400,  # reduced from 3600 — Sonnet is more token-efficient
     "premium":      1900,  # legacy grandfathered tier
 }
 
@@ -68,10 +68,12 @@ _PERSONA = (
     "accountants, finance managers, and auditors at SMEs. You write for two audiences at "
     "once: a practice owner or CFO who needs a confident, non-technical read, and a data "
     "team who needs precise, trustworthy technical detail. Avoid academic language, "
-    "hedging, and generic filler — every line must be specific to this dataset. "
+    "hedging, and generic filler; every line must be specific to this dataset. "
     "When the dataset is financial, surface commercial and compliance implications "
     "(VAT exposure, period-end cut-offs, supplier concentration risk, cash flow signals) "
-    "alongside the data quality analysis."
+    "alongside the data quality analysis. "
+    "IMPORTANT: Never use em dashes (the character —) in your output. Use a hyphen (-) or "
+    "standard punctuation (colon, comma, semicolon) instead."
 )
 
 _ACCOUNTING_CONTEXT: dict[str, str] = {
@@ -110,7 +112,7 @@ _SECTION_SPEC = (
     "## AI Advisory\n"
     "### A. Data Quality Diagnosis\n"
     "Structural vs true missingness, data type risks (e.g. categorical IDs misread as "
-    "numeric metrics — never treat IDs/codes as numeric metrics), and integrity risks "
+    "numeric metrics; never treat IDs/codes as numeric metrics), and integrity risks "
     "(joins, timestamps, relationships).\n"
     "### B. Statistical & Pattern Analysis\n"
     "Distribution shape (normal/skewed/heavy-tailed), outliers and what they mean, data "
@@ -120,14 +122,14 @@ _SECTION_SPEC = (
     "signals it contains.\n\n"
     "## Modelling & Analytics Readiness\n"
     "State plainly whether this is ready for ML/analytics, what transformations are "
-    "required, leakage risks (be specific — this is critical), and a recommended "
+    "required, leakage risks (be specific - this is critical), and a recommended "
     "modelling approach (e.g. regression, clustering, time-series).\n\n"
     "## Top Priority Actions\n"
-    "A numbered list of the top 5–7 actions, ranked by impact. Each line must follow this "
-    "exact format: \"<action> — <why it matters> (Effort: Low/Medium/High)\".\n\n"
+    "A numbered list of the top 5-7 actions, ranked by impact. Each line must follow this "
+    "exact format: \"<action>: <why it matters> (Effort: Low/Medium/High)\".\n\n"
     "## Bottom Line Summary\n"
     "One decisive closing statement: is the dataset Decision-ready, Model-ready, or Needs "
-    "refinement — and why.\n\n"
+    "refinement, and why.\n\n"
     "Do not impute structurally missing categorical fields and do not treat ID/code "
     "columns as numeric metrics in your analysis."
 )
@@ -192,7 +194,7 @@ def generate_ai_advisory(
 
         if risk_summary:
             summary += (
-                f"\n\nDeterministic risk classification (treat as ground truth — do not "
+                f"\n\nDeterministic risk classification (treat as ground truth - do not "
                 f"contradict it): Overall risk = {risk_summary.get('overall_risk')}. "
                 f"Top issue = {risk_summary.get('top_issue')}. "
                 f"Structural missingness driven = {risk_summary.get('structural_missingness', False)}."
@@ -211,7 +213,7 @@ def generate_ai_advisory(
 
         prompt = prompt_tpl.format(summary=summary) + accounting_note
 
-        client   = anthropic.Anthropic(api_key=api_key)
+        client   = anthropic.Anthropic(api_key=api_key, timeout=60.0)
         response = client.messages.create(
             model=model,
             max_tokens=max_tokens,
@@ -367,7 +369,7 @@ def _build_ledger_context(ledger_analysis: "LedgerAnalysis") -> str:
     """Compact audit-findings block for injection into the advisory prompt."""
     from services.ledger_analyser import LedgerAnalysis  # local to avoid circular import
 
-    parts = ["\n\nAudit Intelligence (treat as ground truth — do not contradict):"]
+    parts = ["\n\nAudit Intelligence (treat as ground truth - do not contradict):"]
     file_label = _FILE_TYPE_LABELS.get(ledger_analysis.file_type, "Financial Data")
     parts.append(f"File type: {file_label}")
 
@@ -387,13 +389,22 @@ def _build_ledger_context(ledger_analysis: "LedgerAnalysis") -> str:
     return "\n".join(parts)
 
 
+_SAMPLE_THRESHOLD = 10_000  # rows above which we sample for slow operations
+
+
 def _build_data_summary(df: pd.DataFrame, depth: dict) -> str:
-    """Compact statistical summary scaled to the tier's context-depth budget."""
+    """Compact statistical summary scaled to the tier's context-depth budget.
+
+    For large datasets (>10k rows) expensive operations (duplicates, correlations)
+    run on a random sample to avoid blocking the processing pipeline.
+    """
     parts: list[str] = []
+    n_rows = len(df)
 
-    parts.append(f"Rows: {len(df):,}  |  Columns: {len(df.columns)}")
+    parts.append(f"Rows: {n_rows:,}  |  Columns: {len(df.columns)}")
 
-    total_cells   = len(df) * len(df.columns)
+    # Missing values — vectorised, fast at any size
+    total_cells   = n_rows * len(df.columns)
     total_missing = int(df.isnull().sum().sum())
     overall_pct   = round(total_missing / max(total_cells, 1) * 100, 1)
     parts.append(f"Overall missing: {overall_pct}%")
@@ -407,12 +418,17 @@ def _build_data_summary(df: pd.DataFrame, depth: dict) -> str:
             snippet += f" … (+{len(missing_cols) - cap} more)"
         parts.append(f"Columns with missing values: {snippet}")
 
-    dup_count = int(df.duplicated().sum())
+    # Duplicate check — sample for large frames to keep this fast
+    sample_df = (
+        df.sample(n=_SAMPLE_THRESHOLD, random_state=42)
+        if n_rows > _SAMPLE_THRESHOLD
+        else df
+    )
+    dup_count = int(sample_df.duplicated().sum())
     if dup_count:
-        parts.append(
-            f"Duplicate rows: {dup_count:,} "
-            f"({round(dup_count / max(len(df), 1) * 100, 1)}%)"
-        )
+        dup_pct = round(dup_count / len(sample_df) * 100, 1)
+        suffix  = " (sampled)" if n_rows > _SAMPLE_THRESHOLD else ""
+        parts.append(f"Duplicate rows: {dup_count:,} ({dup_pct}%){suffix}")
 
     num_df  = df.select_dtypes(include=[np.number])
     num_cap = depth["num_cols"]
@@ -436,8 +452,14 @@ def _build_data_summary(df: pd.DataFrame, depth: dict) -> str:
             top_str  = ", ".join(f"'{v}' ({c})" for v, c in top.items())
             parts.append(f"  {col}: {n_unique} unique  |  top 3: {top_str}")
 
+    # Correlations — sample for large frames; skip entirely if too few numeric cols
     if depth["correlations"] and num_df.shape[1] >= 2:
-        corr   = num_df.corr(numeric_only=True)
+        corr_df = (
+            num_df.sample(n=_SAMPLE_THRESHOLD, random_state=42)
+            if n_rows > _SAMPLE_THRESHOLD
+            else num_df
+        )
+        corr   = corr_df.corr(numeric_only=True)
         strong : list[str] = []
         seen   : set[tuple] = set()
         for col_a in corr.columns:

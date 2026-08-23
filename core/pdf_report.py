@@ -49,6 +49,7 @@ def _draw_page_footer(canvas, doc, branding: dict) -> None:
 
 
 def _escape_xml(text: str) -> str:
+    text = text.replace("—", "-").replace("–", "-")  # em/en dash -> hyphen, enforced at PDF layer
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
@@ -103,7 +104,7 @@ def _render_audit_section_pdf(
     story.append(Paragraph(
         f"Rules-based audit checks for bookkeeping and accounting datasets. "
         f"File type detected: <b>{_escape_xml(file_label)}</b>. "
-        "Flags are observational — not a substitute for professional audit judgement.",
+        "Flags are observational - not a substitute for professional audit judgement.",
         caption_style,
     ))
 
@@ -133,7 +134,7 @@ def _render_audit_section_pdf(
 
     # Benford table (digit distribution) if available
     if ledger_analysis.benford_df is not None:
-        story.append(Paragraph("<b>Benford's Law — First Digit Distribution</b>", body_style))
+        story.append(Paragraph("<b>Benford's Law - First Digit Distribution</b>", body_style))
         bdf = ledger_analysis.benford_df
         b_rows = [["Digit", "Observed %", "Expected %", "Deviation %"]]
         for _, row in bdf.iterrows():
@@ -174,7 +175,7 @@ def _render_audit_section_pdf(
                 flag.severity.upper(),
                 flag.check,
                 _escape_xml(flag.finding[:180] + ("…" if len(flag.finding) > 180 else "")),
-                str(flag.count) if flag.count else "—",
+                str(flag.count) if flag.count else "-",
             ])
         flag_table = Table(
             flag_rows,
@@ -234,7 +235,7 @@ def build_pdf_report(
         rightMargin=20 * mm,
         topMargin=18 * mm,
         bottomMargin=24 * mm,   # extra bottom margin for footer
-        title=f"{branding['app_name']} – Executive Summary",
+        title=f"{branding['app_name']} - Executive Summary",
     )
 
     styles = getSampleStyleSheet()
@@ -485,7 +486,7 @@ def build_pdf_report(
     if key_insights:
         story.append(Paragraph("Key Data Insights", section_style))
         story.append(Paragraph(
-            "Business-focused patterns drawn from the cleaned dataset — what is happening, "
+            "Business-focused patterns drawn from the cleaned dataset: what is happening, "
             "and why it matters.",
             caption_style,
         ))
@@ -498,7 +499,7 @@ def build_pdf_report(
     if ai_advisory_body:
         story.append(Paragraph("AI Advisory", section_style))
         story.append(Paragraph(
-            "Claude-powered interpretation of the cleaned data — patterns, anomalies, "
+            "Claude-powered interpretation of the cleaned data: patterns, anomalies, "
             "quality risks, and concrete next steps.",
             caption_style,
         ))

@@ -31,11 +31,12 @@ SECTION_TITLES = [
 
 
 def strip_residual_markdown(text: str) -> str:
-    """Removes leftover markdown artefacts (stray **, '', `code`, etc.) from text."""
+    """Removes leftover markdown artefacts (stray **, '', `code`, em dashes, etc.) from text."""
     text = _DOUBLE_SINGLE_QUOTE_RE.sub(r'"\1"', text)
     text = text.replace("''", '"')
     text = _BACKTICK_RE.sub(r"\1", text)
     text = re.sub(r"\*{2,}", "", text)
+    text = text.replace("—", "-").replace("–", "-")  # em dash and en dash -> hyphen
     return text
 
 
