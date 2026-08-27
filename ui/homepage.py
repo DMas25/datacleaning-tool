@@ -460,8 +460,7 @@ def _render_landing_page(branding: dict) -> None:
             </div>
             <div style="font-size:1rem;color:#657286;margin-top:10px;line-height:1.7;
                         max-width:500px;margin-left:auto;margin-right:auto;">
-                Without hiring a data analyst. Upload a file, get a clean dataset and
-                a professional report in minutes — on any device.
+                Upload a file, get a clean dataset and a professional report in minutes — on any device.
             </div>
         </div>
         """,

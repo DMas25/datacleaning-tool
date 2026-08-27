@@ -23,13 +23,11 @@ def send_email(cfg: dict, to_email: str, subject: str, body: str) -> bool:
         logger.warning("Resend API key not configured; skipping send to %s.", to_email)
         return False
 
-    import resend  # deferred so the module loads even without the package installed
-
-    resend.api_key = cfg["resend_api_key"]
-    from_name = cfg.get("from_name", "ColtraDataAi")
-    from_email = cfg.get("from_email", "support@coltradata.com")
-
     try:
+        import resend  # deferred so the module loads even without the package installed
+        resend.api_key = cfg["resend_api_key"]
+        from_name = cfg.get("from_name", "ColtraDataAi")
+        from_email = cfg.get("from_email", "support@coltradata.com")
         resend.Emails.send({
             "from": f"{from_name} <{from_email}>",
             "to": [to_email],
@@ -57,13 +55,12 @@ def send_email_with_attachment(
         logger.warning("Resend API key not configured; skipping send to %s.", to_email)
         return False
 
-    import resend
-
-    resend.api_key = cfg["resend_api_key"]
-    from_name = cfg.get("from_name", "ColtraDataAi")
-    from_email = cfg.get("from_email", "support@coltradata.com")
-
     try:
+        import base64
+        import resend
+        resend.api_key = cfg["resend_api_key"]
+        from_name = cfg.get("from_name", "ColtraDataAi")
+        from_email = cfg.get("from_email", "support@coltradata.com")
         resend.Emails.send({
             "from": f"{from_name} <{from_email}>",
             "to": [to_email],
@@ -72,7 +69,7 @@ def send_email_with_attachment(
             "attachments": [
                 {
                     "filename": attachment_filename,
-                    "content": list(attachment_data),
+                    "content": list(base64.b64encode(attachment_data)),
                 }
             ],
         })

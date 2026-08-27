@@ -50,8 +50,8 @@ _CREDIT_KW   = ["credit", "cr", "credit_amount"]
 _ACCOUNT_KW  = ["account", "nominal", "ledger", "acc_no", "account_code", "gl_code"]
 
 
-def _col_lower(col: str) -> str:
-    return col.lower().replace(" ", "_")
+def _col_lower(col) -> str:
+    return str(col).lower().replace(" ", "_")
 
 
 def _has_any(col_lowers: list[str], keywords: list[str]) -> bool:

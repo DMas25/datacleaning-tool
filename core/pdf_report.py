@@ -168,13 +168,16 @@ def _render_audit_section_pdf(
     non_info = [f for f in ledger_analysis.flags if f.severity != "info"]
     if non_info:
         story.append(Paragraph("<b>Audit Flags Requiring Attention</b>", body_style))
+        cell_style = ParagraphStyle(
+            "FlagCell", fontSize=8.5, leading=11, spaceAfter=0, spaceBefore=0,
+        )
         flag_rows = [["Severity", "Check", "Finding", "Records"]]
         for flag in non_info:
             bg, txt = _AUDIT_SEVERITY_COLOURS.get(flag.severity, _AUDIT_SEVERITY_COLOURS["info"])
             flag_rows.append([
                 flag.severity.upper(),
                 flag.check,
-                _escape_xml(flag.finding[:180] + ("…" if len(flag.finding) > 180 else "")),
+                Paragraph(_escape_xml(flag.finding), cell_style),
                 str(flag.count) if flag.count else "-",
             ])
         flag_table = Table(
@@ -193,7 +196,6 @@ def _render_audit_section_pdf(
             ("TOPPADDING",   (0, 0), (-1, -1), 4),
             ("BOTTOMPADDING",(0, 0), (-1, -1), 4),
             ("ROWBACKGROUNDS",(0, 1), (-1, -1), [colors.white, light_fill]),
-            ("WORDWRAP",     (2, 1), (2, -1), True),
         ]
         for i, flag in enumerate(non_info, start=1):
             bg, txt = _AUDIT_SEVERITY_COLOURS.get(flag.severity, _AUDIT_SEVERITY_COLOURS["info"])
