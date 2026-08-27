@@ -12,14 +12,35 @@ _LS_TIER_MAP = {
     "professional": "Professional",
     "business":     "Business",
     "enterprise":   "Enterprise",
+    "enterprise_api": "Enterprise API",
     "premium":      "Premium",  # legacy — grandfathered subscribers only
 }
 
 
+def append_affiliate(url: str) -> str:
+    """Append the session's affiliate code to a LemonSqueezy checkout URL.
+
+    Uses ?aff= (LemonSqueezy's native affiliate parameter). Safe to call with
+    an empty URL — returns it unchanged. Handles existing query strings with &.
+    """
+    if not url:
+        return url
+    from utils.session_helpers import get_affiliate_ref
+    ref = get_affiliate_ref()
+    if not ref:
+        return url
+    separator = "&" if "?" in url else "?"
+    return f"{url}{separator}aff={ref}"
+
+
 def checkout_url(plan_key: str) -> str:
-    """Return the LemonSqueezy checkout URL for a plan, or '' if not yet live."""
+    """Return the LemonSqueezy checkout URL for a plan, or '' if not yet live.
+
+    Automatically appends the affiliate ref from session state when present.
+    """
     ls_tier = _LS_TIER_MAP.get(plan_key, "")
-    return get_checkout_url(ls_tier) if ls_tier else ""
+    base = get_checkout_url(ls_tier) if ls_tier else ""
+    return append_affiliate(base)
 
 
 def price_label(plan_key: str) -> str:

@@ -171,8 +171,8 @@ def _render_reassurance_row() -> None:
 
 def _render_enterprise_api_callout() -> None:
     """Horizontal banner advertising the standalone Enterprise API developer product."""
-    from config.lemonsqueezy_config import get_checkout_url
-    api_url = get_checkout_url("Enterprise API")
+    from services.billing import checkout_url
+    api_url = checkout_url("enterprise_api")
     cta_html = (
         f'<a href="{api_url}" target="_blank" rel="noopener" '
         f'style="display:inline-block;background:#2E86AB;color:white;font-weight:700;'

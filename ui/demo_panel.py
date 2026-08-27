@@ -13,7 +13,6 @@ import pandas as pd
 import streamlit as st
 
 from config.branding_config import branding as BRAND
-from config.lemonsqueezy_config import CHECKOUT_URLS
 
 PRIMARY = BRAND["primary_colour"]
 ACCENT  = BRAND.get("accent_colour", "#2E86AB")
@@ -821,8 +820,13 @@ def _render_scenario_tab(scenario: dict) -> None:
 # =============================================================================
 
 def _render_cta() -> None:
-    starter_url = CHECKOUT_URLS.get("Starter", "")
-    pro_url     = CHECKOUT_URLS.get("Professional", "")
+    from services.billing import checkout_url, append_affiliate
+
+    # checkout_url() already calls append_affiliate() internally.
+    # app_url is not a LS URL so needs manual affiliate append.
+    starter_url = checkout_url("starter")
+    pro_url     = checkout_url("professional")
+    app_url     = append_affiliate("https://app.coltradata.com")
 
     st.markdown(
         f'<div class="demo-cta-box">'
@@ -837,7 +841,7 @@ def _render_cta() -> None:
     with btn_col1:
         st.link_button(
             "Start Free - No Card Required",
-            "https://app.coltradata.com",
+            app_url,
             use_container_width=True,
             type="primary",
         )

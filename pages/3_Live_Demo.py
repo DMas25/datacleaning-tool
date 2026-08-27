@@ -29,6 +29,18 @@ st.markdown(
 
 from ui.demo_panel import render_demo_panel  # noqa: E402
 
+# Capture affiliate ref on this public page so it carries into session state
+# when the visitor navigates to the main app and clicks an upgrade button.
+# Must run before render_demo_panel() so it is set before any CTA is rendered.
+if not st.session_state.get("affiliate_ref"):
+    _params = st.query_params
+    st.session_state["affiliate_ref"] = (
+        _params.get("aff")
+        or _params.get("ref")
+        or _params.get("affiliate")
+        or ""
+    )
+
 render_demo_panel()
 
 # ── Footer ─────────────────────────────────────────────────────────────────────

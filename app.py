@@ -15,6 +15,7 @@ from config.tier_config import row_limit_for
 from core.feature_gate import render_tier_selector, render_sidebar_subscription_panel
 from ui.upgrade_prompts import render_targeted_upgrade_banner
 from ui.pricing_cards import render_pricing_page
+from ui.demo_widget import render_demo_widget
 from ui.branding_components import inject_app_css, inject_og_meta_tags
 from ui.homepage import check_password, render_header, render_footer, render_legal_notices, render_sign_out_button
 from ui.onboarding_modal import show_onboarding_modal, needs_onboarding
@@ -312,6 +313,9 @@ def _run_app() -> None:
     # ── App header ──────────────────────────────────────────────────────────────
 
     render_header(branding)
+
+    with st.expander("Interactive Demo - No Signup Required", expanded=False):
+        render_demo_widget()
 
     with st.expander("View pricing plans", expanded=False):
         render_pricing_page()                   # full 5-tier interactive pricing table

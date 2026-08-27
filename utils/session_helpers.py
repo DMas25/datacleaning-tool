@@ -28,9 +28,26 @@ def init_session() -> None:
         # across multiple log entries.
         st.session_state.trace_id = uuid.uuid4().hex
 
+    # Always capture if a ref param is present in the URL - this overwrites a
+    # previously empty string (e.g. set by an earlier visit without a ref param).
+    # Only skips capture if a non-empty affiliate code is already stored.
+    if not st.session_state.get("affiliate_ref"):
+        params = st.query_params
+        st.session_state.affiliate_ref = (
+            params.get("aff")
+            or params.get("ref")
+            or params.get("affiliate")
+            or ""
+        )
+
 
 def get_trace_id() -> str:
     return st.session_state.get("trace_id", "unknown")
+
+
+def get_affiliate_ref() -> str:
+    """Return the affiliate code captured from the landing URL, or '' if none."""
+    return st.session_state.get("affiliate_ref", "")
 
 
 def get_user_email() -> str:
