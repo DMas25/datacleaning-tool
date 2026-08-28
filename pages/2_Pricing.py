@@ -38,12 +38,21 @@ app_url = "https://app.coltradata.com"
 st.markdown(
     f"""
     <div style="text-align:center;padding:40px 0 8px 0;">
-        <div style="font-size:2rem;font-weight:800;color:{primary};line-height:1.2;">
-            Plans &amp; Pricing
+        <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.14em;
+                    text-transform:uppercase;color:{primary};margin-bottom:10px;">
+            Simple Pricing
         </div>
-        <div style="font-size:1rem;color:#657286;margin-top:8px;max-width:500px;
-                    margin-left:auto;margin-right:auto;line-height:1.6;">
-            Choose the plan that fits your team. All plans include a free tier to get started.
+        <div style="font-size:2.2rem;font-weight:800;color:#1F4E79;line-height:1.2;">
+            Start Free. Scale as You Grow.
+        </div>
+        <div style="font-size:0.88rem;color:#657286;margin-top:8px;">
+            No hidden fees. Cancel anytime. Upgrade or downgrade whenever you need.
+        </div>
+        <div style="font-size:0.95rem;color:#374151;margin-top:18px;max-width:620px;
+                    margin-left:auto;margin-right:auto;line-height:1.65;">
+            From free data quality checks to enterprise-grade validation automation,
+            ColtraDataAi helps organisations clean, standardise and trust their data
+            before it drives business decisions.
         </div>
     </div>
     """,
@@ -58,6 +67,42 @@ _, mid, _ = st.columns([1.5, 1, 1.5])
 with mid:
     if st.button("Sign in / Get started →", use_container_width=True, type="primary", key="_pricing_signin"):
         st.switch_page("app.py")
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+st.markdown(
+    f"""
+    <div style="
+        background:linear-gradient(135deg,#EBF8F5 0%,#E0F4F8 100%);
+        border:1.5px solid {primary};
+        border-radius:14px;
+        padding:1.4rem 1.8rem;
+        max-width:560px;
+        margin:0 auto 1.5rem auto;
+        text-align:center;
+    ">
+        <div style="font-size:1rem;font-weight:700;color:#1F4E79;margin-bottom:4px;">
+            Not ready to subscribe?
+        </div>
+        <div style="font-size:0.82rem;color:#4B5563;margin-bottom:0.8rem;">
+            Start with a free data health check - no card required.
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;
+                    gap:4px;margin-bottom:0.9rem;">
+            <span style="font-size:0.79rem;color:#374151;">&#10003; Upload a sample dataset</span>
+            <span style="font-size:0.79rem;color:#374151;">&#10003; Receive a detailed quality report</span>
+            <span style="font-size:0.79rem;color:#374151;">&#10003; Identify hidden errors and inconsistencies</span>
+            <span style="font-size:0.79rem;color:#374151;">&#10003; No obligation, no card required</span>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+_, hc_col, _ = st.columns([2, 1, 2])
+with hc_col:
+    if st.button("Start Free Health Check", use_container_width=True, key="_pricing_hc_cta"):
+        st.switch_page("pages/1_Free_Health_Check.py")
 
 st.markdown(
     f"""

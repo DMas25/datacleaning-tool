@@ -3,6 +3,13 @@ import streamlit as st
 from config.plans import PLAN_CONFIG, PLAN_ORDER
 from services.billing import checkout_url, payments_live
 
+_ANNUAL_CONFIG: dict[str, dict] = {
+    "starter":      {"price": "£290/year", "monthly_equiv": "£24.17/mo", "saving": "Save £58 - 2 months free"},
+    "professional": {"price": "£990/year", "monthly_equiv": "£82.50/mo", "saving": "Save £198 - 2 months free"},
+    "business":     {"price": "£2,990/year", "monthly_equiv": "£249.17/mo", "saving": "Save £598 - 2 months free"},
+    "enterprise":   {"price": "Contact Sales", "monthly_equiv": "", "saving": "Custom annual pricing available"},
+}
+
 _SUPPORT_TIERS: dict[str, list[str]] = {
     "free":         ["Email support (48–72h)"],
     "starter":      ["Email support (24–48h)"],
@@ -21,9 +28,14 @@ _CTA_LABELS: dict[str, str] = {
 }
 
 _ENTERPRISE_FEATURES = [
-    "2,000 runs/month",
-    "Branded report outputs",
-    "Dedicated support + SLA",
+    "Unlimited runs and unlimited rows",
+    "White-label deployment",
+    "Custom validation rules",
+    "Private API endpoints",
+    "Dedicated infrastructure",
+    "SLA-backed support (&lt;4h response)",
+    "Bespoke AI workflows",
+    "Onboarding and training included",
 ]
 
 _FEATURE_BULLETS: list[tuple[str, str]] = [
@@ -47,6 +59,18 @@ def render_pricing_cards(current_plan_key: str = "free") -> None:
     st.markdown("## ColtraDataAi Plans")
     st.caption("Trusted for structured data processing and reporting.")
 
+    # Billing period toggle
+    billing_col1, billing_col2, billing_col3 = st.columns([1.5, 1, 1.5])
+    with billing_col2:
+        billing_period = st.radio(
+            "Billing period",
+            options=["Monthly", "Annual (2 months free)"],
+            horizontal=True,
+            label_visibility="collapsed",
+            key="_pricing_billing_period",
+        )
+    annual = billing_period == "Annual (2 months free)"
+
     cols = st.columns(len(PLAN_ORDER), gap="small")
     for col, plan_key in zip(cols, PLAN_ORDER):
         plan       = PLAN_CONFIG[plan_key]
@@ -54,7 +78,7 @@ def render_pricing_cards(current_plan_key: str = "free") -> None:
         featured   = plan_key == "professional"
 
         with col:
-            _render_card(plan_key, plan, is_current, featured)
+            _render_card(plan_key, plan, is_current, featured, annual=annual)
 
     _render_reassurance_row()
     _render_enterprise_api_callout()
@@ -67,16 +91,33 @@ def _render_card(
     plan: dict,
     is_current: bool,
     featured: bool,
+    annual: bool = False,
 ) -> None:
     card_class = "pricing-card pricing-card--featured" if featured else "pricing-card"
-    price_display = plan["price"]
+    if annual and plan_key in _ANNUAL_CONFIG:
+        ann = _ANNUAL_CONFIG[plan_key]
+        monthly_note = (
+            f'<span style="display:block;font-size:0.7rem;color:#6B7280;font-weight:400;margin-top:2px;">'
+            f'{ann["monthly_equiv"]}, billed annually</span>'
+            if ann["monthly_equiv"] else ""
+        )
+        price_display = (
+            f'{ann["price"]}'
+            f'{monthly_note}'
+        )
+    else:
+        price_display = plan["price"]
 
     # ── Badges ────────────────────────────────────────────────────────────────
     badges_html = ""
     if featured:
         badges_html += '<span class="badge badge--popular">Most Popular</span>'
+        badges_html += '<span class="badge badge--sme">Best for SMEs</span>'
     if is_current:
         badges_html += '<span class="badge badge--current">Your plan</span>'
+    if annual and plan_key in _ANNUAL_CONFIG:
+        saving_text = _ANNUAL_CONFIG[plan_key]["saving"]
+        badges_html += f'<span class="badge badge--saving">{saving_text}</span>'
     badges_section = (
         f'<div class="card-badges">{badges_html}</div>'
         if badges_html else
@@ -85,9 +126,17 @@ def _render_card(
 
     # ── Feature bullets ───────────────────────────────────────────────────────
     runs = plan["monthly_runs"]
-    runs_label = "Unlimited runs/month" if runs is None else f"{runs} runs/month"
+    runs_label = (
+        "Unlimited cleaning runs/month"
+        if runs is None
+        else f"Up to {runs:,} cleaning runs/month"
+    )
     rows = plan["max_rows_backend"]
-    rows_label = "Unlimited rows" if rows is None else f"{rows:,} rows"
+    rows_label = (
+        "Unlimited rows per dataset"
+        if rows is None
+        else f"Up to {rows:,} rows per dataset"
+    )
 
     bullets = (
         f'<li>{runs_label}</li>'
@@ -132,7 +181,21 @@ def _render_card(
     else:
         url   = checkout_url(plan_key)
         label = _CTA_LABELS.get(plan_key, f"Get {plan['label']}")
-        if url:
+        if annual and plan_key in _ANNUAL_CONFIG and plan_key != "enterprise":
+            subject = f"Annual%20Plan%20Enquiry%20-%20{plan['label']}"
+            ann_label = f"{label} (Annual)"
+            st.link_button(
+                ann_label,
+                f"mailto:sales@coltradata.com?subject={subject}",
+                use_container_width=True,
+                type="primary",
+            )
+            st.markdown(
+                '<p style="text-align:center;font-size:0.68rem;color:#9CA3AF;margin-top:2px;">'
+                'Annual invoicing via sales team</p>',
+                unsafe_allow_html=True,
+            )
+        elif url:
             st.link_button(label, url, use_container_width=True, type="primary")
         elif plan_key == "enterprise":
             st.link_button(
@@ -291,6 +354,15 @@ def _inject_pricing_css() -> None:
         .badge--current {
             background: #D1FAE5;
             color: #065F46;
+        }
+        .badge--sme {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+        .badge--saving {
+            background: #FEF3C7;
+            color: #92400E;
+            font-size: 0.58rem;
         }
 
         /* ── Plan name & price ──────────────────────────────── */
