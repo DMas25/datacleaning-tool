@@ -12,7 +12,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.middleware import TimeoutMiddleware
-from api.routers import clean
+from api.routers import clean, webhooks
 from api.watchdog import background_watchdog, health_state
 
 logging.basicConfig(
@@ -21,7 +21,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-_REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_ANON_KEY"]
+_REQUIRED_ENV = [
+    "SUPABASE_URL",
+    "SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "LEMONSQUEEZY_WEBHOOK_SECRET",
+    "LEMONSQUEEZY_API_VARIANT_ID",
+    "RESEND_API_KEY",
+]
 
 
 def _startup_validate() -> None:
@@ -72,6 +79,7 @@ app.add_middleware(
 )
 
 app.include_router(clean.router, prefix="/v1", tags=["Cleaning"])
+app.include_router(webhooks.router, tags=["Webhooks"])
 
 
 @app.get("/health", tags=["System"])
