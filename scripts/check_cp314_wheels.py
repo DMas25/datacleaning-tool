@@ -85,13 +85,18 @@ def parse_requirements(path: Path) -> list[PackageSpec]:
 # ── PyPI helpers ──────────────────────────────────────────────────────────────
 
 def _fetch_json(url: str) -> dict | None:
-    try:
-        req = urllib.request.Request(url, headers={"Accept": "application/json"})
-        with urllib.request.urlopen(req, timeout=12) as resp:
-            return json.loads(resp.read().decode())
-    except (urllib.error.HTTPError, urllib.error.URLError,
-            json.JSONDecodeError, TimeoutError):
-        return None
+    import time
+    for attempt in range(3):
+        try:
+            req = urllib.request.Request(url, headers={"Accept": "application/json"})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                return json.loads(resp.read().decode())
+        except urllib.error.HTTPError:
+            return None  # 404 etc — no point retrying
+        except (urllib.error.URLError, json.JSONDecodeError, TimeoutError, OSError):
+            if attempt < 2:
+                time.sleep(2 ** attempt)
+    return None
 
 
 def resolve_version(name: str, raw_spec: str) -> str | None:
