@@ -280,7 +280,7 @@ Supply chain teams: try the Logistics cleaner free. Start with app.coltradata.co
 
 ## Day 10 - Industry Commentary
 **Post from:** PERSONAL PROFILE
-**Topic:** Bookkeepers are the first line of data defence - and they should not have to be
+**Topic:**Bookkeepers are the first line of data defence - and they should not have to be
 **Characters:** 1393
 
 ```
