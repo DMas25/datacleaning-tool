@@ -69,7 +69,7 @@ def send_email_with_attachment(
             "attachments": [
                 {
                     "filename": attachment_filename,
-                    "content": list(base64.b64encode(attachment_data)),
+                    "content": base64.b64encode(attachment_data).decode("utf-8"),
                 }
             ],
         })

@@ -34,14 +34,10 @@ from_email     = {s("FROM_EMAIL", "noreply@coltradata.com")}
 api_key = {s("ANTHROPIC_API_KEY")}
 
 [transactional_email]
-enabled       = {smtp_enabled}
-smtp_host     = {s("SMTP_HOST", "smtp.office365.com")}
-smtp_port     = {smtp_port}
-smtp_user     = {s("SMTP_USER", "support@coltradata.com")}
-smtp_password = {s("SMTP_PASSWORD")}
-from_name     = "ColtraDataAi"
-from_email    = {s("SMTP_FROM", "noreply@coltradata.com")}
-app_url       = {s("APP_URL")}
+resend_api_key = {s("RESEND_API_KEY")}
+from_name      = "ColtraDataAi"
+from_email     = {s("FROM_EMAIL", "support@coltradata.com")}
+app_url        = {s("APP_URL")}
 
 [supabase]
 database_url = {s("DATABASE_URL")}
