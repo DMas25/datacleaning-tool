@@ -12,7 +12,9 @@ Domain-specific cleaning pass for NHS and private healthcare operational data
 from __future__ import annotations
 
 import re
+import uuid
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Optional
 
 import pandas as pd
@@ -63,11 +65,16 @@ def _validate_nhs_number(v) -> bool:
     return check == int(s[9])
 
 
-def validate_nhs_numbers(df: pd.DataFrame, col: str) -> tuple[int, int]:
-    """Return (invalid_format_count, blank_count)."""
+def validate_nhs_numbers(df: pd.DataFrame, col: str) -> tuple[int, int, pd.Series]:
+    """Return (invalid_format_count, blank_count, valid_flag_series).
+
+    valid_flag_series is a boolean Series indexed to df: True = valid or blank,
+    False = present but fails Modulus 11. Blanks are marked True (separate issue).
+    """
     blank_count = int(df[col].isna().sum())
-    invalid = int(df[col].dropna().apply(lambda v: not _validate_nhs_number(v)).sum())
-    return invalid, blank_count
+    valid_flags = df[col].apply(_validate_nhs_number)
+    invalid = int((~valid_flags & df[col].notna()).sum())
+    return invalid, blank_count, valid_flags
 
 
 # ── ICD-10 code validation ────────────────────────────────────────────────────
@@ -109,12 +116,17 @@ _STATUS_MAP: dict[str, str] = {
 def standardise_appointment_status(df: pd.DataFrame, col: str) -> tuple[pd.DataFrame, int]:
     df = df.copy()
     original = df[col].copy()
-    df[col] = (
-        df[col].astype(str).str.strip().str.lower()
-        .map(lambda v: _STATUS_MAP.get(v, v.title() if v not in ("nan", "") else None))
-    )
-    df.loc[original.isna(), col] = None
-    changed = int((df[col].fillna("") != original.fillna("")).sum())
+
+    def _map(v):
+        if pd.isna(v):
+            return None
+        key = str(v).strip().lower()
+        if key in ("nan", ""):
+            return None
+        return _STATUS_MAP.get(key, str(v).strip())  # return original (stripped) when unmapped
+
+    df[col] = df[col].apply(_map)
+    changed = int((df[col].fillna("__NULL__") != original.fillna("__NULL__")).sum())
     return df, changed
 
 
@@ -157,12 +169,17 @@ _STAFF_MAP: dict[str, str] = {
 def standardise_staff_category(df: pd.DataFrame, col: str) -> tuple[pd.DataFrame, int]:
     df = df.copy()
     original = df[col].copy()
-    df[col] = (
-        df[col].astype(str).str.strip().str.lower()
-        .map(lambda v: _STAFF_MAP.get(v, v.title() if v not in ("nan", "") else None))
-    )
-    df.loc[original.isna(), col] = None
-    changed = int((df[col].fillna("") != original.fillna("")).sum())
+
+    def _map(v):
+        if pd.isna(v):
+            return None
+        key = str(v).strip().lower()
+        if key in ("nan", ""):
+            return None
+        return _STAFF_MAP.get(key, str(v).strip())  # return original (stripped) when unmapped
+
+    df[col] = df[col].apply(_map)
+    changed = int((df[col].fillna("__NULL__") != original.fillna("__NULL__")).sum())
     return df, changed
 
 
@@ -189,6 +206,37 @@ def validate_postcodes(df: pd.DataFrame, col: str) -> tuple[pd.DataFrame, int]:
     return df, invalid
 
 
+# ── Row-level audit diff ──────────────────────────────────────────────────────
+
+def _diff_changes(
+    before: pd.DataFrame,
+    after: pd.DataFrame,
+    rule: str,
+    run_id: str,
+    timestamp: str,
+) -> pd.DataFrame:
+    """Return one row per changed cell between two DataFrames for audit logging."""
+    records = []
+    shared_cols = [c for c in before.columns if c in after.columns]
+    for col in shared_cols:
+        b = before[col].fillna("__NULL__")
+        a = after[col].fillna("__NULL__")
+        changed_idx = before.index[b != a]
+        for idx in changed_idx:
+            records.append({
+                "run_id":    run_id,
+                "timestamp": timestamp,
+                "row":       int(idx),
+                "column":    col,
+                "before":    before.at[idx, col],
+                "after":     after.at[idx, col],
+                "rule":      rule,
+            })
+    if records:
+        return pd.DataFrame(records, columns=["run_id", "timestamp", "row", "column", "before", "after", "rule"])
+    return pd.DataFrame(columns=["run_id", "timestamp", "row", "column", "before", "after", "rule"])
+
+
 # ── Result dataclass ──────────────────────────────────────────────────────────
 
 @dataclass
@@ -203,15 +251,23 @@ class HealthcareResult:
     staff_col:        Optional[str] = None
     postcode_col:     Optional[str] = None
     issues:           list = field(default_factory=list)
+    flags_df:         Optional[pd.DataFrame] = None              # per-row validity flags for audit
+    audit_log:        pd.DataFrame = field(default_factory=pd.DataFrame)  # row-level change log
+    run_id:           str = field(default_factory=lambda: str(uuid.uuid4()))
+    cleaned_at:       str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 # ── Orchestrator ──────────────────────────────────────────────────────────────
 
 def apply_healthcare_cleaning(df: pd.DataFrame) -> HealthcareResult:
     """Run all healthcare operational cleaning steps and return a HealthcareResult."""
+    run_id     = str(uuid.uuid4())
+    cleaned_at = datetime.now(timezone.utc).isoformat()
     cleaned = df.copy()
+    audit_frames: list[pd.DataFrame] = []
     issues: list[dict] = []
     metrics: dict = {}
+    _nhs_flags: Optional[pd.Series] = None
 
     nhs_col          = _detect(cleaned, _NHS_KW)
     icd_col          = _detect(cleaned, _ICD_KW)
@@ -222,9 +278,9 @@ def apply_healthcare_cleaning(df: pd.DataFrame) -> HealthcareResult:
     postcode_col     = _detect(cleaned, _POSTCODE_KW)
     ward_col         = _detect(cleaned, _WARD_KW)
 
-    # 1. NHS number validation
+    # 1. NHS number validation (flags only — does not mutate cleaned)
     if nhs_col:
-        nhs_invalid, nhs_blank = validate_nhs_numbers(cleaned, nhs_col)
+        nhs_invalid, nhs_blank, _nhs_flags = validate_nhs_numbers(cleaned, nhs_col)
         metrics["nhs_blank_count"] = nhs_blank
         if nhs_invalid:
             issues.append({
@@ -244,7 +300,9 @@ def apply_healthcare_cleaning(df: pd.DataFrame) -> HealthcareResult:
 
     # 2. ICD-10 code validation
     if icd_col:
+        _before = cleaned.copy()
         cleaned, icd_invalid = validate_icd10_codes(cleaned, icd_col)
+        audit_frames.append(_diff_changes(_before, cleaned, "icd10_normalisation", run_id, cleaned_at))
         metrics["unique_icd_codes"] = int(cleaned[icd_col].nunique())
         metrics["top_diagnoses"]    = cleaned[icd_col].value_counts().head(10).to_dict()
         if icd_invalid:
@@ -259,7 +317,9 @@ def apply_healthcare_cleaning(df: pd.DataFrame) -> HealthcareResult:
 
     # 3. Appointment status standardisation
     if status_col:
+        _before = cleaned.copy()
         cleaned, status_changed = standardise_appointment_status(cleaned, status_col)
+        audit_frames.append(_diff_changes(_before, cleaned, "appointment_status_standardisation", run_id, cleaned_at))
         metrics["status_counts"] = cleaned[status_col].value_counts().to_dict()
         dna_count = int((cleaned[status_col] == "Did Not Attend").sum())
         total_apts = len(cleaned)
@@ -282,9 +342,11 @@ def apply_healthcare_cleaning(df: pd.DataFrame) -> HealthcareResult:
 
     # 4. Waiting time calculation
     if referral_col and appointment_col:
+        _before = cleaned.copy()
         cleaned, calc_count, impossible_count = calculate_waiting_times(
             cleaned, referral_col, appointment_col
         )
+        audit_frames.append(_diff_changes(_before, cleaned, "waiting_time_calculation", run_id, cleaned_at))
         wt = cleaned["waiting_days"].dropna()
         metrics["waiting_time_stats"] = {
             "min_days":  int(wt.min()) if len(wt) else None,
@@ -314,7 +376,9 @@ def apply_healthcare_cleaning(df: pd.DataFrame) -> HealthcareResult:
 
     # 5. Staff category standardisation
     if staff_col:
+        _before = cleaned.copy()
         cleaned, staff_changed = standardise_staff_category(cleaned, staff_col)
+        audit_frames.append(_diff_changes(_before, cleaned, "staff_category_standardisation", run_id, cleaned_at))
         metrics["staff_counts"] = cleaned[staff_col].value_counts().to_dict()
         if staff_changed:
             issues.append({
@@ -325,7 +389,9 @@ def apply_healthcare_cleaning(df: pd.DataFrame) -> HealthcareResult:
 
     # 6. Postcode validation
     if postcode_col:
+        _before = cleaned.copy()
         cleaned, pc_invalid = validate_postcodes(cleaned, postcode_col)
+        audit_frames.append(_diff_changes(_before, cleaned, "postcode_normalisation", run_id, cleaned_at))
         if pc_invalid:
             issues.append({
                 "type": "Invalid UK Postcodes",
@@ -343,6 +409,18 @@ def apply_healthcare_cleaning(df: pd.DataFrame) -> HealthcareResult:
     metrics["total_records"] = len(cleaned)
     metrics["issues_found"]  = len([i for i in issues if i["count"] > 0])
 
+    # Build per-row NHS validity flag DataFrame for audit
+    flags_df: Optional[pd.DataFrame] = (
+        pd.DataFrame({"_nhs_valid": _nhs_flags}, index=cleaned.index)
+        if _nhs_flags is not None else None
+    )
+
+    audit_log = (
+        pd.concat(audit_frames, ignore_index=True)
+        if audit_frames
+        else pd.DataFrame(columns=["run_id", "timestamp", "row", "column", "before", "after", "rule"])
+    )
+
     return HealthcareResult(
         cleaned_df=cleaned,
         metrics=metrics,
@@ -354,4 +432,8 @@ def apply_healthcare_cleaning(df: pd.DataFrame) -> HealthcareResult:
         staff_col=staff_col,
         postcode_col=postcode_col,
         issues=issues,
+        flags_df=flags_df,
+        audit_log=audit_log,
+        run_id=run_id,
+        cleaned_at=cleaned_at,
     )

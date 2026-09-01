@@ -71,7 +71,7 @@ def standardise_status(df: pd.DataFrame, col: str) -> tuple[pd.DataFrame, int]:
         .astype(str)
         .str.strip()
         .str.lower()
-        .map(lambda v: _STATUS_MAP.get(v, v.title() if v not in ("nan", "") else None))
+        .map(lambda v: _STATUS_MAP.get(v, v.title() if isinstance(v, str) and v not in ("nan", "") else None))
     )
     df.loc[original.isna(), col] = None
     changed = int((df[col].fillna("") != original.fillna("")).sum())

@@ -11,7 +11,9 @@ Domain-specific cleaning pass that runs after the standard pipeline:
 from __future__ import annotations
 
 import re
+import uuid
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 import numpy as np
@@ -87,23 +89,37 @@ def validate_patient_ids(
 # 2. NCT ID NORMALISATION  (ClinicalTrials.gov identifier format)
 # ---------------------------------------------------------------------------
 
-_NCT_TITLE_PATTERN = re.compile(r"[\s\-_:]")
-_NCT_DIGITS_PATTERN = re.compile(r"\D")
+_NCT_SEPARATOR_PATTERN = re.compile(r"[\s\-_:]")
+_NCT_DIGITS_PATTERN    = re.compile(r"\D")
+# Recognise values that are plausibly NCT IDs before normalisation.
+# Accepts optional separators and leading/trailing whitespace, e.g.:
+#   "NCT00001234", "nct-1234", " NCT 1234 "
+# Rejects ISRCTN, EudraCT, and other registry prefixes so they are
+# returned unchanged rather than silently mangled.
+_NCT_CANDIDATE_PATTERN = re.compile(r"^\s*n\s*c\s*t[\s\-_:]?\d", re.IGNORECASE)
 
 
 def clean_nct_id(nct_str: object) -> Optional[str]:
-    """Standardise a messy clinical trial ID to uppercase NCT + 8 digits.
+    """Standardise a messy NCT ID to uppercase NCT + 8 digits.
+
+    Only processes values that are recognisably NCT format.  Non-NCT
+    registry identifiers (ISRCTN, EudraCT, etc.) are returned unchanged
+    so they are not silently converted into a plausible-but-wrong NCT ID.
 
     Examples:
-        "nct-0001234"  → "NCT00001234"
-        " NCT 1234 "   → "NCT00001234"
-        "NCT00001234"  → "NCT00001234"  (already correct, unchanged)
-        None / NaN     → None
+        "nct-0001234"      → "NCT00001234"
+        " NCT 1234 "       → "NCT00001234"
+        "NCT00001234"      → "NCT00001234"  (already correct)
+        "ISRCTN12345678"   → "ISRCTN12345678"  (non-NCT, left unchanged)
+        None / NaN         → None
     """
     if pd.isna(nct_str):
         return None
-    cleaned = _NCT_TITLE_PATTERN.sub("", str(nct_str)).upper()
-    digits = _NCT_DIGITS_PATTERN.sub("", cleaned)
+    raw = str(nct_str)
+    if not _NCT_CANDIDATE_PATTERN.match(raw):
+        return raw  # not an NCT identifier — leave untouched
+    cleaned = _NCT_SEPARATOR_PATTERN.sub("", raw).upper()
+    digits  = _NCT_DIGITS_PATTERN.sub("", cleaned)
     if digits:
         return f"NCT{digits.zfill(8)}"
     return cleaned
@@ -129,17 +145,24 @@ def normalise_nct_ids(
     df[col] = df[col].apply(clean_nct_id)
 
     missing    = int(original.isna().sum())
-    # Only count non-null rows that actually changed after normalisation
-    normalised = int((original.notna() & (df[col] != original)).sum())
-    already_ok = int(original.notna().sum()) - normalised
+    changed    = original.notna() & (df[col] != original)
+    # Values that were not NCT candidates are returned unchanged by clean_nct_id;
+    # distinguish them from values that were already correctly formatted.
+    non_nct    = original.notna() & ~original.astype(str).map(
+        lambda v: bool(_NCT_CANDIDATE_PATTERN.match(v))
+    )
+    normalised = int(changed.sum())
+    already_ok = int((original.notna() & ~changed & ~non_nct).sum())
+    skipped    = int(non_nct.sum())
 
     return df, pd.DataFrame([{
-        "action":          "nct_id_normalisation",
-        "column":          col,
-        "normalised":      normalised,
-        "already_correct": already_ok,
-        "missing":         missing,
-        "note":            "Format: NCT + 8 digits (zfill)",
+        "action":              "nct_id_normalisation",
+        "column":              col,
+        "normalised":          normalised,
+        "already_correct":     already_ok,
+        "skipped_non_nct":     skipped,
+        "missing":             missing,
+        "note":                "Format: NCT + 8 digits (zfill); non-NCT registry IDs left unchanged",
     }])
 
 
@@ -531,6 +554,39 @@ def build_trial_sequences(
 
 
 # ---------------------------------------------------------------------------
+# 6b. ROW-LEVEL AUDIT DIFF
+# ---------------------------------------------------------------------------
+
+def _diff_changes(
+    before: pd.DataFrame,
+    after: pd.DataFrame,
+    rule: str,
+    run_id: str,
+    timestamp: str,
+) -> pd.DataFrame:
+    """Return one row per changed cell between two DataFrames for audit logging."""
+    records = []
+    shared_cols = [c for c in before.columns if c in after.columns]
+    for col in shared_cols:
+        b = before[col].fillna("__NULL__")
+        a = after[col].fillna("__NULL__")
+        changed_idx = before.index[b != a]
+        for idx in changed_idx:
+            records.append({
+                "run_id":    run_id,
+                "timestamp": timestamp,
+                "row":       int(idx),
+                "column":    col,
+                "before":    before.at[idx, col],
+                "after":     after.at[idx, col],
+                "rule":      rule,
+            })
+    if records:
+        return pd.DataFrame(records, columns=["run_id", "timestamp", "row", "column", "before", "after", "rule"])
+    return pd.DataFrame(columns=["run_id", "timestamp", "row", "column", "before", "after", "rule"])
+
+
+# ---------------------------------------------------------------------------
 # 7. ORCHESTRATORS
 # ---------------------------------------------------------------------------
 
@@ -540,6 +596,10 @@ class ClinicalCleaningResult:
     profiles:   List[ResearcherProfile]
     logs:       Dict[str, pd.DataFrame] = field(default_factory=dict)
     grouped_df: Optional[pd.DataFrame]  = None   # researcher → [trial_ids]
+    audit_log:  pd.DataFrame             = field(default_factory=pd.DataFrame)  # row-level change log
+    flags_df:   Optional[pd.DataFrame]  = None   # per-row ID validity flags for audit
+    run_id:     str                      = field(default_factory=lambda: str(uuid.uuid4()))
+    cleaned_at: str                      = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 _INTERNAL_FLAG_COLS = ["_researcher_id_valid", "_patient_id_valid"]
@@ -569,31 +629,50 @@ def apply_clinical_cleaning(
         6. Pad registry codes (zfill)
         7. Build trial sequences under researcher profiles
     """
+    run_id     = str(uuid.uuid4())
+    cleaned_at = datetime.now(timezone.utc).isoformat()
     cleaned = df.copy()
     logs: Dict[str, pd.DataFrame] = {}
+    audit_frames: List[pd.DataFrame] = []
 
+    _before = cleaned.copy()
     cleaned, logs["researcher_id"] = validate_researcher_ids(cleaned, researcher_col)
+    audit_frames.append(_diff_changes(_before, cleaned, "researcher_id_validation", run_id, cleaned_at))
+
+    _before = cleaned.copy()
     cleaned, logs["patient_id"]    = validate_patient_ids(cleaned, patient_col)
+    audit_frames.append(_diff_changes(_before, cleaned, "patient_id_validation", run_id, cleaned_at))
 
     if nct_col:
+        _before = cleaned.copy()
         cleaned, logs["nct_ids"] = normalise_nct_ids(cleaned, nct_col)
+        audit_frames.append(_diff_changes(_before, cleaned, "nct_id_normalisation", run_id, cleaned_at))
 
     if researcher_name_col:
+        _before = cleaned.copy()
         cleaned, logs["researcher_names"] = standardise_researcher_names(
             cleaned, col=researcher_name_col
         )
+        audit_frames.append(_diff_changes(_before, cleaned, "researcher_name_standardisation", run_id, cleaned_at))
         # Entity resolution: merge name variants ("J. Smith", "Smith, John",
         # "John A. Smith MD") into a single canonical researcher identity.
+        _before = cleaned.copy()
         cleaned, logs["entity_resolution"] = resolve_researcher_entities(
             cleaned, col="standardized_researcher"
         )
+        audit_frames.append(_diff_changes(_before, cleaned, "entity_resolution", run_id, cleaned_at))
 
+    _before = cleaned.copy()
     cleaned, logs["trial_ids"] = normalise_trial_ids(
         cleaned, trial_col, prefix=trial_id_prefix, width=trial_id_width,
     )
+    audit_frames.append(_diff_changes(_before, cleaned, "trial_id_normalisation", run_id, cleaned_at))
+
+    _before = cleaned.copy()
     cleaned, logs["registry"]  = pad_registry_codes(
         cleaned, registry_col, width=registry_width, prefix=registry_prefix,
     )
+    audit_frames.append(_diff_changes(_before, cleaned, "registry_code_padding", run_id, cleaned_at))
     # Prefer canonical_researcher (post entity-resolution) for grouping;
     # fall back to standardized_researcher (name-only) then researcher_col (ID).
     if "canonical_researcher" in cleaned.columns:
@@ -624,14 +703,28 @@ def apply_clinical_cleaning(
             .rename(columns={group_by_col: "researcher", trial_col: "trial_ids"})
         )
 
-    # Strip internal flag columns before returning
-    cleaned = cleaned.drop(
-        columns=[c for c in _INTERNAL_FLAG_COLS if c in cleaned.columns],
-        errors="ignore",
+    # Capture per-row validity flags into audit output before stripping
+    _flag_cols_present = [c for c in _INTERNAL_FLAG_COLS if c in cleaned.columns]
+    flags_df: Optional[pd.DataFrame] = (
+        cleaned[_flag_cols_present].copy() if _flag_cols_present else None
+    )
+    cleaned = cleaned.drop(columns=_flag_cols_present, errors="ignore")
+
+    audit_log = (
+        pd.concat(audit_frames, ignore_index=True)
+        if audit_frames
+        else pd.DataFrame(columns=["run_id", "timestamp", "row", "column", "before", "after", "rule"])
     )
 
     return ClinicalCleaningResult(
-        cleaned_df=cleaned, profiles=profiles, logs=logs, grouped_df=grouped_df,
+        cleaned_df=cleaned,
+        profiles=profiles,
+        logs=logs,
+        grouped_df=grouped_df,
+        audit_log=audit_log,
+        flags_df=flags_df,
+        run_id=run_id,
+        cleaned_at=cleaned_at,
     )
 
 

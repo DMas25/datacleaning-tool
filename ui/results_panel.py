@@ -1029,6 +1029,34 @@ def _render_finance_view(result: dict, branding: dict) -> None:
             else:
                 st.success(f"**{issue['type']}** — {issue['description']}")
 
+    mtd = m.get("mtd_readiness")
+    if mtd:
+        st.markdown("#### MTD VAT Digital Records Readiness")
+        score, total = mtd["score"], mtd["max"]
+        if mtd["ready"]:
+            st.success(
+                f"All {total} required fields detected - this dataset meets HMRC MTD VAT "
+                "digital records requirements (VAT Notice 700/22)."
+            )
+        else:
+            st.warning(
+                f"{score}/{total} required fields detected. "
+                "Missing fields must be present for HMRC MTD VAT digital records compliance."
+            )
+        field_rows = "".join(
+            f"<tr><td>{f['field']}</td>"
+            f"<td style='color:{'green' if f['present'] else 'red'};font-weight:bold'>"
+            f"{'Present' if f['present'] else 'Missing'}</td></tr>"
+            for f in mtd["fields"]
+        )
+        st.markdown(
+            f"<table style='width:100%;border-collapse:collapse'>"
+            f"<thead><tr><th style='text-align:left'>Required Field</th>"
+            f"<th style='text-align:left'>Status</th></tr></thead>"
+            f"<tbody>{field_rows}</tbody></table>",
+            unsafe_allow_html=True,
+        )
+
 
 # ── Retail & Inventory results view ──────────────────────────────────────────
 

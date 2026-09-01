@@ -12,6 +12,6 @@ Built on FastAPI. Deployed at coltradata-api.onrender.com.
 
 If you are building a data pipeline and need domain-specific validation at the ingestion layer, integrate this endpoint.
 
-Enterprise API starts at £499/month. Docs at coltradata-api.onrender.com/docs.
+Enterprise API is £499/month. Docs at coltradata-api.onrender.com/docs.
 
 #API #EnterpriseData #DataEngineering #FastAPI #ColtraDataAi #DataQuality

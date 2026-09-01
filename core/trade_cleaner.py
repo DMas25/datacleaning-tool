@@ -27,7 +27,8 @@ _DEST_KW     = ["destination_country", "dest_country", "importer_country",
                  "consignee_country", "destination", "import_country", "country_dest"]
 _VALUE_KW    = ["value", "customs_value", "declared_value", "invoice_value",
                 "fob_value", "cif_value", "statistical_value", "trade_value"]
-_CURRENCY_KW = ["currency", "ccy", "currency_code", "invoice_currency"]
+_CURRENCY_KW  = ["currency", "ccy", "currency_code", "invoice_currency"]
+_INCOTERM_KW  = ["incoterm", "inco_term", "delivery_term", "trade_term", "shipping_term"]
 _UNIT_KW     = ["unit", "uom", "unit_of_measure", "measure", "stat_unit", "quantity_unit"]
 _QTY_KW      = ["quantity", "qty", "net_weight", "gross_weight", "volume"]
 _DATE_KW     = ["date", "declaration_date", "entry_date", "clearance_date", "export_date"]
@@ -193,6 +194,22 @@ _CURRENCY_MAP: dict[str, str] = {
     "brl": "BRL", "real": "BRL",
     "mxn": "MXN", "peso": "MXN",
     "zar": "ZAR", "rand": "ZAR",
+    # African currencies
+    "kes": "KES", "kenya shilling": "KES", "kenyan shilling": "KES",
+    "ngn": "NGN", "naira": "NGN",
+    "ghs": "GHS", "cedi": "GHS", "ghana cedi": "GHS",
+    "egp": "EGP", "egyptian pound": "EGP",
+    "tzs": "TZS", "tanzania shilling": "TZS", "tanzanian shilling": "TZS",
+    "ugx": "UGX", "uganda shilling": "UGX", "ugandan shilling": "UGX",
+    "etb": "ETB", "birr": "ETB",
+    "mad": "MAD", "moroccan dirham": "MAD",
+    "zmw": "ZMW", "kwacha": "ZMW",
+    "mwk": "MWK", "malawi kwacha": "MWK",
+    "mzn": "MZN", "metical": "MZN",
+    "bwp": "BWP", "pula": "BWP",
+    "rwf": "RWF", "rwanda franc": "RWF",
+    "xof": "XOF", "cfa": "XOF", "west african cfa": "XOF",
+    "xaf": "XAF", "central african cfa": "XAF",
 }
 
 
@@ -237,6 +254,25 @@ def standardise_uom(df: pd.DataFrame, col: str) -> tuple[pd.DataFrame, int]:
     )
     changed = int((df[col].fillna("") != original.fillna("")).sum())
     return df, changed
+
+
+# ── Incoterms validation ──────────────────────────────────────────────────────
+# ICC Incoterms 2020 — the only 11 recognised terms.
+
+_VALID_INCOTERMS = {"EXW", "FCA", "CPT", "CIP", "DAP", "DPU", "DDP", "FAS", "FOB", "CFR", "CIF"}
+
+
+def validate_incoterms(df: pd.DataFrame, col: str) -> tuple[pd.DataFrame, int, int]:
+    """Check Incoterms column against ICC 2020 terms.
+
+    Returns (df, invalid_count, missing_count).
+    """
+    df = df.copy()
+    missing_count = int(df[col].isna().sum())
+    normalised = df[col].dropna().astype(str).str.strip().str.upper()
+    invalid_mask = ~normalised.isin(_VALID_INCOTERMS)
+    invalid_count = int(invalid_mask.sum())
+    return df, invalid_count, missing_count
 
 
 # ── HS chapter lookup ─────────────────────────────────────────────────────────
@@ -299,13 +335,14 @@ def apply_trade_cleaning(df: pd.DataFrame) -> TradeResult:
     issues: list[dict] = []
     metrics: dict = {}
 
-    hs_col       = _detect(cleaned, _HS_KW)
-    origin_col   = _detect(cleaned, _ORIGIN_KW)
-    dest_col     = _detect(cleaned, _DEST_KW)
-    value_col    = _detect(cleaned, _VALUE_KW)
-    currency_col = _detect(cleaned, _CURRENCY_KW)
-    unit_col     = _detect(cleaned, _UNIT_KW)
-    dir_col      = _detect(cleaned, _DIR_KW)
+    hs_col        = _detect(cleaned, _HS_KW)
+    origin_col    = _detect(cleaned, _ORIGIN_KW)
+    dest_col      = _detect(cleaned, _DEST_KW)
+    value_col     = _detect(cleaned, _VALUE_KW)
+    currency_col  = _detect(cleaned, _CURRENCY_KW)
+    unit_col      = _detect(cleaned, _UNIT_KW)
+    dir_col       = _detect(cleaned, _DIR_KW)
+    incoterm_col  = _detect(cleaned, _INCOTERM_KW)
 
     # 1. HS code validation
     if hs_col:
@@ -395,6 +432,39 @@ def apply_trade_cleaning(df: pd.DataFrame) -> TradeResult:
     # 7. Trade direction summary
     if dir_col:
         metrics["direction_counts"] = cleaned[dir_col].value_counts().to_dict()
+
+    # 8. Incoterms validation
+    if incoterm_col:
+        cleaned, inco_invalid, inco_missing = validate_incoterms(cleaned, incoterm_col)
+        metrics["incoterm_counts"] = cleaned[incoterm_col].value_counts().to_dict()
+        if inco_missing:
+            issues.append({
+                "type": "Missing Incoterms",
+                "description": (
+                    f"{inco_missing:,} record(s) have no Incoterm specified. "
+                    "Incoterms are required to determine liability, insurance, and customs responsibility."
+                ),
+                "count": inco_missing,
+            })
+        if inco_invalid:
+            issues.append({
+                "type": "Unrecognised Incoterms",
+                "description": (
+                    f"{inco_invalid:,} value(s) are not valid ICC Incoterms 2020 "
+                    f"({', '.join(sorted(_VALID_INCOTERMS))}). Verify these entries."
+                ),
+                "count": inco_invalid,
+            })
+    else:
+        issues.append({
+            "type": "Incoterms Column Not Found",
+            "description": (
+                "No Incoterms column detected. For cross-border trade datasets, "
+                "an Incoterms field (e.g. incoterm, delivery_term, trade_term) "
+                "is recommended to confirm delivery and risk transfer obligations."
+            ),
+            "count": 1,
+        })
 
     metrics["total_records"] = len(cleaned)
     metrics["issues_found"]  = len([i for i in issues if i["count"] > 0])

@@ -32,6 +32,7 @@ _VAT_KW       = ["vat_code", "tax_code", "vat", "tax", "vat_rate_code"]
 _CC_KW        = ["cost_centre", "cost_center", "cc_code", "department", "dept", "department_code"]
 _NARR_KW      = ["narrative", "description", "details", "memo", "particulars", "remarks"]
 _DATE_KW      = ["date", "posting_date", "transaction_date", "entry_date", "doc_date"]
+_NET_KW       = ["net", "net_amount", "net_value", "ex_vat", "net_of_vat", "taxable_amount"]
 
 
 def _detect(df: pd.DataFrame, keywords: list[str]) -> Optional[str]:
@@ -174,6 +175,47 @@ def check_narrative_quality(df: pd.DataFrame, col: str) -> tuple[int, int]:
     return blank_count, generic_count
 
 
+# ── MTD VAT readiness check (light-touch) ────────────────────────────────────
+# HMRC VAT Notice 700/22 requires four fields per transaction in digital records:
+# tax point date, supply description, net value, and VAT rate applied.
+
+_MTD_FIELDS = [
+    ("Tax point date",       "_date_col"),
+    ("Supply description",   "_narr_col"),
+    ("Net value (ex-VAT)",   "_net_col"),
+    ("VAT rate / code",      "_vat_col"),
+]
+
+
+def check_mtd_readiness(
+    date_col: Optional[str],
+    narr_col: Optional[str],
+    net_col:  Optional[str],
+    vat_col:  Optional[str],
+) -> dict:
+    """Return an MTD VAT digital-records readiness summary.
+
+    Score is 0-4 (one point per HMRC-required field present).
+    """
+    presence = {
+        "_date_col": date_col is not None,
+        "_narr_col": narr_col is not None,
+        "_net_col":  net_col  is not None,
+        "_vat_col":  vat_col  is not None,
+    }
+    fields = [
+        {"field": label, "present": presence[key]}
+        for label, key in _MTD_FIELDS
+    ]
+    score = sum(1 for f in fields if f["present"])
+    return {
+        "fields": fields,
+        "score":  score,
+        "max":    len(_MTD_FIELDS),
+        "ready":  score == len(_MTD_FIELDS),
+    }
+
+
 # ── Result dataclass ──────────────────────────────────────────────────────────
 
 @dataclass
@@ -206,6 +248,8 @@ def apply_finance_cleaning(df: pd.DataFrame) -> FinanceResult:
     vat_col     = _detect(cleaned, _VAT_KW)
     cc_col      = _detect(cleaned, _CC_KW)
     narr_col    = _detect(cleaned, _NARR_KW)
+    date_col    = _detect(cleaned, _DATE_KW)
+    net_col     = _detect(cleaned, _NET_KW)
 
     # 1. Account code normalisation + classification
     if account_col:
@@ -299,6 +343,9 @@ def apply_finance_cleaning(df: pd.DataFrame) -> FinanceResult:
                 ),
                 "count": generic_narr,
             })
+
+    # MTD VAT digital-records readiness
+    metrics["mtd_readiness"] = check_mtd_readiness(date_col, narr_col, net_col, vat_col)
 
     metrics["total_entries"] = len(cleaned)
     metrics["issues_found"]  = len([i for i in issues if i["count"] > 0])
