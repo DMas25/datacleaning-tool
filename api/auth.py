@@ -41,7 +41,7 @@ async def verify_api_key(
     try:
         from supabase import create_client
         _url = os.environ["SUPABASE_URL"].strip()
-        _key = os.environ["SUPABASE_ANON_KEY"].strip()
+        _key = os.environ["SUPABASE_SERVICE_ROLE_KEY"].strip()
         client = create_client(_url, _key)
         result = (
             client.table("api_keys")
