@@ -47,7 +47,7 @@ async def verify_api_key(
             client.table("api_keys")
             .select("id, email, label, is_active")
             .eq("key_hash", key_hash)
-            .maybe_single()
+            .limit(1)
             .execute()
         )
         # Successful Supabase call - let the circuit breaker know
@@ -56,17 +56,19 @@ async def verify_api_key(
         supabase_breaker.record_failure()
         raise HTTPException(status_code=503, detail=f"Auth service unavailable: {exc}") from exc
 
-    if result.data is None or not result.data.get("is_active"):
+    rows = getattr(result, "data", None) or []
+    if not rows or not rows[0].get("is_active"):
         raise HTTPException(status_code=401, detail="Invalid or inactive API key.")
 
+    record = rows[0]
     try:
         client.table("api_keys").update({
             "last_used_at": datetime.now(timezone.utc).isoformat()
-        }).eq("id", result.data["id"]).execute()
+        }).eq("id", record["id"]).execute()
     except Exception:
         pass
 
-    return result.data
+    return record
 
 
 def generate_api_key() -> tuple[str, str]:
