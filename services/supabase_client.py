@@ -12,8 +12,12 @@ the same server process.
 from __future__ import annotations
 
 import os
+from typing import TYPE_CHECKING
 
-from supabase import Client, create_client
+from supabase import create_client
+
+if TYPE_CHECKING:
+    from supabase import Client
 
 
 def _resolve(env_key: str, secrets_key: str) -> str:

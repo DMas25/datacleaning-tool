@@ -40,9 +40,9 @@ def correlation_matrix(df: pd.DataFrame) -> Optional[pd.DataFrame]:
 
 
 def time_series_counts(df: pd.DataFrame, date_column: str) -> Optional[pd.DataFrame]:
-    parsed = pd.to_datetime(df[date_column], errors="coerce", format="mixed").dropna()
+    parsed = pd.to_datetime(df[date_column], errors="coerce", format="mixed", utc=True).dropna()
     if parsed.empty:
         return None
 
-    counts = parsed.dt.to_period("D").value_counts().sort_index()
+    counts = parsed.dt.tz_convert(None).dt.to_period("D").value_counts().sort_index()
     return pd.DataFrame({"Date": counts.index.astype(str), "Records": counts.values})
