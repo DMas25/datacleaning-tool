@@ -13,6 +13,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.middleware import TimeoutMiddleware
 from api.routers import clean, webhooks
+from api.routers import s3_presign
+from api.routers import s3_webhook
 from api.watchdog import background_watchdog, health_state
 
 logging.basicConfig(
@@ -80,6 +82,8 @@ app.add_middleware(
 
 app.include_router(clean.router, prefix="/v1", tags=["Cleaning"])
 app.include_router(webhooks.router, tags=["Webhooks"])
+app.include_router(s3_webhook.router, tags=["Webhooks"])
+app.include_router(s3_presign.router)
 
 
 @app.get("/health", tags=["System"])
