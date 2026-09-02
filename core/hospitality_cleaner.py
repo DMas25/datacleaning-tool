@@ -44,6 +44,8 @@ _CHANNEL_KW     = ["channel", "booking_channel", "source", "booking_source",
                     "origin", "distribution_channel", "res_source"]
 _PROPERTY_KW    = ["property", "hotel", "venue", "property_name",
                     "hotel_name", "venue_name", "site"]
+_ROOM_ID_KW     = ["room_id", "room_number", "room_no", "room", "room_num",
+                    "room_identifier", "room_ref"]
 
 
 def _detect(df: pd.DataFrame, keywords: list[str]) -> Optional[str]:
@@ -231,6 +233,51 @@ def summarise_adr(df: pd.DataFrame, rate_col: str) -> dict:
     }
 
 
+# ── Overbooking risk detection ────────────────────────────────────────────────
+
+def detect_overbooking(
+    df: pd.DataFrame,
+    checkin_col: str,
+    checkout_col: str,
+    room_col: str,
+) -> tuple[pd.DataFrame, int]:
+    """Detect overlapping bookings within each room/room-type group.
+
+    Two bookings A and B overlap when:
+        A.checkin < B.checkout  AND  A.checkout > B.checkin
+
+    Returns a copy of df with an ``overbooking_flag`` boolean column added,
+    and the total number of conflicting booking pairs found.
+    """
+    df = df.copy()
+    checkin  = pd.to_datetime(df[checkin_col],  errors="coerce")
+    checkout = pd.to_datetime(df[checkout_col], errors="coerce")
+
+    # Only rows where both dates are valid and the stay makes sense
+    valid = checkin.notna() & checkout.notna() & (checkout > checkin)
+
+    conflict_idx: set[int] = set()
+    conflict_pairs: int = 0
+
+    for room_val, group in df[valid].groupby(df.loc[valid, room_col]):
+        idx   = group.index.tolist()
+        ci    = checkin.loc[idx]
+        co    = checkout.loc[idx]
+        n     = len(idx)
+        for i in range(n):
+            for j in range(i + 1, n):
+                if ci.iloc[i] < co.iloc[j] and co.iloc[i] > ci.iloc[j]:
+                    conflict_idx.add(idx[i])
+                    conflict_idx.add(idx[j])
+                    conflict_pairs += 1
+
+    df["overbooking_flag"] = False
+    if conflict_idx:
+        df.loc[list(conflict_idx), "overbooking_flag"] = True
+
+    return df, conflict_pairs
+
+
 # ── Result dataclass ──────────────────────────────────────────────────────────
 
 @dataclass
@@ -261,6 +308,7 @@ def apply_hospitality_cleaning(df: pd.DataFrame) -> HospitalityResult:
     checkin_col   = _detect(cleaned, _CHECKIN_KW)
     checkout_col  = _detect(cleaned, _CHECKOUT_KW)
     room_type_col = _detect(cleaned, _ROOM_TYPE_KW)
+    room_id_col   = _detect(cleaned, _ROOM_ID_KW)
     rate_col      = _detect(cleaned, _RATE_KW)
     revenue_col   = _detect(cleaned, _REVENUE_KW)
     guests_col    = _detect(cleaned, _GUESTS_KW)
@@ -431,6 +479,25 @@ def apply_hospitality_cleaning(df: pd.DataFrame) -> HospitalityResult:
     # 9. Property distribution
     if property_col:
         metrics["property_counts"] = cleaned[property_col].value_counts().head(10).to_dict()
+
+    # 10. Overbooking risk detection
+    # Prefer a specific room ID column; fall back to room type if available.
+    _ob_room_col = room_id_col or room_type_col
+    if checkin_col and checkout_col and _ob_room_col:
+        cleaned, ob_pairs = detect_overbooking(
+            cleaned, checkin_col, checkout_col, _ob_room_col
+        )
+        metrics["overbooking_conflicts"] = ob_pairs
+        if ob_pairs:
+            issues.append({
+                "type": "Overbooking Risk",
+                "description": (
+                    f"{ob_pairs:,} booking pair(s) overlap on the same room type - "
+                    "overbooking risk detected."
+                ),
+                "count": ob_pairs,
+                "severity": "High",
+            })
 
     metrics["total_bookings"] = len(cleaned)
     metrics["issues_found"]   = len([i for i in issues if i["count"] > 0])

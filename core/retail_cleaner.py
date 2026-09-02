@@ -40,6 +40,8 @@ _SUPPLIER_KW  = ["supplier", "vendor", "supplier_name", "vendor_name",
                   "supplier_code", "vendor_code", "manufacturer"]
 _BARCODE_KW   = ["barcode", "ean", "upc", "gtin", "ean13", "upc_a", "isbn",
                   "barcode_no"]
+_LAST_SALE_KW = ["last_sale", "last_sold", "last_sold_date", "sale_date",
+                  "last_transaction"]
 
 
 def _detect(df: pd.DataFrame, keywords: list[str]) -> Optional[str]:
@@ -153,6 +155,62 @@ def validate_barcodes(df: pd.DataFrame, col: str) -> tuple[int, int]:
     return invalid_format, invalid_check
 
 
+# ── Dead stock detection ──────────────────────────────────────────────────────
+
+def detect_dead_stock(
+    df: pd.DataFrame, last_sale_col: str, stock_col: str, days: int = 90
+) -> tuple[pd.DataFrame, int]:
+    """Flag items with no sales in the last `days` days that still hold stock.
+
+    Returns (df_with_flag, dead_stock_count).
+    """
+    df = df.copy()
+    last_sale = pd.to_datetime(df[last_sale_col], errors="coerce")
+    stock     = pd.to_numeric(df[stock_col], errors="coerce")
+    today     = pd.Timestamp("today").normalize()
+    stale     = (today - last_sale).dt.days > days
+    df["dead_stock_flag"] = (stale & stock.gt(0)).fillna(False)
+    count = int(df["dead_stock_flag"].sum())
+    return df, count
+
+
+# ── Margin compression detection ──────────────────────────────────────────────
+
+def detect_low_margin(
+    df: pd.DataFrame,
+    price_col: str,
+    cost_col: str,
+    threshold_pct: float = 15.0,
+    supplier_col: Optional[str] = None,
+    cat_col: Optional[str] = None,
+) -> tuple[pd.DataFrame, int, dict]:
+    """Flag items where gross margin % < threshold_pct (default 15%).
+
+    Returns (df_with_flag, low_margin_count, summary_dict).
+    summary_dict contains optional breakdowns by supplier and category.
+    """
+    df = df.copy()
+    price = pd.to_numeric(df[price_col], errors="coerce")
+    cost  = pd.to_numeric(df[cost_col],  errors="coerce")
+    valid = price.notna() & cost.notna() & price.gt(0)
+    margin_pct = pd.Series(np.nan, index=df.index)
+    margin_pct[valid] = (price[valid] - cost[valid]) / price[valid] * 100
+    df["low_margin_flag"] = (margin_pct < threshold_pct) & margin_pct.notna()
+    count = int(df["low_margin_flag"].sum())
+
+    summary: dict = {}
+    flagged = df[df["low_margin_flag"]]
+    if supplier_col and supplier_col in df.columns and not flagged.empty:
+        summary["low_margin_by_supplier"] = (
+            flagged[supplier_col].value_counts().head(10).to_dict()
+        )
+    if cat_col and cat_col in df.columns and not flagged.empty:
+        summary["low_margin_by_category"] = (
+            flagged[cat_col].value_counts().head(10).to_dict()
+        )
+    return df, count, summary
+
+
 # ── Category standardisation ──────────────────────────────────────────────────
 
 def standardise_categories(df: pd.DataFrame, col: str) -> tuple[pd.DataFrame, int]:
@@ -168,15 +226,16 @@ def standardise_categories(df: pd.DataFrame, col: str) -> tuple[pd.DataFrame, in
 
 @dataclass
 class RetailResult:
-    cleaned_df:  pd.DataFrame
-    metrics:     dict
-    sku_col:     Optional[str] = None
-    price_col:   Optional[str] = None
-    cost_col:    Optional[str] = None
-    stock_col:   Optional[str] = None
-    reorder_col: Optional[str] = None
-    cat_col:     Optional[str] = None
-    issues:      list = field(default_factory=list)
+    cleaned_df:    pd.DataFrame
+    metrics:       dict
+    sku_col:       Optional[str] = None
+    price_col:     Optional[str] = None
+    cost_col:      Optional[str] = None
+    stock_col:     Optional[str] = None
+    reorder_col:   Optional[str] = None
+    cat_col:       Optional[str] = None
+    last_sale_col: Optional[str] = None
+    issues:        list = field(default_factory=list)
 
 
 # ── Orchestrator ──────────────────────────────────────────────────────────────
@@ -187,15 +246,16 @@ def apply_retail_cleaning(df: pd.DataFrame) -> RetailResult:
     issues: list[dict] = []
     metrics: dict = {}
 
-    sku_col      = _detect(cleaned, _SKU_KW)
-    name_col     = _detect(cleaned, _NAME_KW)
-    price_col    = _detect(cleaned, _PRICE_KW)
-    cost_col     = _detect(cleaned, _COST_KW)
-    stock_col    = _detect(cleaned, _STOCK_KW)
-    reorder_col  = _detect(cleaned, _REORDER_KW)
-    cat_col      = _detect(cleaned, _CATEGORY_KW)
-    supplier_col = _detect(cleaned, _SUPPLIER_KW)
-    barcode_col  = _detect(cleaned, _BARCODE_KW)
+    sku_col       = _detect(cleaned, _SKU_KW)
+    name_col      = _detect(cleaned, _NAME_KW)
+    price_col     = _detect(cleaned, _PRICE_KW)
+    cost_col      = _detect(cleaned, _COST_KW)
+    stock_col     = _detect(cleaned, _STOCK_KW)
+    reorder_col   = _detect(cleaned, _REORDER_KW)
+    cat_col       = _detect(cleaned, _CATEGORY_KW)
+    supplier_col  = _detect(cleaned, _SUPPLIER_KW)
+    barcode_col   = _detect(cleaned, _BARCODE_KW)
+    last_sale_col = _detect(cleaned, _LAST_SALE_KW)
 
     # 1. SKU standardisation
     if sku_col:
@@ -320,6 +380,42 @@ def apply_retail_cleaning(df: pd.DataFrame) -> RetailResult:
                 "count": missing_names,
             })
 
+    # 8. Dead stock detection
+    if last_sale_col and stock_col:
+        cleaned, dead_count = detect_dead_stock(cleaned, last_sale_col, stock_col)
+        metrics["dead_stock_skus"] = dead_count
+        if dead_count:
+            issues.append({
+                "type": "Dead Stock",
+                "description": (
+                    f"{dead_count:,} SKU(s) have had no sales in 90+ days but still hold "
+                    "stock - potential dead inventory."
+                ),
+                "count": dead_count,
+            })
+
+    # 9. Margin compression detection
+    if price_col and cost_col:
+        cleaned, low_margin_count, margin_summary = detect_low_margin(
+            cleaned, price_col, cost_col,
+            supplier_col=supplier_col,
+            cat_col=cat_col,
+        )
+        metrics["low_margin_skus"] = low_margin_count
+        if margin_summary.get("low_margin_by_supplier"):
+            metrics["low_margin_by_supplier"] = margin_summary["low_margin_by_supplier"]
+        if margin_summary.get("low_margin_by_category"):
+            metrics["low_margin_by_category"] = margin_summary["low_margin_by_category"]
+        if low_margin_count:
+            issues.append({
+                "type": "Low Margin Items",
+                "description": (
+                    f"{low_margin_count:,} SKU(s) have gross margin below 15% - "
+                    "review cost or pricing data."
+                ),
+                "count": low_margin_count,
+            })
+
     metrics["total_products"] = len(cleaned)
     metrics["issues_found"]   = len([i for i in issues if i["count"] > 0])
 
@@ -332,5 +428,6 @@ def apply_retail_cleaning(df: pd.DataFrame) -> RetailResult:
         stock_col=stock_col,
         reorder_col=reorder_col,
         cat_col=cat_col,
+        last_sale_col=last_sale_col,
         issues=issues,
     )

@@ -313,6 +313,134 @@ def hs_chapter(code: str) -> str:
     return _HS_CHAPTERS.get(str(code)[:2], f"Chapter {str(code)[:2]}")
 
 
+# ── UK Global Tariff rate band lookup ────────────────────────────────────────
+
+_UK_TARIFF_RATE_BANDS: dict[str, str] = {
+    "01": "0-4% (Live animals & animal products)",
+    "02": "0-4% (Live animals & animal products)",
+    "03": "0-4% (Live animals & animal products)",
+    "04": "0-4% (Live animals & animal products)",
+    "05": "0-4% (Live animals & animal products)",
+    "06": "0-12% (Vegetable products)",
+    "07": "0-12% (Vegetable products)",
+    "08": "0-12% (Vegetable products)",
+    "09": "0-12% (Vegetable products)",
+    "10": "0-12% (Vegetable products)",
+    "11": "0-12% (Vegetable products)",
+    "12": "0-12% (Vegetable products)",
+    "13": "0-12% (Vegetable products)",
+    "14": "0-12% (Vegetable products)",
+    "15": "0-9% (Fats & oils)",
+    "16": "0-33% (Food, beverages, tobacco)",
+    "17": "0-33% (Food, beverages, tobacco)",
+    "18": "0-33% (Food, beverages, tobacco)",
+    "19": "0-33% (Food, beverages, tobacco)",
+    "20": "0-33% (Food, beverages, tobacco)",
+    "21": "0-33% (Food, beverages, tobacco)",
+    "22": "0-33% (Food, beverages, tobacco)",
+    "23": "0-33% (Food, beverages, tobacco)",
+    "24": "0-33% (Food, beverages, tobacco)",
+    "25": "0-6% (Minerals & fuels)",
+    "26": "0-6% (Minerals & fuels)",
+    "27": "0-6% (Minerals & fuels)",
+    "28": "0-6.5% (Chemicals)",
+    "29": "0-6.5% (Chemicals)",
+    "30": "0-6.5% (Chemicals)",
+    "31": "0-6.5% (Chemicals)",
+    "32": "0-6.5% (Chemicals)",
+    "33": "0-6.5% (Chemicals)",
+    "34": "0-6.5% (Chemicals)",
+    "35": "0-6.5% (Chemicals)",
+    "36": "0-6.5% (Chemicals)",
+    "37": "0-6.5% (Chemicals)",
+    "38": "0-6.5% (Chemicals)",
+    "39": "3.2-6.5% (Plastics & rubber)",
+    "40": "3.2-6.5% (Plastics & rubber)",
+    "41": "0-3.7% (Leather & hides)",
+    "42": "0-3.7% (Leather & hides)",
+    "43": "0-3.7% (Leather & hides)",
+    "44": "0-5% (Wood & cork)",
+    "45": "0-5% (Wood & cork)",
+    "46": "0-5% (Wood & cork)",
+    "47": "0-3% (Paper & pulp)",
+    "48": "0-3% (Paper & pulp)",
+    "49": "0-3% (Paper & pulp)",
+    "50": "4-12% (Textiles & clothing)",
+    "51": "4-12% (Textiles & clothing)",
+    "52": "4-12% (Textiles & clothing)",
+    "53": "4-12% (Textiles & clothing)",
+    "54": "4-12% (Textiles & clothing)",
+    "55": "4-12% (Textiles & clothing)",
+    "56": "4-12% (Textiles & clothing)",
+    "57": "4-12% (Textiles & clothing)",
+    "58": "4-12% (Textiles & clothing)",
+    "59": "4-12% (Textiles & clothing)",
+    "60": "4-12% (Textiles & clothing)",
+    "61": "4-12% (Textiles & clothing)",
+    "62": "4-12% (Textiles & clothing)",
+    "63": "4-12% (Textiles & clothing)",
+    "64": "2.5-17% (Footwear & headgear)",
+    "65": "2.5-17% (Footwear & headgear)",
+    "66": "2.5-17% (Footwear & headgear)",
+    "67": "2.5-17% (Footwear & headgear)",
+    "68": "0-3.7% (Stone, ceramic, glass)",
+    "69": "0-3.7% (Stone, ceramic, glass)",
+    "70": "0-3.7% (Stone, ceramic, glass)",
+    "71": "0-2.5% (Precious metals & gems)",
+    "72": "0-7% (Base metals)",
+    "73": "0-7% (Base metals)",
+    "74": "0-7% (Base metals)",
+    "75": "0-7% (Base metals)",
+    "76": "0-7% (Base metals)",
+    "77": "0-7% (Base metals)",
+    "78": "0-7% (Base metals)",
+    "79": "0-7% (Base metals)",
+    "80": "0-7% (Base metals)",
+    "81": "0-7% (Base metals)",
+    "82": "0-7% (Base metals)",
+    "83": "0-7% (Base metals)",
+    "84": "0-6.5% (Machinery & electronics)",
+    "85": "0-6.5% (Machinery & electronics)",
+    "86": "0-6.5% (Transport equipment)",
+    "87": "0-6.5% (Transport equipment)",
+    "88": "0-6.5% (Transport equipment)",
+    "89": "0-6.5% (Transport equipment)",
+    "90": "0-3.5% (Optical & precision instruments)",
+    "91": "0-3.5% (Optical & precision instruments)",
+    "92": "0-3.5% (Optical & precision instruments)",
+    "93": "0-5% (Arms & ammunition)",
+    "94": "0-6.5% (Miscellaneous manufactured goods)",
+    "95": "0-6.5% (Miscellaneous manufactured goods)",
+    "96": "0-6.5% (Miscellaneous manufactured goods)",
+    "97": "0% (Works of art)",
+}
+
+_UK_TARIFF_UNKNOWN = "Rate unknown - verify UK Trade Tariff"
+
+
+def lookup_uk_tariff_rates(
+    df: pd.DataFrame, col: str
+) -> tuple[pd.DataFrame, int, int]:
+    """Add uk_tariff_rate_band column using UK Global Tariff chapter-level ranges.
+
+    Returns (df, known_count, unknown_count).
+    known_count  = rows where the HS chapter was found in the lookup table.
+    unknown_count = rows where the chapter could not be mapped.
+    """
+    df = df.copy()
+
+    def _rate_band(v):
+        if pd.isna(v):
+            return _UK_TARIFF_UNKNOWN
+        chapter = str(v).strip()[:2]
+        return _UK_TARIFF_RATE_BANDS.get(chapter, _UK_TARIFF_UNKNOWN)
+
+    df["uk_tariff_rate_band"] = df[col].apply(_rate_band)
+    unknown_count = int((df["uk_tariff_rate_band"] == _UK_TARIFF_UNKNOWN).sum())
+    known_count = len(df) - unknown_count
+    return df, known_count, unknown_count
+
+
 # ── Result dataclass ──────────────────────────────────────────────────────────
 
 @dataclass
@@ -464,6 +592,32 @@ def apply_trade_cleaning(df: pd.DataFrame) -> TradeResult:
                 "is recommended to confirm delivery and risk transfer obligations."
             ),
             "count": 1,
+        })
+
+    # 9. UK Global Tariff rate band lookup
+    if hs_col:
+        cleaned, hs_known_rate, hs_unknown_rate = lookup_uk_tariff_rates(cleaned, hs_col)
+        metrics["hs_codes_with_known_rate"] = hs_known_rate
+        metrics["hs_codes_unknown_rate"]    = hs_unknown_rate
+        if hs_unknown_rate > 0:
+            issues.append({
+                "type": "Unknown UK Tariff Rate",
+                "severity": "Medium",
+                "description": (
+                    f"{hs_unknown_rate:,} HS code(s) could not be mapped to a UK Global Tariff "
+                    "rate band - verify at trade-tariff.service.gov.uk"
+                ),
+                "count": hs_unknown_rate,
+            })
+        issues.append({
+            "type": "UK Tariff Rate Advisory",
+            "severity": "Info",
+            "description": (
+                "UK Global Tariff rate bands shown are indicative chapter-level ranges. "
+                "Always confirm the specific commodity rate at trade-tariff.service.gov.uk "
+                "before declaration."
+            ),
+            "count": 0,
         })
 
     metrics["total_records"] = len(cleaned)

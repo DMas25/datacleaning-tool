@@ -206,6 +206,37 @@ def validate_postcodes(df: pd.DataFrame, col: str) -> tuple[pd.DataFrame, int]:
     return df, invalid
 
 
+# ── Repeat DNA clustering ─────────────────────────────────────────────────────
+
+def flag_repeat_dna_patients(
+    df: pd.DataFrame,
+    patient_col: str,
+    status_col: str,
+    threshold: int = 3,
+) -> tuple[pd.DataFrame, int, int]:
+    """Flag patients with *threshold* or more DNA appointments.
+
+    Adds a boolean column ``repeat_dna_flag`` to *df* (True on every DNA row
+    belonging to a repeat non-attender).  Returns:
+        (df_with_flag, repeat_patient_count, repeat_appointment_count)
+    """
+    df = df.copy()
+    dna_mask = df[status_col] == "Did Not Attend"
+    dna_counts = (
+        df.loc[dna_mask, patient_col]
+        .dropna()
+        .value_counts()
+    )
+    repeat_patients = dna_counts[dna_counts >= threshold].index
+    repeat_patient_count = len(repeat_patients)
+    repeat_dna_flag = (
+        dna_mask & df[patient_col].isin(repeat_patients)
+    )
+    repeat_appointment_count = int(repeat_dna_flag.sum())
+    df["repeat_dna_flag"] = repeat_dna_flag
+    return df, repeat_patient_count, repeat_appointment_count
+
+
 # ── Row-level audit diff ──────────────────────────────────────────────────────
 
 def _diff_changes(
@@ -339,6 +370,24 @@ def apply_healthcare_cleaning(df: pd.DataFrame) -> HealthcareResult:
                 ),
                 "count": dna_count,
             })
+
+        # 3b. Repeat DNA clustering (requires both status and patient identifier)
+        if nhs_col:
+            cleaned, repeat_dna_pts, repeat_dna_apts = flag_repeat_dna_patients(
+                cleaned, nhs_col, status_col
+            )
+            metrics["repeat_dna_patients"]     = repeat_dna_pts
+            metrics["repeat_dna_appointments"] = repeat_dna_apts
+            if repeat_dna_pts:
+                issues.append({
+                    "type": "Repeat Non-Attenders",
+                    "description": (
+                        f"{repeat_dna_pts:,} patient(s) have 3 or more missed appointments. "
+                        f"These repeat non-attenders account for {repeat_dna_apts:,} appointments "
+                        "and may need active follow-up or de-listing."
+                    ),
+                    "count": repeat_dna_pts,
+                })
 
     # 4. Waiting time calculation
     if referral_col and appointment_col:

@@ -175,6 +175,50 @@ def check_narrative_quality(df: pd.DataFrame, col: str) -> tuple[int, int]:
     return blank_count, generic_count
 
 
+# ── Duplicate journal entry detection ────────────────────────────────────────
+
+def detect_duplicate_journals(
+    df: pd.DataFrame,
+    account_col:  Optional[str],
+    debit_col:    Optional[str],
+    credit_col:   Optional[str],
+    date_col:     Optional[str],
+    narr_col:     Optional[str],
+) -> tuple[pd.DataFrame, int]:
+    """Flag rows where (account_code, debit, credit, date/period, narrative) repeat.
+
+    The first occurrence of each combination is kept (flag = False); every
+    subsequent occurrence is marked True in a new 'duplicate_journal_flag'
+    column.  Narrative comparison is case- and whitespace-insensitive.
+
+    Returns (df, duplicate_count).  If fewer than two key columns can be
+    found the function returns the dataframe unchanged with a count of 0.
+    """
+    df = df.copy()
+
+    key_cols = [c for c in [account_col, debit_col, credit_col, date_col] if c]
+    if len(key_cols) < 2:
+        return df, 0
+
+    # Build a working key frame so we don't mutate cleaned columns.
+    key_frame = pd.DataFrame(index=df.index)
+    for col in key_cols:
+        key_frame[col] = df[col].fillna("").astype(str).str.strip()
+
+    if narr_col:
+        key_frame["_narr_key"] = (
+            df[narr_col].fillna("").astype(str).str.strip().str.lower()
+        )
+        dedup_cols = key_cols + ["_narr_key"]
+    else:
+        dedup_cols = key_cols
+
+    duplicate_mask = key_frame.duplicated(subset=dedup_cols, keep="first")
+    df["duplicate_journal_flag"] = duplicate_mask
+    n_dupes = int(duplicate_mask.sum())
+    return df, n_dupes
+
+
 # ── MTD VAT readiness check (light-touch) ────────────────────────────────────
 # HMRC VAT Notice 700/22 requires four fields per transaction in digital records:
 # tax point date, supply description, net value, and VAT rate applied.
@@ -343,6 +387,22 @@ def apply_finance_cleaning(df: pd.DataFrame) -> FinanceResult:
                 ),
                 "count": generic_narr,
             })
+
+    # 8. Duplicate journal entry detection
+    cleaned, n_dupes = detect_duplicate_journals(
+        cleaned, account_col, debit_col, credit_col, date_col, narr_col
+    )
+    metrics["duplicate_journals"] = n_dupes
+    if n_dupes:
+        issues.append({
+            "type": "Duplicate Journal Entries",
+            "description": (
+                f"{n_dupes:,} duplicate journal entries detected - likely bank feed "
+                "re-imports. Review before posting."
+            ),
+            "count": n_dupes,
+            "severity": "High",
+        })
 
     # MTD VAT digital-records readiness
     metrics["mtd_readiness"] = check_mtd_readiness(date_col, narr_col, net_col, vat_col)

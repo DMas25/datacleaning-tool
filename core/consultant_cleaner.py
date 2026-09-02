@@ -121,6 +121,62 @@ def calculate_utilisation(
     return df, round(overall, 1)
 
 
+# ── Duplicate timesheet detection ────────────────────────────────────────────
+
+def detect_duplicate_timesheets(
+    df: pd.DataFrame,
+    consultant_col: str,
+    project_col: str,
+    date_col: str,
+    hours_col: str,
+) -> tuple[pd.DataFrame, int]:
+    """Flag duplicate (consultant, project, date, hours) combinations.
+
+    Returns (df_with_flag_column, duplicate_count).
+    The flag column ``duplicate_timesheet_flag`` is True for every row that is
+    the second or later occurrence of the same combination.
+    """
+    df = df.copy()
+    key_cols = [consultant_col, project_col, date_col, hours_col]
+    duplicated_mask = df.duplicated(subset=key_cols, keep="first")
+    df["duplicate_timesheet_flag"] = duplicated_mask
+    return df, int(duplicated_mask.sum())
+
+
+# ── Weekly 48-hour cap (UK Working Time Regulations 1998) ─────────────────────
+
+def detect_weekly_hour_breaches(
+    df: pd.DataFrame,
+    consultant_col: str,
+    date_col: str,
+    hours_col: str,
+) -> tuple[int, int]:
+    """Return (breach_count, distinct_consultants_over_48h).
+
+    Groups by (consultant, ISO week) and sums hours.  Any consultant-week pair
+    exceeding 48 hours is counted as a breach.
+    """
+    hours = pd.to_numeric(df[hours_col], errors="coerce")
+    dates = pd.to_datetime(df[date_col], errors="coerce")
+
+    valid = hours.notna() & dates.notna()
+    if not valid.any():
+        return 0, 0
+
+    tmp = pd.DataFrame({
+        "consultant": df.loc[valid, consultant_col].values,
+        "iso_week":   dates[valid].dt.isocalendar().week.values,
+        "iso_year":   dates[valid].dt.isocalendar().year.values,
+        "hours":      hours[valid].values,
+    })
+
+    weekly = tmp.groupby(["consultant", "iso_year", "iso_week"], as_index=False)["hours"].sum()
+    breaches = weekly[weekly["hours"] > 48]
+    breach_count = len(breaches)
+    distinct_consultants = int(breaches["consultant"].nunique()) if breach_count else 0
+    return breach_count, distinct_consultants
+
+
 # ── Overrun detection ─────────────────────────────────────────────────────────
 
 def detect_overruns(
@@ -289,6 +345,42 @@ def apply_consultant_cleaning(df: pd.DataFrame) -> ConsultantResult:
                 "type": "Zero Hourly Rates",
                 "description": f"{zero_hr:,} record(s) have an hourly rate of zero.",
                 "count": zero_hr,
+            })
+
+    # 10. Duplicate timesheet entry detection
+    date_col = _detect(cleaned, _DATE_KW)
+    if consultant_col and project_col and date_col and total_hrs_col:
+        cleaned, dup_count = detect_duplicate_timesheets(
+            cleaned, consultant_col, project_col, date_col, total_hrs_col
+        )
+        metrics["duplicate_timesheet_entries"] = dup_count
+        if dup_count:
+            issues.append({
+                "type": "Duplicate Timesheet Entries",
+                "severity": "High",
+                "description": (
+                    f"{dup_count:,} duplicate timesheet entries detected (same consultant, "
+                    "project, date and hours). Review for double-submission."
+                ),
+                "count": dup_count,
+            })
+
+    # 11. Weekly 48-hour cap (UK Working Time Regulations 1998)
+    if consultant_col and date_col and total_hrs_col:
+        breach_count, consultants_over = detect_weekly_hour_breaches(
+            cleaned, consultant_col, date_col, total_hrs_col
+        )
+        metrics["working_time_breaches"]  = breach_count
+        metrics["consultants_over_48h"]   = consultants_over
+        if breach_count:
+            issues.append({
+                "type": "Working Time Regulations Breach",
+                "severity": "Medium",
+                "description": (
+                    f"{breach_count:,} consultant-week(s) exceed the 48-hour Working Time "
+                    "Regulations threshold. Confirm opt-out agreements are in place."
+                ),
+                "count": breach_count,
             })
 
     metrics["total_rows"]    = len(cleaned)
