@@ -14,7 +14,7 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING
 
-from supabase import create_client
+from supabase import ClientOptions, create_client
 
 if TYPE_CHECKING:
     from supabase import Client
@@ -42,4 +42,4 @@ def get_supabase_client() -> Client:
             ".streamlit/secrets.toml."
         )
 
-    return create_client(url, key)
+    return create_client(url, key, options=ClientOptions(function_client_timeout=10))

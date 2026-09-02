@@ -21,8 +21,9 @@ import sys
 
 
 def _get_supabase_creds() -> tuple[str, str]:
+    """Return (url, service_role_key). Service role key bypasses RLS for admin writes."""
     url = os.environ.get("SUPABASE_URL", "").strip()
-    key = os.environ.get("SUPABASE_ANON_KEY", "").strip()
+    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
     if not url or not key:
         try:
             import tomllib
@@ -34,11 +35,15 @@ def _get_supabase_creds() -> tuple[str, str]:
                 data = tomllib.load(f)
             sb = data.get("supabase", {})
             url = url or sb.get("url", "")
-            key = key or sb.get("anon_key", "")
+            key = key or sb.get("service_role_key", "")
         except Exception:
             pass
     if not url or not key:
-        print("ERROR: SUPABASE_URL and SUPABASE_ANON_KEY must be set as env vars.", file=sys.stderr)
+        print(
+            "ERROR: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set as env vars "
+            "or [supabase] service_role_key in .streamlit/secrets.toml.",
+            file=sys.stderr,
+        )
         sys.exit(1)
     return url, key
 
