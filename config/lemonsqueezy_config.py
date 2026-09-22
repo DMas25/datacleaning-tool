@@ -19,6 +19,11 @@ BUSINESS_VARIANT_ID     = "1997645"
 ENTERPRISE_VARIANT_ID   = ""          # Draft — contact-only, no public checkout
 API_VARIANT_ID          = "1997676"
 
+# Annual variants — same checkout URL as monthly; different variant ID fired by webhook
+STARTER_ANNUAL_VARIANT_ID      = "1260029"
+PROFESSIONAL_ANNUAL_VARIANT_ID = ""   # TODO: paste once created in LS
+BUSINESS_ANNUAL_VARIANT_ID     = ""   # TODO: paste once created in LS
+
 # Legacy variant — grandfathered subscribers only. Do not remove.
 PREMIUM_VARIANT_ID      = "1888466"
 
@@ -28,8 +33,11 @@ VARIANT_PLAN_MAP: dict[str, str] = {
     PROFESSIONAL_VARIANT_ID: "professional",
     ENTERPRISE_VARIANT_ID:   "enterprise",
     PREMIUM_VARIANT_ID:      "premium",   # legacy grandfathered
-    **({BUSINESS_VARIANT_ID: "business"} if BUSINESS_VARIANT_ID else {}),
-    **({API_VARIANT_ID:      "api"}       if API_VARIANT_ID      else {}),
+    **({BUSINESS_VARIANT_ID:              "business"}    if BUSINESS_VARIANT_ID              else {}),
+    **({API_VARIANT_ID:                   "api"}          if API_VARIANT_ID                   else {}),
+    **({STARTER_ANNUAL_VARIANT_ID:        "starter"}      if STARTER_ANNUAL_VARIANT_ID        else {}),
+    **({PROFESSIONAL_ANNUAL_VARIANT_ID:   "professional"} if PROFESSIONAL_ANNUAL_VARIANT_ID   else {}),
+    **({BUSINESS_ANNUAL_VARIANT_ID:       "business"}     if BUSINESS_ANNUAL_VARIANT_ID       else {}),
 }
 
 # Legacy alias used by core/licence_verifier.py
@@ -38,8 +46,11 @@ VARIANT_TIER_MAP: dict[str, str] = {
     PROFESSIONAL_VARIANT_ID: "Professional",
     ENTERPRISE_VARIANT_ID:   "Enterprise",
     PREMIUM_VARIANT_ID:      "Premium",   # legacy grandfathered
-    **({BUSINESS_VARIANT_ID: "Business"}      if BUSINESS_VARIANT_ID else {}),
-    **({API_VARIANT_ID:      "Enterprise API"} if API_VARIANT_ID      else {}),
+    **({BUSINESS_VARIANT_ID:              "Business"}       if BUSINESS_VARIANT_ID              else {}),
+    **({API_VARIANT_ID:                   "Enterprise API"} if API_VARIANT_ID                   else {}),
+    **({STARTER_ANNUAL_VARIANT_ID:        "Starter"}        if STARTER_ANNUAL_VARIANT_ID        else {}),
+    **({PROFESSIONAL_ANNUAL_VARIANT_ID:   "Professional"}   if PROFESSIONAL_ANNUAL_VARIANT_ID   else {}),
+    **({BUSINESS_ANNUAL_VARIANT_ID:       "Business"}       if BUSINESS_ANNUAL_VARIANT_ID       else {}),
 }
 
 # ── Checkout URLs ──────────────────────────────────────────────────────────
