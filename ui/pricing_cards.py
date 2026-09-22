@@ -182,19 +182,28 @@ def _render_card(
         url   = checkout_url(plan_key)
         label = _CTA_LABELS.get(plan_key, f"Get {plan['label']}")
         if annual and plan_key in _ANNUAL_CONFIG and plan_key != "enterprise":
-            subject = f"Annual%20Plan%20Enquiry%20-%20{plan['label']}"
+            annual_url = checkout_url(f"{plan_key}_annual")
             ann_label = f"{label} (Annual)"
-            st.link_button(
-                ann_label,
-                f"mailto:sales@coltradata.com?subject={subject}",
-                use_container_width=True,
-                type="primary",
-            )
-            st.markdown(
-                '<p style="text-align:center;font-size:0.68rem;color:#9CA3AF;margin-top:2px;">'
-                'Annual invoicing via sales team</p>',
-                unsafe_allow_html=True,
-            )
+            if annual_url:
+                st.link_button(
+                    ann_label,
+                    annual_url,
+                    use_container_width=True,
+                    type="primary",
+                )
+            else:
+                subject = f"Annual%20Plan%20Enquiry%20-%20{plan['label']}"
+                st.link_button(
+                    ann_label,
+                    f"mailto:sales@coltradata.com?subject={subject}",
+                    use_container_width=True,
+                    type="primary",
+                )
+                st.markdown(
+                    '<p style="text-align:center;font-size:0.68rem;color:#9CA3AF;margin-top:2px;">'
+                    'Annual invoicing via sales team</p>',
+                    unsafe_allow_html=True,
+                )
         elif url:
             st.link_button(label, url, use_container_width=True, type="primary")
         elif plan_key == "enterprise":
