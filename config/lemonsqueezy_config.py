@@ -21,8 +21,8 @@ API_VARIANT_ID          = "1997676"
 
 # Annual variants — same checkout URL as monthly; different variant ID fired by webhook
 STARTER_ANNUAL_VARIANT_ID      = "1260029"
-PROFESSIONAL_ANNUAL_VARIANT_ID = ""   # TODO: paste once created in LS
-BUSINESS_ANNUAL_VARIANT_ID     = ""   # TODO: paste once created in LS
+PROFESSIONAL_ANNUAL_VARIANT_ID = "1277759"
+BUSINESS_ANNUAL_VARIANT_ID     = "1277757"
 
 # Legacy variant — grandfathered subscribers only. Do not remove.
 PREMIUM_VARIANT_ID      = "1888466"
