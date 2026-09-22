@@ -182,15 +182,9 @@ def _render_card(
         url   = checkout_url(plan_key)
         label = _CTA_LABELS.get(plan_key, f"Get {plan['label']}")
         if annual and plan_key in _ANNUAL_CONFIG and plan_key != "enterprise":
-            annual_url = checkout_url(f"{plan_key}_annual")
             ann_label = f"{label} (Annual)"
-            if annual_url:
-                st.link_button(
-                    ann_label,
-                    annual_url,
-                    use_container_width=True,
-                    type="primary",
-                )
+            if url:
+                st.link_button(ann_label, url, use_container_width=True, type="primary")
             else:
                 subject = f"Annual%20Plan%20Enquiry%20-%20{plan['label']}"
                 st.link_button(
