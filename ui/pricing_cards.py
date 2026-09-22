@@ -81,7 +81,7 @@ def render_pricing_cards(current_plan_key: str = "free") -> None:
             _render_card(plan_key, plan, is_current, featured, annual=annual)
 
     _render_reassurance_row()
-    _render_enterprise_api_callout()
+    _render_enterprise_api_callout(annual=annual)
 
 
 # ── Private helpers ───────────────────────────────────────────────────────────
@@ -235,22 +235,52 @@ def _render_reassurance_row() -> None:
             )
 
 
-def _render_enterprise_api_callout() -> None:
+def _render_enterprise_api_callout(annual: bool = False) -> None:
     """Horizontal banner advertising the standalone Enterprise API developer product."""
     from services.billing import checkout_url
     api_url = checkout_url("enterprise_api")
-    cta_html = (
-        f'<a href="{api_url}" target="_blank" rel="noopener" '
-        f'style="display:inline-block;background:#2E86AB;color:white;font-weight:700;'
-        f'font-size:0.85rem;padding:0.65rem 1.5rem;border-radius:9px;text-decoration:none;'
-        f'white-space:nowrap;">Get API Access &#8594;</a>'
-        f'<p style="font-size:0.7rem;color:#5a6a7a;text-align:center;margin:5px 0 0;">API key delivered by email</p>'
-        if api_url else
-        f'<a href="mailto:sales@coltradata.com?subject=Enterprise%20API%20Enquiry" '
-        f'style="display:inline-block;background:#2E86AB;color:white;font-weight:700;'
-        f'font-size:0.85rem;padding:0.65rem 1.5rem;border-radius:9px;text-decoration:none;'
-        f'white-space:nowrap;">Contact Sales &#8594;</a>'
-    )
+
+    if annual:
+        cta_html = (
+            f'<a href="mailto:sales@coltradata.com?subject=Enterprise%20API%20Annual%20Enquiry" '
+            f'style="display:inline-block;background:#2E86AB;color:white;font-weight:700;'
+            f'font-size:0.85rem;padding:0.65rem 1.5rem;border-radius:9px;text-decoration:none;'
+            f'white-space:nowrap;">Get API Access (Annual) &#8594;</a>'
+            f'<p style="font-size:0.7rem;color:#5a6a7a;text-align:center;margin:5px 0 0;">Annual invoicing via sales team</p>'
+        )
+    else:
+        cta_html = (
+            f'<a href="{api_url}" target="_blank" rel="noopener" '
+            f'style="display:inline-block;background:#2E86AB;color:white;font-weight:700;'
+            f'font-size:0.85rem;padding:0.65rem 1.5rem;border-radius:9px;text-decoration:none;'
+            f'white-space:nowrap;">Get API Access &#8594;</a>'
+            f'<p style="font-size:0.7rem;color:#5a6a7a;text-align:center;margin:5px 0 0;">API key delivered by email</p>'
+            if api_url else
+            f'<a href="mailto:sales@coltradata.com?subject=Enterprise%20API%20Enquiry" '
+            f'style="display:inline-block;background:#2E86AB;color:white;font-weight:700;'
+            f'font-size:0.85rem;padding:0.65rem 1.5rem;border-radius:9px;text-decoration:none;'
+            f'white-space:nowrap;">Contact Sales &#8594;</a>'
+        )
+
+    if annual:
+        price_html = (
+            'Enterprise API'
+            '<span style="font-size:0.88rem;font-weight:500;color:#111827;">'
+            '&nbsp;&#8212;&nbsp;&#163;4,990<span style="font-size:0.78rem;'
+            'font-weight:400;color:#5a6a7a;">/year</span>'
+            '</span>'
+            '<span style="display:inline-block;margin-left:0.6rem;background:#FEF3C7;color:#92400E;'
+            'font-size:0.6rem;font-weight:700;padding:2px 8px;border-radius:20px;'
+            'letter-spacing:0.06em;text-transform:uppercase;">Save &#163;998 - 2 months free</span>'
+        )
+    else:
+        price_html = (
+            'Enterprise API'
+            '<span style="font-size:0.88rem;font-weight:500;color:#111827;">'
+            '&nbsp;&#8212;&nbsp;&#163;499<span style="font-size:0.78rem;'
+            'font-weight:400;color:#5a6a7a;">/month</span>'
+            '</span>'
+        )
 
     st.markdown(
         f"""
@@ -272,11 +302,7 @@ def _render_enterprise_api_callout() -> None:
             <div style="display:grid;grid-template-columns:1fr auto;gap:2rem;align-items:center;">
                 <div>
                     <p style="font-size:1.05rem;font-weight:800;color:#1F4E79;margin:0 0 4px;">
-                        Enterprise API
-                        <span style="font-size:0.88rem;font-weight:500;color:#111827;">
-                            &nbsp;&#8212;&nbsp;&#163;499<span style="font-size:0.78rem;
-                            font-weight:400;color:#5a6a7a;">/month</span>
-                        </span>
+                        {price_html}
                     </p>
                     <p style="font-size:0.78rem;color:#4B5563;margin:0 0 0.7rem;line-height:1.55;">
                         Integrate ColtraDataAi's cleaning engine directly into your own systems or pipelines.
