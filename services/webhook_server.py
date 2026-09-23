@@ -91,6 +91,8 @@ PLAN_MAP: dict[str, str] = {
     "Professional": "professional",
     "Pro":          "professional",
     "professional": "professional",
+    "Business":     "business",
+    "business":     "business",
     "Premium":      "premium",
     "premium":      "premium",
     "Enterprise":   "enterprise",
@@ -122,8 +124,11 @@ def verify_signature(raw_body: bytes, signature_header: str) -> None:
     """
     secret = _webhook_secret()
     if not secret:
-        log.warning("webhook_secret not configured — signature verification skipped")
-        return
+        log.error("webhook_secret not configured — rejecting request")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Webhook secret not configured",
+        )
 
     expected = hmac.new(
         secret.encode("utf-8"), raw_body, hashlib.sha256
@@ -199,6 +204,11 @@ def _handle_order_created(payload: dict) -> str:
     cfg = _resend_cfg()
     subject, body = render_licence_key_email(key=key, plan=f["plan"], app_url=cfg["app_url"])
     sent = send_email(cfg, f["email"], subject, body)
+    if not sent:
+        log_webhook_event(
+            "email_delivery_failed",
+            json.dumps({"email": f["email"], "plan": f["plan"], "event": "order_created"}),
+        )
     log.info("licence key email sent=%s to %s", sent, f["email"])
     return f"activated {f['plan']} for {f['email']} (key={key}, email_sent={sent})"
 
@@ -221,6 +231,11 @@ def _handle_subscription_created(payload: dict) -> str:
     cfg = _resend_cfg()
     subject, body = render_licence_key_email(key=key, plan=f["plan"], app_url=cfg["app_url"])
     sent = send_email(cfg, f["email"], subject, body)
+    if not sent:
+        log_webhook_event(
+            "email_delivery_failed",
+            json.dumps({"email": f["email"], "plan": f["plan"], "event": "subscription_created"}),
+        )
     log.info("licence key email sent=%s to %s", sent, f["email"])
     return f"subscription created {f['plan']} for {f['email']} (email_sent={sent})"
 

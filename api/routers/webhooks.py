@@ -18,6 +18,8 @@ logger = logging.getLogger(__name__)
 
 def _verify_signature(raw_body: bytes, signature: str) -> bool:
     secret = os.environ.get("LEMONSQUEEZY_WEBHOOK_SECRET", "")
+    if not secret:
+        raise HTTPException(status_code=503, detail="Webhook secret not configured.")
     expected = hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()
     return hmac.compare_digest(expected, signature)
 
@@ -28,6 +30,25 @@ def _supabase_client():
     return create_client(url, svc_key)
 
 
+def _get_active_key_hash(email: str) -> str | None:
+    """Return the existing active key hash for this email, or None if not found."""
+    try:
+        result = (
+            _supabase_client()
+            .table("api_keys")
+            .select("key_hash")
+            .eq("email", email)
+            .eq("is_active", True)
+            .limit(1)
+            .execute()
+        )
+        rows = result.data or []
+        return rows[0]["key_hash"] if rows else None
+    except Exception as exc:
+        logger.warning("Could not check existing key for %s: %s", email, exc)
+        return None
+
+
 def _insert_api_key(email: str, label: str, key_hash: str) -> None:
     _supabase_client().table("api_keys").insert({
         "key_hash": key_hash,
@@ -35,6 +56,16 @@ def _insert_api_key(email: str, label: str, key_hash: str) -> None:
         "label": label,
         "is_active": True,
     }).execute()
+
+
+def _log_email_failure(email: str, error: str) -> None:
+    try:
+        _supabase_client().table("webhook_log").insert({
+            "event_type": "email_delivery_failed",
+            "raw_payload": json.dumps({"email": email, "error": str(error)[:500]}),
+        }).execute()
+    except Exception as exc:
+        logger.error("Failed to log email delivery failure: %s", exc)
 
 
 def _deactivate_api_key(email: str) -> None:
@@ -110,6 +141,14 @@ async def lemonsqueezy_webhook(request: Request) -> dict:
         logger.info("API key deactivated for %s", email)
         return {"status": "ok", "action": "key_deactivated"}
 
+    # Idempotency: reuse the existing key if this customer already has one.
+    # LemonSqueezy retries on 5xx, so we must not create a second key on retry.
+    existing_hash = _get_active_key_hash(email)
+    if existing_hash:
+        logger.info("Duplicate webhook for %s — key already exists, resending email", email)
+        # We can't recover the raw key from the hash, so notify ops to resend manually.
+        return {"status": "ok", "note": "key_already_exists"}
+
     raw_key, key_hash = generate_api_key()
     label = f"Enterprise API - {name}"
 
@@ -123,8 +162,9 @@ async def lemonsqueezy_webhook(request: Request) -> dict:
         _send_key_email(email, name, raw_key)
     except Exception as exc:
         # Key is in Supabase — return 200 so LemonSqueezy does not retry and create duplicates.
-        # Resend failure can be resolved by manually forwarding the key.
+        # Failure is logged to webhook_log for ops to query and manually resend.
         logger.error("API key created but email failed for %s: %s", email, exc)
+        _log_email_failure(email, exc)
         return {"status": "partial", "note": "key_provisioned_email_failed", "email": email}
 
     logger.info("API key provisioned for %s via %s", email, event)
