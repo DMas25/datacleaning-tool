@@ -150,6 +150,31 @@
     .chat-send-btn { background: var(--primary); color: var(--white); border: none; padding: 0.75rem 1rem; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
     .chat-send-btn:hover { background: var(--accent); }
 
+    /* ── Billing toggle ────────────────────────────────────────── */
+    .billing-toggle-row { display:flex; align-items:center; justify-content:center; gap:0.9rem; padding:1.5rem 0 0.5rem; }
+    .toggle-label { font-size:0.95rem; font-weight:600; color:var(--muted); transition:color 0.2s; }
+    .toggle-label.active { color:var(--primary); }
+    .save-chip { background:#FEF3C7; color:#92400E; font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:100px; margin-left:0.4rem; vertical-align:middle; }
+    .billing-switch { position:relative; display:inline-block; width:48px; height:26px; flex-shrink:0; }
+    .billing-switch input { opacity:0; width:0; height:0; }
+    .billing-slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#D9E1F2; border-radius:26px; transition:0.25s; }
+    .billing-slider::before { position:absolute; content:""; height:18px; width:18px; left:4px; bottom:4px; background:white; border-radius:50%; transition:0.25s; box-shadow:0 1px 4px rgba(0,0,0,0.2); }
+    input:checked + .billing-slider { background:var(--primary); }
+    input:checked + .billing-slider::before { transform:translateX(22px); }
+
+    /* Annual mode price toggling */
+    .annual-price { display:none; }
+    .annual-saving { display:none; }
+    body.annual-mode .monthly-price { display:none; }
+    body.annual-mode .annual-price { display:block; }
+    body.annual-mode .annual-saving { display:inline-block; margin-bottom:0.5rem; }
+    .plan-price .price-equiv { display:block; font-size:0.72rem; font-weight:500; color:var(--muted); margin-top:1px; }
+
+    /* Annual CTA toggling */
+    .cta-annual-only { display:none; }
+    body.annual-mode .cta-monthly-only { display:none; }
+    body.annual-mode .cta-annual-only { display:block; }
+
     @media (max-width: 1300px) { .pricing-grid { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 700px) {
       .pricing-grid { grid-template-columns: 1fr 1fr; }
@@ -200,6 +225,15 @@
   <span class="free-callout">Free plan available, no card required</span>
 </section>
 
+<div class="billing-toggle-row">
+  <span class="toggle-label active" id="lbl-monthly">Monthly</span>
+  <label class="billing-switch" aria-label="Switch to annual billing">
+    <input type="checkbox" id="billingToggle" onchange="toggleBilling()" />
+    <span class="billing-slider"></span>
+  </label>
+  <span class="toggle-label" id="lbl-annual">Annual <span class="save-chip">2 months free</span></span>
+</div>
+
 <section class="pricing-section">
   <div class="pricing-grid">
 
@@ -221,7 +255,11 @@
 
     <div class="plan-card">
       <div class="plan-name">Starter</div>
-      <div class="plan-price">£29 <span>/ month</span></div>
+      <div class="plan-price">
+        <span class="monthly-price">£29 <span>/ month</span></span>
+        <span class="annual-price">£290 <span>/ year</span><span class="price-equiv">£24.17/mo, billed annually</span></span>
+      </div>
+      <span class="annual-saving save-chip">Save £58 - 2 months free</span>
       <div class="plan-blurb">For solo users and consultants who process regular uploads.</div>
       <div class="plan-divider"></div>
       <ul class="plan-features">
@@ -232,13 +270,18 @@
         <li>Excel export</li>
         <li>Email support (24–48h)</li>
       </ul>
-      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/d5d25833-3149-487f-a9d1-832c398d13e6" class="plan-cta cta-paid" target="_blank" rel="noopener">Get Starter →</a>
+      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/d5d25833-3149-487f-a9d1-832c398d13e6" class="plan-cta cta-paid cta-monthly-only" target="_blank" rel="noopener">Get Starter →</a>
+      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/d5d25833-3149-487f-a9d1-832c398d13e6" class="plan-cta cta-paid cta-annual-only" target="_blank" rel="noopener">Get Starter Annual →</a>
     </div>
 
     <div class="plan-card featured">
       <div class="plan-badge">Most Popular</div>
       <div class="plan-name">Professional</div>
-      <div class="plan-price">£99 <span>/ month</span></div>
+      <div class="plan-price">
+        <span class="monthly-price">£99 <span>/ month</span></span>
+        <span class="annual-price">£990 <span>/ year</span><span class="price-equiv">£82.50/mo, billed annually</span></span>
+      </div>
+      <span class="annual-saving save-chip">Save £198 - 2 months free</span>
       <div class="plan-blurb">Reports, AI insights, and API access for SMEs and operations teams.</div>
       <div class="plan-divider"></div>
       <ul class="plan-features">
@@ -250,12 +293,17 @@
         <li>API access (1k rows/call)</li>
         <li>Priority email support (12–24h)</li>
       </ul>
-      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/a358b1c4-70b8-4196-ab47-fe22153a488d" class="plan-cta cta-featured" target="_blank" rel="noopener">Get Professional →</a>
+      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/a358b1c4-70b8-4196-ab47-fe22153a488d" class="plan-cta cta-featured cta-monthly-only" target="_blank" rel="noopener">Get Professional →</a>
+      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/a358b1c4-70b8-4196-ab47-fe22153a488d" class="plan-cta cta-featured cta-annual-only" target="_blank" rel="noopener">Get Professional Annual →</a>
     </div>
 
     <div class="plan-card">
       <div class="plan-name">Business</div>
-      <div class="plan-price">£299 <span>/ month</span></div>
+      <div class="plan-price">
+        <span class="monthly-price">£299 <span>/ month</span></span>
+        <span class="annual-price">£2,990 <span>/ year</span><span class="price-equiv">£249.17/mo, billed annually</span></span>
+      </div>
+      <span class="annual-saving save-chip">Save £598 - 2 months free</span>
       <div class="plan-blurb">High-volume processing with branded, boardroom-ready outputs and unlimited API calls.</div>
       <div class="plan-divider"></div>
       <ul class="plan-features">
@@ -268,7 +316,8 @@
         <li>Bulk upload</li>
         <li>Priority support (same-day)</li>
       </ul>
-      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/4551704f-4fa4-45c5-9b11-6ef146964f78" class="plan-cta cta-paid" target="_blank" rel="noopener">Get Business →</a>
+      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/4551704f-4fa4-45c5-9b11-6ef146964f78" class="plan-cta cta-paid cta-monthly-only" target="_blank" rel="noopener">Get Business →</a>
+      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/4551704f-4fa4-45c5-9b11-6ef146964f78" class="plan-cta cta-paid cta-annual-only" target="_blank" rel="noopener">Get Business Annual →</a>
     </div>
 
     <div class="plan-card enterprise-card">
@@ -292,7 +341,11 @@
     <div class="plan-card api-card">
       <div class="plan-badge" style="background:#2E86AB;">For Developers</div>
       <div class="plan-name" style="color:#2E86AB;">Enterprise API</div>
-      <div class="plan-price">£499 <span>/ month</span></div>
+      <div class="plan-price">
+        <span class="monthly-price">£499 <span>/ month</span></span>
+        <span class="annual-price">£4,990 <span>/ year</span><span class="price-equiv">£415.83/mo, billed annually</span></span>
+      </div>
+      <span class="annual-saving save-chip">Save £998 - 2 months free</span>
       <div class="plan-blurb">Standalone API access: all 8 domain cleaners as REST endpoints for your systems.</div>
       <div class="plan-divider"></div>
       <ul class="plan-features">
@@ -304,7 +357,8 @@
         <li>Usage analytics dashboard</li>
         <li>Swagger / OpenAPI docs</li>
       </ul>
-      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/2de1db2f-2e4c-4a39-9585-c328afbfeafb" class="plan-cta cta-paid" target="_blank" rel="noopener" style="background:#2E86AB;">Get API Access →</a>
+      <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/2de1db2f-2e4c-4a39-9585-c328afbfeafb" class="plan-cta cta-paid cta-monthly-only" target="_blank" rel="noopener" style="background:#2E86AB;">Get API Access →</a>
+      <a href="mailto:sales@coltradata.com?subject=Enterprise%20API%20Annual%20Enquiry" class="plan-cta cta-paid cta-annual-only" style="background:#2E86AB;">Get API Access Annual →</a>
     </div>
 
   </div>
@@ -588,6 +642,12 @@
 </div>
 
 <script>
+  function toggleBilling() {
+    const annual = document.getElementById('billingToggle').checked;
+    document.body.classList.toggle('annual-mode', annual);
+    document.getElementById('lbl-monthly').classList.toggle('active', !annual);
+    document.getElementById('lbl-annual').classList.toggle('active', annual);
+  }
   function toggleChat() { document.getElementById('chatWindow').classList.toggle('open'); }
   function toggleFaq(el) { el.closest('.faq-item').classList.toggle('open'); }
   const botRules = [
@@ -595,7 +655,8 @@
     { k: ['plan','price','cost','pricing','tier','starter','professional','business','enterprise'], a: '5 plans available:<br>• Free – £0/mo (3 runs, 5k rows)<br>• Starter – £29/mo (50 runs, 50k rows, AI insights)<br>• Professional – £99/mo (200 runs, 250k rows, PDF + API)<br>• Business – £299/mo (1,000 runs, 1M rows, branded reports)<br>• Enterprise – from £999/mo (unlimited, white-label, SLA)' },
     { k: ['api','developer','endpoint','rest','programmatic'], a: 'The <strong>Enterprise API</strong> (£499/mo) exposes all 8 domain cleaners as REST endpoints: CSV &amp; JSON input, Bearer token auth, auto-delivered key on purchase. <a href="#api-section">See details above ↑</a>' },
     { k: ['free','trial','no card','signup'], a: 'Free plan: 3 runs/month, up to 5,000 rows, no credit card required. <a href="https://app.coltradata.com">Start free →</a>' },
-    { k: ['billing','cancel','refund','charge','payment'], a: 'Billed monthly via Lemon Squeezy. Cancel anytime from your billing portal. For refunds email <a href="mailto:support@coltradata.com">support@coltradata.com</a>.' },
+    { k: ['annual','yearly','year','save','discount'], a: 'Annual plans save you 2 months: Starter £290/yr (was £348), Professional £990/yr (was £1,188), Business £2,990/yr (was £3,588). Toggle the Monthly/Annual switch at the top of the page to see annual prices.' },
+    { k: ['billing','cancel','refund','charge','payment'], a: 'Plans are billed monthly or annually via Lemon Squeezy. Cancel anytime from your billing portal. For refunds email <a href="mailto:support@coltradata.com">support@coltradata.com</a>.' },
     { k: ['activate','login','sign in','access','how do i start'], a: 'After purchase, go to <a href="https://app.coltradata.com">app.coltradata.com</a> and sign in with the same email. Your plan activates automatically, no licence key needed.' },
     { k: ['secure','privacy','gdpr','safe','data'], a: 'Data is processed securely and never permanently stored or shared. GDPR-compliant. <a href="privacy.html">Privacy Policy →</a>' },
   ];
