@@ -1,0 +1,29 @@
+TYPE: Organic post - ROI / cost of inaction framing
+PUBLISH: Standalone - suits Finance, Consulting, Operations audiences
+TONE: Measured, fact-led, no hard sell
+
+---
+
+POST COPY:
+
+The cost of a data quality problem is rarely the cost of fixing it.
+
+It is the cost of the decision made on it before anyone noticed.
+
+A supplier record with a missing VAT number processed through month-end. A logistics dataset with duplicate consignment references that quietly inflated the shipment count. An inventory file with inconsistent unit measures that triggered a reorder that did not need to happen.
+
+None of these are dramatic failures. They are ordinary ones. And they are expensive in ways that do not show up as a single line item - they show up as time, corrections, wasted resource, and lost confidence in the numbers.
+
+Here is what makes this worse: most organisations discover data quality problems at the worst possible moment. Not before the data enters a workflow. After it has already informed a report, a budget, a decision.
+
+Catching errors upstream - before the data reaches anything - costs a fraction of what it costs to unpick them downstream.
+
+That is exactly what ColtraDataAi is built to do. Nine domain-specific cleaners for finance, logistics, retail, healthcare, clinical, customs and trade, professional services and more. Upload your dataset, get a structured quality report in minutes, before the data goes anywhere that matters.
+
+The free tier is available right now. No card required.
+
+Start at app.coltradata.com.
+
+What is the most expensive data quality mistake your organisation has had to unpick? Share it in the comments - you will not be alone.
+
+#DataQuality #BusinessIntelligence #ColtraDataAi #Finance #Operations #Consulting #AI

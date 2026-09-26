@@ -1,4 +1,4 @@
-Every business decision you only as good as the data underneath it.
+Every business decision is only as good as the data underneath it.
 
 Every forecast. Every budget. Every operational change. Every investment case. Each one traces back to a number, a record, a file that someone compiled and passed along. If that source data is inconsistent, duplicated, or incorrectly formatted, the decision built on it is unstable - regardless of how sophisticated the analysis on top looks.
 

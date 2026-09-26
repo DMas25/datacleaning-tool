@@ -1,0 +1,42 @@
+CAMPAIGN: Healthcare Analytics
+TARGET: Healthcare Managers, Clinical Operations, NHS Professionals, Healthcare Administrators
+OBJECTIVE: Website visits / Lead generation
+CTA BUTTON: Try Free
+
+---
+
+INTRO TEXT (post body - paste into LinkedIn ad manager):
+
+Healthcare decisions depend on data. The data is rarely clean.
+
+Patient flow planning, workforce scheduling, resource allocation - each one draws from records that were entered by different people, across different systems, in different formats. The inconsistencies are not always visible. But they affect the outputs.
+
+ColtraDataAi's healthcare operations cleaner surfaces what is actually in your data before it feeds a report or informs a planning decision.
+
+What it identifies:
+
+- Missing or invalid NHS numbers and patient identifiers
+- Duplicate records across patient and staff datasets
+- Inconsistent date and appointment formats across systems
+- Workforce and shift data with classification mismatches
+- Referral pathway records with incomplete or conflicting entries
+
+The output is a structured quality report - what was found, what was flagged, and what needs attention. Clear, repeatable, and ready to share with the team handling the correction.
+
+Start free at app.coltradata.com - no card required.
+
+---
+
+HEADLINE (70 chars max):
+AI Data Quality for Healthcare Operations and Planning
+
+DESCRIPTION (100 chars max):
+Surface data errors before they affect decisions. Try free.
+
+DISPLAY URL:
+app.coltradata.com
+
+---
+
+HASHTAGS (for organic version):
+#Healthcare #HealthcareAnalytics #NHSDigital #PatientData #DataQuality #ColtraDataAi #HealthTech

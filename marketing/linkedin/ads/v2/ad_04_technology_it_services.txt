@@ -1,0 +1,41 @@
+CAMPAIGN: Technology & IT Services
+INDUSTRY TARGET: IT Services & IT Consulting, Technology, Information & Internet, Software Development, Computer Networking
+JOB FUNCTION TARGET: CTOs, IT Directors, Data Engineers, Solution Architects, Digital Transformation Leads, Systems Analysts
+OBJECTIVE: Website visits / Lead generation
+CTA BUTTON: Try Free
+DATA SOURCE: IT Services 3,380 impressions / 56 clicks / 1.66% CTR + Tech/Internet 2,865 impressions / 47 clicks / 1.64% CTR. Combined = largest tech audience. Clicks are informed, not curiosity - high quality.
+NOTE: This audience already understands data quality and AI. Lead with the problem, not the concept.
+
+---
+
+INTRO TEXT (post body - paste into LinkedIn ad manager):
+
+Bad source data does not get fixed by the pipeline. It gets transformed, aggregated, and reported - with the errors intact. Every system downstream inherits the problem.
+
+IT and technology teams already know this. The challenge is not awareness - it is tooling. Data quality checks get bolted on downstream, handled by the analyst, surfaced in the dashboard, or discovered in a client meeting. Not at the point of ingestion, where fixing the problem costs the least.
+
+ColtraDataAi is the layer that sits before the pipeline and before the analyst sees the data.
+
+Nine domain-specific cleaners validate structured data at the field level across finance, logistics, healthcare, clinical, retail, customs and trade, professional services and more. Format checks, duplicate detection, compliance validation, structural consistency - all appropriate to the sector, all scored and reported before the data feeds anything.
+
+For teams delivering data products or cleaning client datasets at scale, the Professional plan at £99 per month includes API access, 200 runs, and 250,000 rows per upload - automatable, repeatable, and integrated into your existing workflow.
+
+The free tier covers 5,000 rows and 3 runs with no card required - enough to validate your first dataset today.
+
+Start free at app.coltradata.com - no card required.
+
+---
+
+HEADLINE (70 chars max):
+Validate Source Data Before It Enters the Pipeline
+
+DESCRIPTION (100 chars max):
+Domain-specific AI data quality checks. Start free today.
+
+DISPLAY URL:
+app.coltradata.com
+
+---
+
+HASHTAGS (for organic / boosted post version):
+#DataEngineering #ITConsulting #DataQuality #AI #TechLeadership #ColtraDataAi #DigitalTransformation #DataPipeline

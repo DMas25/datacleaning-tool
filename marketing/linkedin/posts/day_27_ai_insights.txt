@@ -10,7 +10,7 @@ The shift matters because the bottleneck is moving. Categorising transactions fa
 
 Data quality has to come first - before the analysis, before the submission.
 
-That's the gap ColtraDataAi sits in. A Finance and Accounting cleaner that flags duplicate entries, inconsistent date formats, missing reference fields, negative balances, and currency mismatches - before the data goes anywhere else.
+That's the gap ColtraDataAi sits in. A Finance and Accounting cleaner that flags duplicate entries, inconsistent date formats, missing reference fields, negative balances, and currency mismatches - before the data goes anywhere else. For UK practices, it also includes MTD VAT readiness checks aligned with HMRC 700/22, so Making Tax Digital submissions start from a validated dataset.
 
 It doesn't interpret the numbers. It tells you what's wrong with them. What you do from there is your call.
 

@@ -12,6 +12,6 @@ The ColtraDataAi Enterprise API is built for exactly this: run domain-specific v
 
 Finance records, logistics data, import/export entries, inventory feeds - each checked against the rules that matter for that domain, at the point your pipeline needs it.
 
-Explore the Enterprise API at coltradata-api.onrender.com/docs.
+Enterprise API is £499/month. Docs at coltradata-api.onrender.com/docs.
 
 #RealTimeData #DataValidation #API #DataEngineering #ColtraDataAi #DataQuality

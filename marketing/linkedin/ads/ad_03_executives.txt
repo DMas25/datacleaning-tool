@@ -1,0 +1,38 @@
+CAMPAIGN: Executive Decision Makers
+TARGET: Directors, Managing Directors, CEOs, Founders, C-Suite
+OBJECTIVE: Website visits / Brand awareness
+CTA BUTTON: Learn More
+
+---
+
+INTRO TEXT (post body - paste into LinkedIn ad manager):
+
+Every strategic decision traces back to a number in a dataset somewhere.
+
+A forecast. A margin figure. An operational metric. A supplier record. At some point in the chain, someone compiled data from multiple sources and passed it along. If that data carried inconsistencies, duplicates, or formatting errors - the decisions built on it are less reliable than they look.
+
+Most organisations find this out after the fact. A report throws up an anomaly. A budget doesn't reconcile. A KPI tells a different story than the operation does.
+
+ColtraDataAi is built for the step that happens before analysis.
+
+Nine sector-specific cleaners validate data at the field level - finance, logistics, retail, healthcare, clinical, customs and trade, professional services and more. The output is a structured quality report: what the data contains, where the problems are, and how significant they are. Before the data feeds a dashboard. Before it reaches a board presentation.
+
+Clean data in. Decisions you can stand behind.
+
+Start free at app.coltradata.com.
+
+---
+
+HEADLINE (70 chars max):
+Make Decisions on Data You Can Actually Trust
+
+DESCRIPTION (100 chars max):
+AI-powered data quality for business leaders. Start free.
+
+DISPLAY URL:
+app.coltradata.com
+
+---
+
+HASHTAGS (for organic version):
+#Leadership #BusinessStrategy #DataDriven #ExecutiveInsights #ColtraDataAi #AI #DecisionMaking

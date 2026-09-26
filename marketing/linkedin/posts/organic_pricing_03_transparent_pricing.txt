@@ -1,0 +1,29 @@
+TYPE: Organic post - Transparent pricing / value positioning
+PUBLISH: Standalone - builds trust, good for profile credibility
+TONE: Honest, direct, founder-voice
+
+---
+
+POST COPY:
+
+I want to be straightforward about how ColtraDataAi is priced - because I think transparency here actually builds more trust than a polished sales page.
+
+The paid plans start at £29 per month. For a lot of the businesses this tool is built for - consultants, accountants, operations teams, healthcare administrators - that is a reasonable cost for what they get. For others, particularly smaller teams or sole traders, it is worth taking a run at the free tier first and letting the tool prove its value before you spend anything.
+
+So here is what the free tier actually gives you.
+
+Up to 5,000 rows per upload. Three cleaning runs per month. A structured quality report scored across completeness, uniqueness, consistency, and structure - with a clear field-level breakdown of what was found and where the problems are. It accepts CSV and XLSX directly, including exports from Xero, QuickBooks, Sage, and FreeAgent.
+
+What the free tier does not include: AI advisory analysis, downloadable Excel or PDF reports, and the volume you would need for regular production work. Those come in with the Starter plan at £29 per month.
+
+Here is the honest truth about why the free tier is worth using even before you commit.
+
+Bad data problems are often invisible until the tool flags them. Most users who run their first clean are surprised by what comes back. That surprise is what tells you whether ColtraDataAi earns a paid plan for your workflow.
+
+If 3 runs a month is all you need, stay free. If what you find makes the case for regular use - at £29, the Starter plan pays for itself the first time it saves you a reconciliation conversation.
+
+ColtraDataAi was built because I worked in financial reporting and compliance and watched organisations make expensive decisions on data that had never been validated. The pricing reflects that this should be accessible, not a luxury.
+
+Start for free at app.coltradata.com. No card required. See what your data actually contains.
+
+#ColtraDataAi #Pricing #DataQuality #SmallBusiness #Accounting #Consulting #AI #SaaS

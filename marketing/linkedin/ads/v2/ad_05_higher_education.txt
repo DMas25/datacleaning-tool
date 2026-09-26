@@ -1,0 +1,49 @@
+CAMPAIGN: Higher Education & Research
+INDUSTRY TARGET: Higher Education, Education, Research Services, Non-profit Organisations
+JOB FUNCTION TARGET: University Administrators, Academic Directors, Registrars, Research Managers, Student Data Officers, Institutional Analysts
+OBJECTIVE: Website visits / Lead generation
+CTA BUTTON: Try Free
+DATA SOURCE: Higher Education - 1,011 impressions, 26 clicks, 2.57% CTR. Highest quality engagement in the entire industry report. Prioritise for next budget cycle.
+NOTE: Lean into grant reporting and institutional compliance - these are the pressure points in this sector.
+
+---
+
+INTRO TEXT (post body - paste into LinkedIn ad manager):
+
+Institutional decisions are built on data compiled under time pressure, across multiple systems, by multiple teams. That is the precise set of conditions that produces data quality problems.
+
+Student records that do not reconcile across departments. Research datasets from partner institutions with inconsistent formats. Grant reporting data with gaps discovered at submission - not before it. These are not edge cases. They are the structural reality of how institutional data is produced.
+
+The cost of discovering an error at submission is significantly higher than the cost of finding it before the data leaves your systems.
+
+ColtraDataAi validates institutional and research data before it reaches a report, a regulator, or a funder.
+
+What it validates:
+
+- Student identifiers and enrolment records for duplicates and missing fields
+- Research data for structural consistency and format compliance
+- Grant reporting data for completeness against submission requirements
+- Staff and department records across HR and academic systems
+- Survey and assessment data for consistency before analysis
+
+Structured quality report. What was found, where the gaps are, what needs attention - before it goes anywhere that matters.
+
+Try it free on your next dataset. No card, no commitment. The free tier covers 5,000 rows and 3 runs - enough to validate a real file today and see exactly what comes back.
+
+Start free at app.coltradata.com - no card required.
+
+---
+
+HEADLINE (70 chars max):
+AI Data Quality for Universities and Research Teams
+
+DESCRIPTION (100 chars max):
+Validate institutional data before reports and submissions. Free.
+
+DISPLAY URL:
+app.coltradata.com
+
+---
+
+HASHTAGS (for organic / boosted post version):
+#HigherEducation #UniversityAdmin #ResearchData #InstitutionalAnalytics #DataQuality #ColtraDataAi #EdTech #GrantReporting

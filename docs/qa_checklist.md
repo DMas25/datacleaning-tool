@@ -202,10 +202,10 @@ The AI Advisor (`core/ai_advisor.py`) generates descriptive data quality observa
 ### Tier Access
 
 - [ ] Free tier: AI Advisor section does NOT appear
-- [ ] Starter tier: AI Advisor section does NOT appear
-- [ ] Professional tier: AI Advisor section appears (confirm model used)
+- [ ] Starter tier: AI Advisor uses Claude Haiku model — confirm in Anthropic API usage logs
+- [ ] Professional tier: AI Advisor uses Claude Haiku model — confirm in Anthropic API usage logs
 - [ ] Business tier: AI Advisor uses Claude Sonnet model — confirm in Anthropic API usage logs
-- [ ] Enterprise tier: AI Advisor uses Claude Opus model — confirm in Anthropic API usage logs
+- [ ] Enterprise tier: AI Advisor uses Claude Sonnet model — confirm in Anthropic API usage logs
 
 ### Output Quality
 

@@ -1,0 +1,30 @@
+TYPE: Organic post - Free tier lead / barrier removal
+PUBLISH: Standalone or as part of a pricing awareness sequence
+TONE: Direct, unpretentious, low-pressure
+
+---
+
+POST COPY:
+
+Most businesses do not know what is wrong with their data until a decision built on it goes wrong.
+
+ColtraDataAi is free to start - and starting is the point.
+
+Upload your data, run the industry-specific cleaner, read the quality report. In most cases, it finds things the team did not know were there. That moment is worth more than any sales page.
+
+The free tier gives you:
+
+- Up to 5,000 rows per upload
+- 3 cleaning runs per month
+- A scored quality report across completeness, uniqueness, consistency and structure
+- A field-level breakdown of exactly what was found and where
+
+No AI advisory analysis or downloadable reports on the free tier - those are in the paid plans from £29 per month. But for a consultant reviewing a client dataset, a bookkeeper checking a Xero or Sage export before month-end, or a business owner who has never run a data quality check - the free tier surfaces real problems with real data before you spend a penny.
+
+Nine sector-specific cleaners: finance, logistics, retail, healthcare, clinical, customs and trade, professional services and more. Upload CSV or XLSX directly - including exports from Xero, QuickBooks, Sage, and FreeAgent.
+
+What you find in the free tier tells you exactly whether a paid plan is worth it.
+
+Start at app.coltradata.com. No card required.
+
+#DataQuality #ColtraDataAi #DataCleaning #SmallBusiness #Bookkeeping #Accounting #AI

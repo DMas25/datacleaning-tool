@@ -207,7 +207,7 @@ Schedule a live session (video call). Cover:
 3. Reports (10 min):
    - Downloading Excel (multi-sheet) and PDF
    - Branded outputs (client-ready)
-   - AI insights section (Enterprise uses Opus model)
+   - AI insights section (Enterprise uses Sonnet model)
 4. Enterprise API (if applicable) (10 min):
    - Quick-start with their API key
    - Live demo call

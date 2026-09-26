@@ -4,7 +4,7 @@ Clean it. Analyse it. Visualise it. Predict from it. Tell you what to do next. T
 
 ColtraDataAi does one thing.
 
-It cleans domain-specific data and tells you exactly what was wrong with it - duplicate records, mismatched formats, invalid identifiers, structural inconsistencies across eight industry categories. Then it stops.
+It cleans domain-specific data and tells you exactly what was wrong with it - duplicate records, mismatched formats, invalid identifiers, structural inconsistencies across nine industry categories. Then it stops.
 
 It does not interpret the results. It does not advise on next steps. That is the accountant's job. The analyst's job. The operator's job. The person who knows the business.
 

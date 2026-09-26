@@ -8,7 +8,7 @@ AI does not fix that. Dashboards do not fix that. Better reports do not fix that
 
 That is what ColtraDataAi was built to be - the layer before the layer everyone talks about. The step that happens before analysis, before reporting, before decisions get made.
 
-Eight industry-specific cleaners. Finance, logistics, retail, trade, healthcare operations, professional services, SME, hospitality. Each one built around the actual data problems that appear in that sector - not generic checks, but field-level validation that reflects how real data arrives in the real world.
+Nine industry-specific cleaners. Finance, logistics, retail, customs and trade, healthcare operations, clinical trials, professional services, SME, hospitality. Each one built around the actual data problems that appear in that sector - not generic checks, but field-level validation that reflects how real data arrives in the real world.
 
 If this series gave you one useful thing to take back to your work, that is the point.
 

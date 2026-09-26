@@ -251,10 +251,11 @@ def render_results_panel(
 
         if has_feature(user_plan, "can_view_advanced_insights"):
             _model_labels = {
+                "starter":      "Haiku · fast analysis",
                 "professional": "Haiku · fast analysis",
-                "premium":      "Sonnet · enhanced analysis",
-                "enterprise":   "Sonnet · comprehensive analysis",
                 "business":     "Sonnet · enhanced analysis",
+                "enterprise":   "Sonnet · comprehensive analysis",
+                "premium":      "Sonnet · enhanced analysis",
             }
             st.caption(f"Model: {_model_labels.get(user_plan, 'AI analysis')}")
 

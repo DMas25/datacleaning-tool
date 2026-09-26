@@ -31,7 +31,7 @@ app.coltradata.com   (Render — coltradata-app service)
     ├── Supabase Auth (OTP via Resend)
     ├── Supabase PostgreSQL (subscriptions, API keys, usage logs)
     ├── Supabase Storage (reports bucket — signed URLs)
-    ├── Anthropic API (AI insights — Business: Sonnet, Enterprise: Opus)
+    ├── Anthropic API (AI insights — Starter/Professional: Haiku, Business/Enterprise: Sonnet)
     └── LemonSqueezy (subscription billing)
           │
           └── Supabase Edge Function (lemonsqueezy-webhook)

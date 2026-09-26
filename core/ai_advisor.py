@@ -12,9 +12,11 @@ Tier matrix
 ───────────────────────────────────────────────────────────────────────────────
 Plan           Model                      Max tokens  Summary depth  Insights
 ─────────────  ─────────────────────────  ──────────  ─────────────  ────────
+starter        claude-haiku-4-5-20251001   800        minimal        1–2/section
 professional   claude-haiku-4-5-20251001  1100        compact        2–3/section
-premium        claude-sonnet-4-6          1900        standard       4–6/section
-enterprise     claude-opus-4-8            3600        full           6–8/section
+business       claude-sonnet-4-6          1900        standard       4–6/section
+enterprise     claude-sonnet-4-6          2400        full           6–8/section
+premium        claude-sonnet-4-6          1900        standard       4–6/section  (legacy)
 ───────────────────────────────────────────────────────────────────────────────
 
 Returns None gracefully on any failure so callers never need to handle errors.
@@ -33,13 +35,15 @@ if TYPE_CHECKING:
 # ── Tier → model ──────────────────────────────────────────────────────────────
 
 _MODEL: dict[str, str] = {
+    "starter":      "claude-haiku-4-5-20251001",
     "professional": "claude-haiku-4-5-20251001",
     "business":     "claude-sonnet-4-6",
-    "enterprise":   "claude-sonnet-4-6",  # Sonnet: 3-5x faster than Opus, still full-depth
+    "enterprise":   "claude-sonnet-4-6",
     "premium":      "claude-sonnet-4-6",  # legacy grandfathered tier
 }
 
 _MAX_TOKENS: dict[str, int] = {
+    "starter":      800,
     "professional": 1100,
     "business":     1900,
     "enterprise":   2400,  # reduced from 3600 — Sonnet is more token-efficient
@@ -49,6 +53,7 @@ _MAX_TOKENS: dict[str, int] = {
 # How many numeric / categorical columns to include in the prompt context.
 # Reduces input tokens for cheaper tiers without losing the key signals.
 _SUMMARY_DEPTH: dict[str, dict] = {
+    "starter":      {"num_cols": 5,  "cat_cols": 3,  "correlations": False},
     "professional": {"num_cols": 8,  "cat_cols": 5,  "correlations": False},
     "business":     {"num_cols": 12, "cat_cols": 8,  "correlations": True},
     "enterprise":   {"num_cols": 20, "cat_cols": 12, "correlations": True},
@@ -135,6 +140,12 @@ _SECTION_SPEC = (
 )
 
 _PROMPT: dict[str, str] = {
+    "starter": (
+        f"{_PERSONA}\n\n{_SECTION_SPEC}\n\n"
+        "Keep this concise: 1–2 bullets per section, 5 Top Priority Actions maximum, "
+        "and one sentence per remaining heading where a list isn't requested.\n\n"
+        "Dataset summary:\n{summary}"
+    ),
     "professional": (
         f"{_PERSONA}\n\n{_SECTION_SPEC}\n\n"
         "Keep this tier concise: 2–3 bullets per section, 5 actions in Top Priority "

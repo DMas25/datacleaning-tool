@@ -1,0 +1,49 @@
+CAMPAIGN: Healthcare & Medical Practices
+INDUSTRY TARGET: Medical Practices, Healthcare Services, Hospital & Health Care
+JOB FUNCTION TARGET: Practice Managers, Healthcare Administrators, Clinical Operations Managers, NHS Operations Leads, Workforce Planning Managers
+OBJECTIVE: Website visits / Lead generation
+CTA BUTTON: Try Free
+DATA SOURCE: 3,702 impressions, 44 clicks, 1.19% CTR - strong penetration in a notoriously expensive sector
+NOTE: Run this campaign independently. Do not merge with general business campaigns.
+
+---
+
+INTRO TEXT (post body - paste into LinkedIn ad manager):
+
+Healthcare data quality is not an IT problem. It is an operational one - and it has operational consequences.
+
+Patient records entered across different systems. Staff rosters compiled from multiple sources. Referral data arriving in inconsistent formats. Each dataset handled separately, by different teams, and the inconsistencies accumulate quietly - until they surface in a report, a planning decision, or an audit. At which point, the damage is already done.
+
+The question is not whether your data has errors. It is whether you find them before or after they affect a decision.
+
+ColtraDataAi's healthcare operations cleaner finds them first.
+
+What it identifies:
+
+- Missing or invalid patient identifiers and NHS numbers
+- Duplicate patient and staff records across systems
+- Appointment and scheduling data with date or format inconsistencies
+- Workforce records with classification or grade mismatches
+- Referral pathway entries with incomplete or conflicting fields
+
+The output is a structured quality report - what was found, what was flagged, where the gaps are - produced in minutes, ready for the team responsible for remediation.
+
+Start free today. Upload a dataset, run the healthcare cleaner, and see exactly what the data contains - before it informs anything that matters.
+
+Start free at app.coltradata.com - no card required.
+
+---
+
+HEADLINE (70 chars max):
+AI Data Quality for Healthcare Operations and Planning
+
+DESCRIPTION (100 chars max):
+Surface data errors before they reach decisions. Try free.
+
+DISPLAY URL:
+app.coltradata.com
+
+---
+
+HASHTAGS (for organic / boosted post version):
+#Healthcare #MedicalPractice #NHSDigital #HealthcareOperations #DataQuality #ColtraDataAi #HealthTech #PatientData

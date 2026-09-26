@@ -1,0 +1,36 @@
+CAMPAIGN: Operations Leaders
+TARGET: Operations Managers, Operations Directors, COOs, Heads of Operations
+OBJECTIVE: Website visits / Lead generation
+CTA BUTTON: Try Free
+
+---
+
+INTRO TEXT (post body - paste into LinkedIn ad manager):
+
+Data quality problems don't stay in the spreadsheet.
+
+They move into your KPIs, your operational reports, your reorder triggers, and the decisions that get made from them. By the time the error surfaces in a meeting, it has already done its damage.
+
+ColtraDataAi cleans operational data before it reaches your reporting layer - catching the inconsistencies, duplicated records, and formatting errors that distort the numbers your team acts on.
+
+Nine industry-specific cleaners. Finance, logistics, retail, customs and trade, healthcare operations, professional services and more. Each one built around the field-level problems that appear in real operational data - not generic validation, but checks that reflect how data actually arrives from suppliers, systems, and teams.
+
+Clean data in. Reliable decisions out.
+
+Start free at app.coltradata.com - no card required.
+
+---
+
+HEADLINE (70 chars max):
+Turn Operational Data Into Reliable Business Decisions
+
+DESCRIPTION (100 chars max):
+AI-powered data quality for operations teams. Start free.
+
+DISPLAY URL:
+app.coltradata.com
+
+---
+
+HASHTAGS (for organic version):
+#Operations #BusinessIntelligence #DataQuality #OperationalExcellence #ColtraDataAi #AI #KPIs

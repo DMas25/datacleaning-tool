@@ -6,7 +6,7 @@ The figures might be entirely legitimate. But if the data looks chaotic, the sto
 
 This is not a large business problem. It is an SME problem. Bigger organisations have finance teams and data governance processes. Smaller ones are often submitting exports straight from their accounting software, unreviewed and unstructured.
 
-ColtraDataAi's Finance and Accounting cleaner runs validation checks across transaction records - flagging duplicates, inconsistent date formats, missing references, and classification gaps. It shows you exactly where the data has issues before anyone else does.
+ColtraDataAi's Finance and Accounting cleaner runs validation checks across transaction records - flagging duplicates, inconsistent date formats, missing references, and classification gaps. For UK businesses, it also includes MTD VAT readiness checks aligned with HMRC 700/22. It shows you exactly where the data has issues before anyone else does.
 
 A clean dataset is a credibility signal. It tells the person reviewing your application that the business behind the numbers is organised and consistent.
 

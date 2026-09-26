@@ -17,4 +17,6 @@ The cleaner surfaces these issues clearly and specifically. What the data contai
 
 Healthcare ops teams: explore the full check list at app.coltradata.com.
 
-#HealthcareTech #DataQuality #HealthcareOperations #NHS #ColtraDataAi
+Running clinical trials? ColtraDataAi also includes a dedicated Clinical cleaner with NCT ID validation, enrolment date checks, and protocol compliance flags.
+
+#HealthcareTech #DataQuality #HealthcareOperations #NHS #ClinicalTrials #ColtraDataAi

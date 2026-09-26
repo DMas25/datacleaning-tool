@@ -1,0 +1,54 @@
+CAMPAIGN: Finance & Accounting
+INDUSTRY TARGET: Accounting, Financial Services, Capital Markets, Insurance
+JOB FUNCTION TARGET: Finance Directors, Financial Controllers, CFOs, Chartered Accountants, Management Accountants, Bookkeepers
+OBJECTIVE: Website visits / Lead generation
+CTA BUTTON: Try Free
+DATA SOURCE: Accounting industry - 1,812 impressions, 35 clicks, 1.93% CTR. Confirmed by both job function AND industry reports - double signal.
+
+---
+
+INTRO TEXT (post body - paste into LinkedIn ad manager):
+
+A month-end report is only as accurate as the data behind it. Most finance teams find that out at the worst possible time.
+
+Supplier records that do not reconcile. VAT numbers that fail format checks. Duplicate entries across ledgers. Date fields that do not match across systems. These are not exceptional problems. They are routine ones - and by the time they surface during a close, they have already become a time, cost, and credibility problem.
+
+The professionals who avoid that pressure are the ones who validate the data before it enters the reporting workflow, not during it.
+
+ColtraDataAi's finance cleaner handles that layer - before the close, not during it.
+
+What it validates:
+
+- VAT numbers against HMRC format requirements and EU VIES structure
+- Company registration numbers for format consistency
+- Currency codes and transaction amounts for ISO 4217 compliance
+- Duplicate supplier and customer records across datasets
+- Date fields in invoice, payment and transaction data
+- Bank reference and account fields for completeness and format
+- MTD VAT readiness checks aligned to HMRC 700/22 requirements
+
+Works with the tools you already use. Export from Xero, QuickBooks, Sage, FreeAgent, or any platform that produces a CSV or XLSX file. No integration setup. No new system. Upload the export, run the cleaner, read the report.
+
+Structured quality report delivered in minutes. What was found, what does not meet the standard, where the gaps are - ready to act on before the numbers go anywhere that matters.
+
+Try it free on your next dataset. No card required. If it catches one error before it reaches a report, it has already earned its place in your workflow.
+
+For regular use, the Starter plan at £29 per month gives you 50 runs, 50,000 rows, AI advisory analysis, and Excel report exports - built for accountants and finance teams who clean data as part of their professional process.
+
+Start free at app.coltradata.com - no card required.
+
+---
+
+HEADLINE (70 chars max):
+AI Data Quality for Finance Teams and Accountants
+
+DESCRIPTION (100 chars max):
+VAT, supplier and ledger data validated before month-end. Free.
+
+DISPLAY URL:
+app.coltradata.com
+
+---
+
+HASHTAGS (for organic / boosted post version):
+#Finance #Accounting #CFO #FinanceDirector #DataQuality #VAT #HMRC #ColtraDataAi #FinTech #MTD

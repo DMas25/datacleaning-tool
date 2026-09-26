@@ -1,0 +1,42 @@
+CAMPAIGN: Consulting & Professional Services
+INDUSTRY TARGET: Business Consulting & Services, Management Consulting, Strategy & Operations
+JOB FUNCTION TARGET: Management Consultants, Business Advisors, Transformation Consultants, Digital Transformation Specialists, Operations Directors
+OBJECTIVE: Website visits / Lead generation
+CTA BUTTON: Try Free
+DATA SOURCE: Largest industry audience - 4,755 impressions, 86 clicks, 1.81% CTR
+
+---
+
+INTRO TEXT (post body - paste into LinkedIn ad manager):
+
+A consultant's credibility sits entirely on the quality of the data behind the recommendation.
+
+Clients do not see the source files. They see the report. They trust the numbers. And when those numbers were built on data that was never validated - duplicate supplier records, mismatched currencies, missing identifiers - the problem does not stay in the spreadsheet. It travels into the deliverable.
+
+ColtraDataAi removes that risk before it can reach a client.
+
+Nine sector-specific cleaners covering finance, logistics, retail, healthcare, clinical trials, customs and trade, professional services and more. Each one catches the field-level errors that actually appear in real client data - scored, flagged, and reported before anything downstream relies on them. Upload CSV or XLSX files directly. For higher-volume or automated client workflows, the Enterprise API supports programmatic delivery with no manual step required.
+
+The free tier lets you run your next client dataset right now - no card, no commitment.
+
+If you clean data for clients regularly, the Starter plan at £29 per month gives you 50 runs, 50,000 rows per upload, AI advisory analysis, and Excel report exports. One prevented error justifies the cost.
+
+Upload. Clean. Deliver work you can stand behind.
+
+Start free at app.coltradata.com - no card required.
+
+---
+
+HEADLINE (70 chars max):
+AI Data Quality for Consultants and Business Advisors
+
+DESCRIPTION (100 chars max):
+Validate client data before it enters your analysis. Try free.
+
+DISPLAY URL:
+app.coltradata.com
+
+---
+
+HASHTAGS (for organic / boosted post version):
+#Consulting #ManagementConsulting #BusinessIntelligence #DataQuality #ColtraDataAi #ProfessionalServices #DigitalTransformation

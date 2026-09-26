@@ -1,0 +1,46 @@
+CAMPAIGN: Finance and Accounting
+TARGET: Finance Directors, Accountants, Financial Controllers, CFOs, Management Accountants
+OBJECTIVE: Website visits / Lead generation
+CTA BUTTON: Try Free
+
+---
+
+INTRO TEXT (post body - paste into LinkedIn ad manager):
+
+A month-end report is only as accurate as the data behind it.
+
+Finance teams spend significant time reconciling figures that don't match, chasing missing VAT numbers, correcting supplier records, and investigating variances that trace back to data that was never clean to begin with.
+
+ColtraDataAi's finance cleaner handles that layer before it reaches your reporting workflow.
+
+What it validates:
+
+- VAT numbers against HMRC format requirements (UK) and EU VIES structure (international)
+- Company registration numbers for format consistency
+- Currency codes and amounts for ISO 4217 compliance
+- Duplicate supplier and customer records
+- Date fields across transaction and invoice data
+- Missing or misformatted bank and account reference fields
+- MTD VAT readiness checks aligned to HMRC 700/22 requirements
+
+The output is a structured data quality report - what was found, what does not meet the standard, and where the gaps are. Produced in minutes. Ready to act on.
+
+Less time correcting. More time reporting.
+
+Start free at app.coltradata.com - no card required.
+
+---
+
+HEADLINE (70 chars max):
+AI Data Quality for Finance Teams and Accountants
+
+DESCRIPTION (100 chars max):
+VAT, supplier and transaction data validated instantly. Try free.
+
+DISPLAY URL:
+app.coltradata.com
+
+---
+
+HASHTAGS (for organic version):
+#Finance #Accounting #FinanceDirector #CFO #DataQuality #VAT #ColtraDataAi #FinTech #HMRC

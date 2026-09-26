@@ -12,6 +12,8 @@ Here's how the tiers break down:
 
 **Business - £299/month** - 1,000 runs, 1 million rows, branded reports, and unlimited API calls. For firms running this across multiple clients or datasets at scale.
 
+**Enterprise API - £499/month** - Programmatic access to all nine domain cleaners via REST API. For teams building domain-specific validation directly into a data pipeline. Docs at coltradata-api.onrender.com/docs.
+
 **Enterprise** - Contact us. Dedicated database, SLA, and onboarding support included.
 
 Every tier runs the same domain-specific validation engine. Finance, Logistics, Retail, Trade, Healthcare, and more. The tier changes your capacity. The quality of the checks does not.
