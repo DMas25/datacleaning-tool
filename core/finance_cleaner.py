@@ -2,17 +2,23 @@
 
 Domain-specific cleaning pass that runs after the standard pipeline:
   1. Account code normalisation    — pads nominal codes to 4 digits, classifies by range
-  2. VAT / tax code validation     — flags codes outside recognised UK VAT schemes
+  2. Tax / VAT code validation     — flags codes outside recognised global tax schemes
   3. Journal reference normalisation — strips whitespace, enforces prefix/padding
   4. Period classification         — maps period values to standard fiscal labels
   5. Cost centre validation        — flags missing or non-numeric cost centres
   6. Trial balance check           — verifies sum(debits) ≈ sum(credits)
   7. Narrative quality check       — flags blank or suspiciously generic narratives
+
+Applicable worldwide. Account code ranges (0000-9999) follow the convention used by
+Sage, Xero, and QuickBooks globally. Tax/VAT code validation covers UK, EU, AU, CA,
+IN, ZA, US, and generic international schemes. The MTD readiness check is UK-specific
+(HMRC VAT Notice 700/22) and is labelled accordingly in the output.
 """
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Optional
 
 import pandas as pd
@@ -33,6 +39,7 @@ _CC_KW        = ["cost_centre", "cost_center", "cc_code", "department", "dept", 
 _NARR_KW      = ["narrative", "description", "details", "memo", "particulars", "remarks"]
 _DATE_KW      = ["date", "posting_date", "transaction_date", "entry_date", "doc_date"]
 _NET_KW       = ["net", "net_amount", "net_value", "ex_vat", "net_of_vat", "taxable_amount"]
+_CURRENCY_KW  = ["currency", "currency_code", "ccy", "curr", "fx_currency", "transaction_currency"]
 
 
 def _detect(df: pd.DataFrame, keywords: list[str]) -> Optional[str]:
@@ -52,7 +59,7 @@ def _detect(df: pd.DataFrame, keywords: list[str]) -> Optional[str]:
     return None
 
 
-# ── Account code classification (UK nominal account ranges) ───────────────────
+# ── Account code classification (standard nominal ranges: Sage, Xero, QuickBooks global) ──
 
 _ACCOUNT_RANGES = [
     (0,    999,  "Fixed Assets"),
@@ -101,20 +108,41 @@ def normalise_account_codes(
     return df, padded, account_types
 
 
-# ── VAT / tax code validation ─────────────────────────────────────────────────
+# ── Tax / VAT code validation ─────────────────────────────────────────────────
 
-# Common UK VAT codes used in accounting software
+# Recognised tax/VAT codes — UK, EU, AU, CA, IN, ZA, US and generic international
 _VALID_VAT_CODES = {
-    # Sage-style
-    "T0", "T1", "T2", "T4", "T5", "T7", "T8", "T9", "T20", "T21",
-    # QuickBooks/Xero-style
-    "S", "Z", "E", "X", "N", "R", "20.0%", "0.0%", "5.0%",
-    # EC rates
-    "T19", "T15",
-    # Common rate labels
-    "S20", "S5", "Z0", "E0", "X0",
-    # Numeric
+    # UK — Sage T-codes
+    "T0", "T1", "T2", "T4", "T5", "T7", "T8", "T9", "T15", "T19", "T20", "T21",
+    # UK — Xero / QuickBooks style
+    "S", "Z", "E", "X", "N", "R", "S20", "S5", "Z0", "E0", "X0",
+    # UK — percentage labels
+    "20.0%", "5.0%", "0.0%",
+    # UK — numeric shorthand
     "20", "5", "0",
+    # EU — common standard and reduced rates (%, raw, and decimal)
+    "6", "6.0%", "7", "7.0%", "9", "9.0%", "10", "10.0%",
+    "13", "13.0%", "16", "16.0%", "17", "17.0%", "18", "18.0%",
+    "19", "19.0%", "21", "21.0%", "22", "22.0%", "23", "23.0%",
+    "24", "24.0%", "25", "25.0%", "27", "27.0%",
+    # EU — generic labels used in accounting software
+    "STANDARD", "REDUCED", "SUPER-REDUCED", "ZERO-RATED", "EXEMPT",
+    "INTRA-EU", "REVERSE-CHARGE", "OSS",
+    # Australia — GST
+    "GST", "GST10", "GST-FREE", "INPUT-TAXED", "BAS-EXCLUDED",
+    "CAP", "CAPEX", "INP", "G1", "G2", "G3",
+    # Canada
+    "HST", "HST13", "HST14", "HST15", "PST", "QST", "RST", "GST5",
+    # India — GST
+    "IGST", "CGST", "SGST", "UTGST", "NIL-GST", "CGST9", "SGST9",
+    "IGST18", "IGST12", "IGST5", "IGST28",
+    # South Africa
+    "VAT15", "VAT14", "VAT0", "EXEMPT-ZA",
+    # US — no federal VAT but common sales-tax labels
+    "TAXABLE", "NONTAXABLE", "NON-TAXABLE", "EXEMPT-US", "USE-TAX", "SALES-TAX",
+    # Generic / international catch-all labels
+    "VAT", "NO-VAT", "NO VAT", "NONE", "ZERO", "NIL", "OUT-OF-SCOPE",
+    "INPUT", "OUTPUT", "EXEMPT-SUPPLY", "FREE-SUPPLY",
 }
 
 
@@ -260,6 +288,99 @@ def check_mtd_readiness(
     }
 
 
+# ── Negative amount check ─────────────────────────────────────────────────────
+
+def check_negative_amounts(df, debit_col, credit_col):
+    """Return (neg_debit_count, neg_credit_count) for rows with negative values."""
+    try:
+        dr = pd.to_numeric(df[debit_col], errors="coerce").fillna(0)
+        cr = pd.to_numeric(df[credit_col], errors="coerce").fillna(0)
+        return int((dr < 0).sum()), int((cr < 0).sum())
+    except Exception:
+        return 0, 0
+
+
+# ── Date format consistency check ─────────────────────────────────────────────
+
+_DATE_PATTERNS = ["%d/%m/%Y", "%Y-%m-%d", "%m/%d/%Y", "%d-%m-%Y"]
+
+
+def check_date_format_consistency(df, col):
+    """Return (n_formats, format_counts) for the date patterns found in col."""
+    try:
+        format_counts = {}
+        for val in df[col].dropna():
+            matched = "unrecognised"
+            for pattern in _DATE_PATTERNS:
+                try:
+                    datetime.strptime(str(val).strip(), pattern)
+                    matched = pattern
+                    break
+                except (ValueError, TypeError):
+                    pass
+            format_counts[matched] = format_counts.get(matched, 0) + 1
+        return len(format_counts), format_counts
+    except Exception:
+        return 0, {}
+
+
+# ── Currency consistency check ────────────────────────────────────────────────
+
+def check_currency_consistency(df, col):
+    """Return (n_currencies, currency_counts) for non-null values in col."""
+    try:
+        currency_counts = {}
+        for val in df[col].dropna():
+            key = str(val).strip().upper()
+            if key:
+                currency_counts[key] = currency_counts.get(key, 0) + 1
+        return len(currency_counts), currency_counts
+    except Exception:
+        return 0, {}
+
+
+# ── Account sign validation ───────────────────────────────────────────────────
+
+_DEBIT_BALANCE_TYPES  = {"Current Assets", "Fixed Assets"}
+_CREDIT_BALANCE_TYPES = {"Current Liabilities"}
+
+
+def check_account_signs(df, account_col, debit_col, credit_col):
+    """Return (anomaly_count, anomaly_details) for rows with unexpected debit/credit sign."""
+    try:
+        if len(df) < 2:
+            return 0, []
+        dr = pd.to_numeric(df[debit_col], errors="coerce")
+        cr = pd.to_numeric(df[credit_col], errors="coerce")
+        account_types = df[account_col].apply(_classify_account)
+        if (account_types == "Unclassified").all():
+            return 0, []
+        anomaly_details = []
+        for idx in df.index:
+            acc_type = account_types.loc[idx]
+            d = dr.loc[idx]
+            c = cr.loc[idx]
+            if pd.isna(d) or pd.isna(c):
+                continue
+            anomaly = False
+            if acc_type in _DEBIT_BALANCE_TYPES and d <= c:
+                anomaly = True
+            elif acc_type in _CREDIT_BALANCE_TYPES and c <= d:
+                anomaly = True
+            if anomaly:
+                anomaly_details.append({
+                    "row":          idx,
+                    "account_type": acc_type,
+                    "debit":        float(d),
+                    "credit":       float(c),
+                })
+                if len(anomaly_details) >= 20:
+                    break
+        return len(anomaly_details), anomaly_details
+    except Exception:
+        return 0, []
+
+
 # ── Result dataclass ──────────────────────────────────────────────────────────
 
 @dataclass
@@ -294,6 +415,7 @@ def apply_finance_cleaning(df: pd.DataFrame) -> FinanceResult:
     narr_col    = _detect(cleaned, _NARR_KW)
     date_col    = _detect(cleaned, _DATE_KW)
     net_col     = _detect(cleaned, _NET_KW)
+    currency_col = _detect(cleaned, _CURRENCY_KW)
 
     # 1. Account code normalisation + classification
     if account_col:
@@ -317,6 +439,13 @@ def apply_finance_cleaning(df: pd.DataFrame) -> FinanceResult:
                 "description": f"{jnl_changed:,} journal reference(s) trimmed and uppercased.",
                 "count": jnl_changed,
             })
+        missing_jnl = int(cleaned[jnl_col].isna().sum())
+        if missing_jnl > 0:
+            issues.append({
+                "type": "Missing Journal References",
+                "description": f"{missing_jnl:,} journal entries lack a reference number.",
+                "count": missing_jnl,
+            })
 
     # 3. VAT code validation
     if vat_col:
@@ -324,10 +453,11 @@ def apply_finance_cleaning(df: pd.DataFrame) -> FinanceResult:
         metrics["vat_code_counts"] = cleaned[vat_col].value_counts().to_dict()
         if vat_invalid:
             issues.append({
-                "type": "Unrecognised VAT Codes",
+                "type": "Unrecognised Tax / VAT Codes",
                 "description": (
-                    f"{vat_invalid:,} VAT code(s) are outside the recognised UK VAT scheme. "
-                    "Verify these entries are correctly coded."
+                    f"{vat_invalid:,} tax/VAT code(s) were not matched against any recognised "
+                    "global scheme (UK, EU, AU, CA, IN, ZA, US). "
+                    "Verify these entries are correctly coded for your jurisdiction."
                 ),
                 "count": vat_invalid,
             })
@@ -403,6 +533,71 @@ def apply_finance_cleaning(df: pd.DataFrame) -> FinanceResult:
             "count": n_dupes,
             "severity": "High",
         })
+
+    # 9. Negative debit/credit flag
+    if debit_col and credit_col:
+        neg_debits, neg_credits = check_negative_amounts(cleaned, debit_col, credit_col)
+        metrics["negative_debits"]  = neg_debits
+        metrics["negative_credits"] = neg_credits
+        if neg_debits > 0 or neg_credits > 0:
+            parts = []
+            if neg_debits > 0:
+                parts.append(f"{neg_debits:,} debit row(s)")
+            if neg_credits > 0:
+                parts.append(f"{neg_credits:,} credit row(s)")
+            issues.append({
+                "type": "Negative Amount Entries",
+                "description": (
+                    f"{' and '.join(parts)} contain negative values. "
+                    "Review for reversal entries or data errors."
+                ),
+                "count": neg_debits + neg_credits,
+            })
+
+    # 10. Date format consistency check
+    if date_col:
+        n_formats, format_counts = check_date_format_consistency(cleaned, date_col)
+        metrics["date_formats"] = format_counts
+        if n_formats > 1:
+            formats_found = ", ".join(str(k) for k in format_counts.keys())
+            issues.append({
+                "type": "Inconsistent Date Formats",
+                "description": (
+                    f"{n_formats} date formats found in column '{date_col}': {formats_found}. "
+                    "Standardise to a single format before processing."
+                ),
+                "count": n_formats,
+            })
+
+    # 11. Currency consistency check
+    if currency_col:
+        n_currencies, currency_counts = check_currency_consistency(cleaned, currency_col)
+        metrics["currency_count"] = n_currencies
+        if n_currencies > 1:
+            currencies_found = ", ".join(sorted(currency_counts.keys()))
+            issues.append({
+                "type": "Multiple Currencies Detected",
+                "description": (
+                    f"{n_currencies} currencies found in column '{currency_col}': "
+                    f"{currencies_found}. Verify FX handling and conversion rates."
+                ),
+                "count": n_currencies,
+            })
+
+    # 12. Account sign validation
+    if account_col and debit_col and credit_col:
+        anomaly_count, _ = check_account_signs(cleaned, account_col, debit_col, credit_col)
+        metrics["account_sign_anomalies"] = anomaly_count
+        if anomaly_count > 0:
+            issues.append({
+                "type": "Account Sign Anomalies",
+                "description": (
+                    f"{anomaly_count:,} row(s) have an unexpected debit/credit sign "
+                    "for their account type. Asset accounts should carry a debit balance; "
+                    "liability accounts should carry a credit balance."
+                ),
+                "count": anomaly_count,
+            })
 
     # MTD VAT digital-records readiness
     metrics["mtd_readiness"] = check_mtd_readiness(date_col, narr_col, net_col, vat_col)
