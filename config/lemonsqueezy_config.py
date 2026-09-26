@@ -57,6 +57,7 @@ VARIANT_TIER_MAP: dict[str, str] = {
 # Paste the LemonSqueezy "Buy link" for each plan here.
 # Leave as empty string until created; the UI hides the button when blank.
 CHECKOUT_URLS: dict[str, str] = {
+    # Monthly — also used for annual (LS shows billing period selector on checkout page)
     "Starter":          "https://coltradataai.lemonsqueezy.com/checkout/buy/4b3f6ae6-cbcf-48a6-aa99-63473a3102b0",
     "Professional":     "https://coltradataai.lemonsqueezy.com/checkout/buy/bd8d38f7-f7c9-481a-8735-e0b7f92564fb",
     "Business":         "https://coltradataai.lemonsqueezy.com/checkout/buy/216f4c52-b280-4a7b-8362-07fc05c02115",
