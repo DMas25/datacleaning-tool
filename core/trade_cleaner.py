@@ -210,6 +210,16 @@ _CURRENCY_MAP: dict[str, str] = {
     "rwf": "RWF", "rwanda franc": "RWF",
     "xof": "XOF", "cfa": "XOF", "west african cfa": "XOF",
     "xaf": "XAF", "central african cfa": "XAF",
+    # Southern Africa (PAPSS / SADC)
+    "aoa": "AOA", "kwanza": "AOA", "angolan kwanza": "AOA",
+    "nad": "NAD", "namibian dollar": "NAD",
+    "lsl": "LSL", "loti": "LSL", "lesotho loti": "LSL",
+    "szl": "SZL", "lilangeni": "SZL", "swazi lilangeni": "SZL",
+    # North Africa (PAPSS)
+    "dzd": "DZD", "algerian dinar": "DZD",
+    "tnd": "TND", "tunisian dinar": "TND",
+    # Central Africa (PAPSS)
+    "cdf": "CDF", "congolese franc": "CDF", "franc congolais": "CDF",
 }
 
 
