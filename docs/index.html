@@ -321,6 +321,27 @@
       .chat-window { right: 0.75rem; left: 0.75rem; width: auto; }
       .cookie-banner { padding: 1rem; }
     }
+
+    /* Billing toggle */
+    .billing-toggle-row { display:flex; align-items:center; justify-content:center; gap:0.9rem; padding:1.5rem 0 0.75rem; }
+    .toggle-label { font-size:0.95rem; font-weight:600; color:var(--muted); transition:color 0.2s; }
+    .toggle-label.active { color:var(--primary); }
+    .save-chip { background:#FEF3C7; color:#92400E; font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:100px; margin-left:0.4rem; vertical-align:middle; }
+    .billing-switch { position:relative; display:inline-block; width:48px; height:26px; flex-shrink:0; }
+    .billing-switch input { opacity:0; width:0; height:0; }
+    .billing-slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#D9E1F2; border-radius:26px; transition:0.25s; }
+    .billing-slider::before { position:absolute; content:""; height:18px; width:18px; left:4px; bottom:4px; background:white; border-radius:50%; transition:0.25s; box-shadow:0 1px 4px rgba(0,0,0,0.2); }
+    input:checked + .billing-slider { background:var(--primary); }
+    input:checked + .billing-slider::before { transform:translateX(22px); }
+    .annual-price { display:none; }
+    .annual-saving { display:none; font-size:0.72rem; font-weight:700; background:#FEF3C7; color:#92400E; padding:2px 8px; border-radius:100px; margin-bottom:0.4rem; }
+    body.annual-mode .monthly-price { display:none; }
+    body.annual-mode .annual-price { display:block; }
+    body.annual-mode .annual-saving { display:inline-block; }
+    .plan-price .price-equiv { display:block; font-size:0.72rem; font-weight:500; color:var(--muted); margin-top:2px; }
+    .cta-annual-only { display:none; }
+    body.annual-mode .cta-monthly-only { display:none; }
+    body.annual-mode .cta-annual-only { display:block; }
   </style>
 </head>
 <body>
@@ -774,6 +795,14 @@
       <h2 class="section-title">Start Free. Scale as You Grow.</h2>
       <p class="section-subtitle">No hidden fees. Cancel anytime. Upgrade or downgrade whenever you need.</p>
     </div>
+    <div class="billing-toggle-row">
+      <span class="toggle-label active" id="idx-lbl-monthly">Monthly</span>
+      <label class="billing-switch" aria-label="Switch to annual billing">
+        <input type="checkbox" id="idxBillingToggle" onchange="toggleIdxBilling()" />
+        <span class="billing-slider"></span>
+      </label>
+      <span class="toggle-label" id="idx-lbl-annual">Annual <span class="save-chip">2 months free</span></span>
+    </div>
     <div class="pricing-grid">
       <div class="plan-card">
         <div class="plan-name">Free</div>
@@ -790,7 +819,11 @@
       </div>
       <div class="plan-card">
         <div class="plan-name">Starter</div>
-        <div class="plan-price">£29 <span>/ month</span></div>
+        <div class="plan-price">
+          <span class="monthly-price">£29 <span>/ month</span></span>
+          <span class="annual-price">£290 <span>/ year</span><span class="price-equiv">£24.17/mo, billed annually</span></span>
+        </div>
+        <span class="annual-saving">Save £58 - 2 months free</span>
         <div class="plan-blurb">For consultants and small businesses: AI insights, Excel export, and 50 runs/month.</div>
         <ul class="plan-features">
           <li>50 cleaning runs per month</li>
@@ -799,12 +832,17 @@
           <li>Excel export</li>
           <li>AI-powered insights</li>
         </ul>
-        <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/d5d25833-3149-487f-a9d1-832c398d13e6" class="plan-cta">Get Starter</a>
+        <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/d5d25833-3149-487f-a9d1-832c398d13e6" class="plan-cta cta-monthly-only">Get Starter</a>
+        <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/4b3f6ae6-cbcf-48a6-aa99-63473a3102b0" class="plan-cta cta-annual-only">Get Starter (Annual)</a>
       </div>
       <div class="plan-card featured">
         <div class="plan-badge">Most Popular</div>
         <div class="plan-name">Professional</div>
-        <div class="plan-price">£99 <span>/ month</span></div>
+        <div class="plan-price">
+          <span class="monthly-price">£99 <span>/ month</span></span>
+          <span class="annual-price">£990 <span>/ year</span><span class="price-equiv">£82.50/mo, billed annually</span></span>
+        </div>
+        <span class="annual-saving">Save £198 - 2 months free</span>
         <div class="plan-blurb">For SMEs and operations teams: full reports, API access, and advanced analytics.</div>
         <ul class="plan-features">
           <li>200 cleaning runs per month</li>
@@ -815,11 +853,16 @@
           <li>AI-powered insights</li>
           <li>API access</li>
         </ul>
-        <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/a358b1c4-70b8-4196-ab47-fe22153a488d" class="plan-cta">Get Professional</a>
+        <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/a358b1c4-70b8-4196-ab47-fe22153a488d" class="plan-cta cta-monthly-only">Get Professional</a>
+        <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/bd8d38f7-f7c9-481a-8735-e0b7f92564fb" class="plan-cta cta-annual-only">Get Professional (Annual)</a>
       </div>
       <div class="plan-card">
         <div class="plan-name">Business</div>
-        <div class="plan-price">£299 <span>/ month</span></div>
+        <div class="plan-price">
+          <span class="monthly-price">£299 <span>/ month</span></span>
+          <span class="annual-price">£2,990 <span>/ year</span><span class="price-equiv">£249.17/mo, billed annually</span></span>
+        </div>
+        <span class="annual-saving">Save £598 - 2 months free</span>
         <div class="plan-blurb">For industry teams: branded reports, unlimited API calls, and 1M rows.</div>
         <ul class="plan-features">
           <li>1,000 cleaning runs per month</li>
@@ -829,7 +872,8 @@
           <li>Premium charts</li>
           <li>Unlimited API calls</li>
         </ul>
-        <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/4551704f-4fa4-45c5-9b11-6ef146964f78" class="plan-cta">Get Business</a>
+        <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/4551704f-4fa4-45c5-9b11-6ef146964f78" class="plan-cta cta-monthly-only">Get Business</a>
+        <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/216f4c52-b280-4a7b-8362-07fc05c02115" class="plan-cta cta-annual-only">Get Business (Annual)</a>
       </div>
       <div class="plan-card">
         <div class="plan-name">Enterprise</div>
@@ -867,7 +911,8 @@
         </div>
       </div>
       <div style="text-align:center;flex-shrink:0;">
-        <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/2f0f30f8-88d4-4bea-891c-9852507a439c" target="_blank" rel="noopener" style="display:inline-block;background:#2E86AB;color:white;font-weight:700;font-size:0.88rem;padding:0.7rem 1.6rem;border-radius:9px;text-decoration:none;white-space:nowrap;">Get API Access &#8594;</a>
+        <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/2de1db2f-2e4c-4a39-9585-c328afbfeafb" target="_blank" rel="noopener" class="cta-monthly-only" style="display:inline-block;background:#2E86AB;color:white;font-weight:700;font-size:0.88rem;padding:0.7rem 1.6rem;border-radius:9px;text-decoration:none;white-space:nowrap;">Get API Access &#8594;</a>
+        <a href="https://coltradataai.lemonsqueezy.com/checkout/buy/2f0f30f8-88d4-4bea-891c-9852507a439c" target="_blank" rel="noopener" class="cta-annual-only" style="display:inline-block;background:#2E86AB;color:white;font-weight:700;font-size:0.88rem;padding:0.7rem 1.6rem;border-radius:9px;text-decoration:none;white-space:nowrap;">Get API Access (Annual) &#8594;</a>
         <p style="font-size:0.7rem;color:#5a6a7a;text-align:center;margin:5px 0 0;">API key delivered by email</p>
       </div>
     </div>
@@ -1122,6 +1167,12 @@
       }, 1200);
     }
   });
+  function toggleIdxBilling() {
+    const annual = document.getElementById('idxBillingToggle').checked;
+    document.body.classList.toggle('annual-mode', annual);
+    document.getElementById('idx-lbl-monthly').classList.toggle('active', !annual);
+    document.getElementById('idx-lbl-annual').classList.toggle('active', annual);
+  }
 </script>
 
 </body>
