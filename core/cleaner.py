@@ -91,9 +91,8 @@ def apply_cleaning(df: pd.DataFrame, options: CleaningOptions) -> CleaningResult
 
     # ── Step 3: Whitespace trimming ───────────────────────────────────────────
     if options.trim_whitespace:
-        cleaned = cleaned.apply(
-            lambda col: col.map(lambda x: x.strip() if isinstance(x, str) else x)
-        )
+        str_cols = cleaned.select_dtypes(include="object").columns
+        cleaned[str_cols] = cleaned[str_cols].apply(lambda col: col.str.strip())
     steps.append({
         "Step":   3,
         "Action": "Whitespace Trimming",

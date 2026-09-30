@@ -34,6 +34,19 @@ def check_password(branding: dict) -> bool:
     if st.session_state.get("authenticated"):
         return True
 
+    # Auto-authenticate when running locally (local_dev = true in secrets.toml).
+    # Matches the existing plan bypass in session_helpers.py.
+    try:
+        if st.secrets.get("dev", {}).get("local_dev", False):
+            st.session_state["authenticated"] = True
+            st.session_state["user_email"] = (
+                st.secrets.get("admin", {}).get("admin_email", "dev@local")
+            )
+            st.session_state["is_admin"] = True
+            return True
+    except Exception:
+        pass
+
     _inject_login_css(branding)
 
     # Show branded landing page first; login form revealed when user clicks CTA.

@@ -259,17 +259,29 @@ def detect_overbooking(
     conflict_idx: set[int] = set()
     conflict_pairs: int = 0
 
-    for room_val, group in df[valid].groupby(df.loc[valid, room_col]):
-        idx   = group.index.tolist()
-        ci    = checkin.loc[idx]
-        co    = checkout.loc[idx]
-        n     = len(idx)
-        for i in range(n):
-            for j in range(i + 1, n):
-                if ci.iloc[i] < co.iloc[j] and co.iloc[i] > ci.iloc[j]:
-                    conflict_idx.add(idx[i])
-                    conflict_idx.add(idx[j])
-                    conflict_pairs += 1
+    for _room_val, group in df[valid].groupby(df.loc[valid, room_col]):
+        idx = group.index
+        ci  = checkin.loc[idx]
+        co  = checkout.loc[idx]
+
+        # Sort by check-in then use cummax of prior checkouts to detect overlaps
+        # in O(n log n) instead of O(n²).
+        order     = ci.argsort()
+        ci_sorted = ci.iloc[order].values
+        co_sorted = co.iloc[order].values
+        idx_sorted = idx[order]
+
+        # running max of checkout seen so far (excluding current booking)
+        for i in range(1, len(ci_sorted)):
+            max_co_so_far = co_sorted[:i].max()
+            if ci_sorted[i] < max_co_so_far:
+                # current booking overlaps with at least one previous one
+                conflict_idx.add(idx_sorted[i])
+                # find which prior booking(s) it overlaps with
+                for j in range(i):
+                    if ci_sorted[i] < co_sorted[j] and co_sorted[i] > ci_sorted[j]:
+                        conflict_idx.add(idx_sorted[j])
+                        conflict_pairs += 1
 
     df["overbooking_flag"] = False
     if conflict_idx:

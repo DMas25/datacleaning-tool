@@ -2,6 +2,7 @@ from typing import Dict, List
 
 import numpy as np
 import pandas as pd
+import streamlit as st
 
 from core.data_validator import detect_inconsistent_values
 from core.coltradata_refine_patch import intelligent_outliers
@@ -24,6 +25,7 @@ INSIGHT_CATEGORIES = [
 ]
 
 
+@st.cache_data(show_spinner=False)
 def detect_date_columns(df: pd.DataFrame) -> List[str]:
     date_cols = [str(c) for c in df.select_dtypes(include=["datetime64[ns]"]).columns]
 
@@ -264,6 +266,7 @@ def _completeness_observations(df: pd.DataFrame) -> List[str]:
     return observations
 
 
+@st.cache_data(show_spinner=False)
 def generate_insights(df: pd.DataFrame) -> Dict[str, List[str]]:
     """Generates structured, non-advisory descriptive observations about a dataset."""
     date_cols = detect_date_columns(df)

@@ -41,7 +41,7 @@ class ReportBuilder:
 
     def build_report(
         self, raw_df, cleaned_df, log_df, quality_df, dictionary_df=None,
-        quality_breakdown_df=None, chart_assets=None, ai_advisory=None,
+        quality_breakdown_df=None, chart_assets=None, ai_advisory=None, insights=None,
     ):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
         file_name = f"ColtraDataAi_Cleaned_Report_{timestamp}.xlsx"
@@ -67,7 +67,7 @@ class ReportBuilder:
                 self._write_dataframe(writer, dictionary_df, "Data Dictionary")
 
             self._build_processing_notes(workbook)
-            self._build_insights_sheet(workbook, cleaned_df)
+            self._build_insights_sheet(workbook, cleaned_df, insights=insights)
 
             if ai_advisory:
                 self._build_ai_advisory_sheet(workbook, ai_advisory)
@@ -714,7 +714,7 @@ class ReportBuilder:
                     }
                 )
 
-    def _build_insights_sheet(self, workbook, cleaned_df):
+    def _build_insights_sheet(self, workbook, cleaned_df, insights=None):
         sheet = workbook.add_worksheet("Data Insights")
         sheet.set_column("A:A", 4)
         sheet.set_column("B:B", 110)
@@ -727,7 +727,8 @@ class ReportBuilder:
             self.disclaimer_format
         )
 
-        insights = generate_insights(cleaned_df)
+        if insights is None:
+            insights = generate_insights(cleaned_df)
 
         row = 4
         for category, lines in insights.items():

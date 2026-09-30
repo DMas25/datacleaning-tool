@@ -221,7 +221,7 @@ def render_results_panel(
     st.subheader("Advanced Data Insights")
 
     if has_feature(user_plan, "can_view_advanced_insights"):
-        insights = generate_insights(cleaned_df)
+        insights = result.get("insights") or generate_insights(cleaned_df)
         with st.container(border=True):
             for category, lines in insights.items():
                 st.markdown(f"**{category}**")
@@ -604,13 +604,18 @@ def _run_processing(
     quality_df           = build_quality_summary_df(df, cleaned_df, options.null_handling)
     date_cols            = detect_date_columns(cleaned_df)
 
-    _step("Generating charts…")
-    quality_breakdown_df, risk_summary, chart_assets = build_chart_and_risk(
-        branding, df, cleaned_df, date_cols=date_cols
-    )
+    _step("Generating charts and running audit intelligence…")
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=2) as _pool:
+        _charts_future = _pool.submit(
+            build_chart_and_risk, branding, df, cleaned_df, date_cols
+        )
+        _ledger_future = _pool.submit(analyse_ledger, cleaned_df)
+        quality_breakdown_df, risk_summary, chart_assets = _charts_future.result()
+        ledger_analysis = _ledger_future.result()
 
-    _step("Running audit intelligence…")
-    ledger_analysis = analyse_ledger(cleaned_df)
+    _step("Generating data insights…")
+    insights = generate_insights(cleaned_df)
 
     ai_advisory = None
     if has_feature(user_plan, "can_view_advanced_insights") and _anthropic_key_configured():
@@ -641,6 +646,7 @@ def _run_processing(
         ai_advisory=ai_advisory,
         ledger_analysis=ledger_analysis,
         storage_run_id=storage_run_id,
+        insights=insights,
     )
 
     return {
@@ -653,6 +659,7 @@ def _run_processing(
         "risk_summary":         risk_summary,
         "ai_advisory":          ai_advisory,
         "ledger_analysis":      ledger_analysis,
+        "insights":             insights,
         "excel_path":           export.excel_path,
         "pdf_bytes":            export.pdf_bytes,
         "pdf_filename":         export.pdf_filename,

@@ -247,25 +247,30 @@ def _diff_changes(
     timestamp: str,
 ) -> pd.DataFrame:
     """Return one row per changed cell between two DataFrames for audit logging."""
-    records = []
     shared_cols = [c for c in before.columns if c in after.columns]
-    for col in shared_cols:
-        b = before[col].fillna("__NULL__")
-        a = after[col].fillna("__NULL__")
-        changed_idx = before.index[b != a]
-        for idx in changed_idx:
-            records.append({
-                "run_id":    run_id,
-                "timestamp": timestamp,
-                "row":       int(idx),
-                "column":    col,
-                "before":    before.at[idx, col],
-                "after":     after.at[idx, col],
-                "rule":      rule,
-            })
-    if records:
-        return pd.DataFrame(records, columns=["run_id", "timestamp", "row", "column", "before", "after", "rule"])
-    return pd.DataFrame(columns=["run_id", "timestamp", "row", "column", "before", "after", "rule"])
+    if not shared_cols:
+        return pd.DataFrame(columns=["run_id", "timestamp", "row", "column", "before", "after", "rule"])
+
+    b = before[shared_cols].fillna("__NULL__")
+    a = after[shared_cols].fillna("__NULL__")
+    diff_mask = b != a
+
+    if not diff_mask.values.any():
+        return pd.DataFrame(columns=["run_id", "timestamp", "row", "column", "before", "after", "rule"])
+
+    rows, cols = diff_mask.values.nonzero()
+    col_names = [shared_cols[c] for c in cols]
+    row_labels = before.index[rows]
+
+    return pd.DataFrame({
+        "run_id":    run_id,
+        "timestamp": timestamp,
+        "row":       row_labels.astype(int),
+        "column":    col_names,
+        "before":    before.to_numpy()[rows, [before.columns.get_loc(c) for c in col_names]],
+        "after":     after.to_numpy()[rows, [after.columns.get_loc(c) for c in col_names]],
+        "rule":      rule,
+    })
 
 
 # ── Result dataclass ──────────────────────────────────────────────────────────

@@ -65,6 +65,7 @@ def generate_reports(
     ai_advisory:           Optional[str] = None,
     ledger_analysis=None,
     storage_run_id:        Optional[str] = None,
+    insights:              Optional[Dict] = None,
 ) -> ExportBundle:
     """Generate both the Excel workbook and PDF executive summary in one call.
 
@@ -81,6 +82,7 @@ def generate_reports(
         quality_breakdown_df=quality_breakdown_df,
         chart_assets=chart_assets,
         ai_advisory=ai_advisory,
+        insights=insights,
     )
 
     pdf_bytes = build_pdf_report(branding, raw_df, cleaned_df, risk_summary, chart_assets, ai_advisory, ledger_analysis)
