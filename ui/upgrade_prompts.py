@@ -81,11 +81,7 @@ def render_targeted_upgrade_banner() -> None:
     ) else None
 
     cta_html = (
-        f"""<a href="{url}" target="_blank" rel="noopener noreferrer" style="
-            display:inline-block;white-space:nowrap;flex-shrink:0;
-            background:#1F4E79;color:white;font-weight:600;font-size:0.85rem;
-            padding:0.45rem 1rem;border-radius:7px;text-decoration:none;
-        ">{message.cta} →</a>"""
+        f'<a href="{url}" target="_blank" rel="noopener noreferrer" style="display:inline-block;white-space:nowrap;flex-shrink:0;background:#1F4E79;color:white;font-weight:600;font-size:0.85rem;padding:0.45rem 1rem;border-radius:7px;text-decoration:none;">{message.cta} &#8594;</a>'
         if url
         else f'<span style="color:#1F4E79;font-weight:600;font-size:0.85rem;">{message.cta}</span>'
     )
