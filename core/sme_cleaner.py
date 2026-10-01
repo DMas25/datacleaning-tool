@@ -17,6 +17,7 @@ from datetime import date
 from typing import Optional
 
 import pandas as pd
+import requests
 
 
 # ── Column keyword maps ───────────────────────────────────────────────────────
@@ -241,6 +242,42 @@ def normalise_payment_terms(df: pd.DataFrame, col: str) -> tuple[pd.DataFrame, i
     return df, changed
 
 
+# ── Companies House live API lookup ──────────────────────────────────────────
+
+_CH_API_BASE  = "https://api.company-information.service.gov.uk"
+_CH_LOOKUP_CAP = 50   # max lookups per run — CH free tier allows 600/5 min
+
+
+def _ch_lookup(number: str, api_key: str) -> dict | None:
+    """Return {status, name} dict for a Companies House number, or None on error."""
+    try:
+        r = requests.get(
+            f"{_CH_API_BASE}/company/{number.strip()}",
+            auth=(api_key, ""),
+            timeout=5,
+        )
+        if r.status_code == 200:
+            data = r.json()
+            return {
+                "status": data.get("company_status", "unknown"),
+                "name":   data.get("company_name", ""),
+            }
+        return None
+    except Exception:
+        return None
+
+
+def lookup_companies_house_batch(
+    numbers: list[str], api_key: str
+) -> dict[str, dict | None]:
+    """Batch-lookup up to _CH_LOOKUP_CAP unique company numbers.
+
+    Returns a mapping of {normalised_number: {status, name} | None}.
+    """
+    unique = list(dict.fromkeys(n for n in numbers if n.strip()))[:_CH_LOOKUP_CAP]
+    return {num: _ch_lookup(num, api_key) for num in unique}
+
+
 # ── Result dataclass ──────────────────────────────────────────────────────────
 
 @dataclass
@@ -260,8 +297,12 @@ class SMEResult:
 
 # ── Orchestrator ──────────────────────────────────────────────────────────────
 
-def apply_sme_cleaning(df: pd.DataFrame) -> SMEResult:
-    """Run all SME cleaning steps and return an SMEResult."""
+def apply_sme_cleaning(df: pd.DataFrame, ch_api_key: str = "") -> SMEResult:
+    """Run all SME cleaning steps and return an SMEResult.
+
+    Pass ch_api_key to enable live Companies House verification.
+    Capped at _CH_LOOKUP_CAP lookups per call to respect CH rate limits.
+    """
     cleaned = df.copy()
     issues: list[dict] = []
     metrics: dict = {}
@@ -317,7 +358,7 @@ def apply_sme_cleaning(df: pd.DataFrame) -> SMEResult:
                 "count": vat_invalid,
             })
 
-    # 4. Companies House number
+    # 4. Companies House number — format validation
     if ch_col:
         cleaned, ch_invalid = validate_companies_house(cleaned, ch_col)
         metrics["unique_companies"] = int(cleaned[ch_col].nunique())
@@ -327,6 +368,49 @@ def apply_sme_cleaning(df: pd.DataFrame) -> SMEResult:
                 "description": f"{ch_invalid:,} company number(s) are not 8 characters long.",
                 "count": ch_invalid,
             })
+
+        # 4b. Live verification via Companies House API (only when key supplied)
+        if ch_api_key:
+            raw_numbers = [
+                str(v).strip() for v in cleaned[ch_col].dropna()
+                if str(v).strip() not in ("", "nan")
+            ]
+            ch_data = lookup_companies_house_batch(raw_numbers, ch_api_key)
+
+            cleaned["ch_status"] = cleaned[ch_col].map(
+                lambda v: ch_data.get(str(v).strip(), {}).get("status") if pd.notna(v) else None
+            )
+            cleaned["ch_registered_name"] = cleaned[ch_col].map(
+                lambda v: ch_data.get(str(v).strip(), {}).get("name") if pd.notna(v) else None
+            )
+
+            dissolved  = sum(1 for d in ch_data.values() if d and d.get("status") == "dissolved")
+            not_found  = sum(1 for d in ch_data.values() if d is None)
+            verified   = sum(1 for d in ch_data.values() if d is not None)
+
+            metrics["ch_api_verified"]     = verified
+            metrics["ch_dissolved"]        = dissolved
+            metrics["ch_not_found_in_api"] = not_found
+            metrics["ch_lookup_capped"]    = len(raw_numbers) > _CH_LOOKUP_CAP
+
+            if dissolved:
+                issues.append({
+                    "type": "Dissolved Companies",
+                    "description": (
+                        f"{dissolved} company number(s) are registered as dissolved "
+                        "at Companies House — verify with client before invoicing."
+                    ),
+                    "count": dissolved,
+                })
+            if not_found:
+                issues.append({
+                    "type": "Companies Not Found at Companies House",
+                    "description": (
+                        f"{not_found} company number(s) returned no record — "
+                        "may be invalid, overseas, or recently struck off."
+                    ),
+                    "count": not_found,
+                })
 
     # 5. Invoice amounts
     if amount_col:

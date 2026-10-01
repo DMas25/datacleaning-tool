@@ -899,7 +899,18 @@ def render_demo_panel() -> None:
     scenarios = st.session_state["demo_scenarios"]
 
     # — Tab bar ----------------------------------------------------------------
-    tab_labels = [f"{s['icon']} {s['label']}" for s in scenarios]
+    _SHORT = {
+        "finance":     "Finance",
+        "logistics":   "Logistics",
+        "trade":       "Trade",
+        "retail":      "Retail",
+        "sme":         "SME",
+        "consultant":  "Consultants",
+        "healthcare":  "Healthcare",
+        "hospitality": "Hospitality",
+        "clinical":    "Clinical",
+    }
+    tab_labels = [f"{s['icon']} {_SHORT.get(s['key'], s['label'])}" for s in scenarios]
     tabs = st.tabs(tab_labels)
 
     for tab, scenario in zip(tabs, scenarios):

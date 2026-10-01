@@ -592,7 +592,12 @@ def _run_processing(
 
     if "SME" in options.dataset_type:
         _step("Applying SME cleaner…")
-        sme_result = apply_sme_cleaning(cleaned_df)
+        _ch_api_key = ""
+        try:
+            _ch_api_key = st.secrets.get("companies_house", {}).get("api_key", "") or ""
+        except Exception:
+            pass
+        sme_result = apply_sme_cleaning(cleaned_df, ch_api_key=_ch_api_key)
         cleaned_df = sme_result.cleaned_df
 
     if "Hospitality" in options.dataset_type:
