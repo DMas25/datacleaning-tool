@@ -41,6 +41,9 @@ app_url        = {s("APP_URL")}
 
 [supabase]
 database_url = {s("DATABASE_URL")}
+
+[companies_house]
+api_key = {s("COMPANIES_HOUSE_API_KEY")}
 """
 
 pathlib.Path(".streamlit").mkdir(exist_ok=True)
