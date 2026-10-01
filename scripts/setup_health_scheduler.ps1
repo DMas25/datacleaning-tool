@@ -1,5 +1,5 @@
-# Registers health_check_local.py as a Windows Task Scheduler job.
-# Runs every 15 minutes while you are logged in.
+# Registers health_check_local.py and health_check_api.py as Windows Task Scheduler jobs.
+# Both run every 15 minutes while you are logged in.
 # Run this script once from an elevated (Admin) PowerShell prompt.
 
 $TaskName   = "ColtraDataAi - Local Health Check"
@@ -53,3 +53,29 @@ Write-Host "Log dir: $LogDir"
 Write-Host ""
 Write-Host "To view results: Get-Content '$LogDir\health_local.log' -Tail 20"
 Write-Host "To remove task:  Unregister-ScheduledTask -TaskName '$TaskName' -Confirm:`$false"
+Write-Host ""
+
+# --- API health check task ---
+$ApiTaskName = "ColtraDataAi - API Health Check"
+$ApiScript   = Join-Path $ScriptDir "health_check_api.py"
+
+Unregister-ScheduledTask -TaskName $ApiTaskName -Confirm:$false -ErrorAction SilentlyContinue
+
+$ApiAction = New-ScheduledTaskAction `
+    -Execute $PythonExe `
+    -Argument "`"$ApiScript`"" `
+    -WorkingDirectory $AppRoot
+
+Register-ScheduledTask `
+    -TaskName  $ApiTaskName `
+    -Action    $ApiAction `
+    -Trigger   $Trigger `
+    -Settings  $Settings `
+    -Principal $Principal `
+    -Description "Checks coltradata-api.onrender.com every 15 minutes and logs to $LogDir\health_api_endpoints.log" `
+    -Force | Out-Null
+
+Write-Host "Task '$ApiTaskName' registered successfully."
+Write-Host "Script:  $ApiScript"
+Write-Host "To view results: Get-Content '$LogDir\health_api_endpoints.log' -Tail 20"
+Write-Host "To remove task:  Unregister-ScheduledTask -TaskName '$ApiTaskName' -Confirm:`$false"

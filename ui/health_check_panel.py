@@ -12,7 +12,6 @@ state under keys prefixed with 'hc_'.
 """
 from __future__ import annotations
 
-import io
 import re
 from typing import Optional
 
@@ -21,7 +20,6 @@ import streamlit as st
 
 from config.branding_config import branding as BRAND
 from config.lemonsqueezy_config import CHECKOUT_URLS
-from core.file_loader import load_file
 from core.health_check_engine import (
     _MAX_FREE_MB,
     _MAX_FREE_ROWS,
@@ -223,6 +221,12 @@ def _inject_css() -> None:
             color: {SUCCESS}; font-weight: 700;
         }}
 
+        /* ── Hide Streamlit's built-in uploader size hint ── */
+        [data-testid="stFileUploaderDropzoneInstructions"] small,
+        [data-testid="stFileUploaderDropzone"] small {
+            display: none !important;
+        }
+
         /* ── Primary CTA button override ─────────────── */
         .stButton > button {{
             border-radius: 10px !important;
@@ -410,12 +414,23 @@ def _render_upload() -> None:
         label_visibility="collapsed",
         key="hc_file_uploader",
     )
+    st.caption(f"Max {_MAX_FREE_MB:.0f} MB · Max {_MAX_FREE_ROWS:,} rows · CSV or XLSX only")
 
     if uploaded is not None:
         file_bytes   = uploaded.getvalue()
         file_size_mb = len(file_bytes) / 1_048_576
 
-        # Basic security: validate extension and size before parsing
+        # Show size feedback immediately before any processing
+        if file_size_mb > _MAX_FREE_MB:
+            st.error(
+                f"File too large: **{file_size_mb:.1f} MB** — the free health check is limited to "
+                f"**{_MAX_FREE_MB:.0f} MB**. Please upload a smaller file or upgrade to process larger datasets.",
+                icon="🚫",
+            )
+            log_event(email, "upload_error", {"error": "file_too_large", "file": uploaded.name, "size_mb": round(file_size_mb, 2)})
+            return
+
+        # Validate extension and file integrity
         ok, err_msg = validate_upload(file_bytes, uploaded.name, file_size_mb)
         if not ok:
             st.error(err_msg)
@@ -430,7 +445,13 @@ def _render_upload() -> None:
 
         with st.spinner("Analysing your data..."):
             try:
-                df = load_file(uploaded)
+                ext = uploaded.name.rsplit(".", 1)[-1].lower()
+                if ext == "csv":
+                    df = pd.read_csv(uploaded)
+                else:
+                    df = pd.read_excel(uploaded, engine="openpyxl")
+                if df.empty or len(df.columns) == 0:
+                    raise ValueError("The file contains no data.")
             except Exception as exc:
                 st.error(f"Could not read the file: {exc}")
                 log_event(email, "upload_error", {"error": str(exc)})
