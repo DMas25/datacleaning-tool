@@ -93,20 +93,14 @@ def render_targeted_upgrade_banner() -> None:
     )
 
     st.markdown(
-        f"""
-        <div style="
-            display:flex;align-items:center;justify-content:space-between;
-            background:#EFF6FF;border:1px solid #BFDBFE;border-left:4px solid #3B82F6;
-            border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.5rem;gap:1rem;
-        ">
-            <div style="flex:1;">
-                <div style="color:#1E3A5F;font-size:0.9rem;line-height:1.5;font-weight:600;">{message.headline}</div>
-                <div style="color:#1E3A5F;font-size:0.85rem;line-height:1.5;margin-top:0.15rem;">{message.supporting_message}</div>
-                {reference_html}
-            </div>
-            {cta_html}
-        </div>
-        """,
+        f'<div style="display:flex;align-items:center;justify-content:space-between;background:#EFF6FF;border:1px solid #BFDBFE;border-left:4px solid #3B82F6;border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.5rem;gap:1rem;">'
+        f'<div style="flex:1;">'
+        f'<div style="color:#1E3A5F;font-size:0.9rem;line-height:1.5;font-weight:600;">{message.headline}</div>'
+        f'<div style="color:#1E3A5F;font-size:0.85rem;line-height:1.5;margin-top:0.15rem;">{message.supporting_message}</div>'
+        f'{reference_html}'
+        f'</div>'
+        f'{cta_html}'
+        f'</div>',
         unsafe_allow_html=True,
     )
 

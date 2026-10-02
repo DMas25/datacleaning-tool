@@ -171,6 +171,44 @@ def inject_app_css(branding: dict) -> None:
                 margin-bottom: 1rem !important;
                 background: #FFFFFF !important;
             }}
+
+            /* ── Responsive / mobile ─────────────────────────────────── */
+            @media (max-width: 768px) {{
+                .block-container {{
+                    padding-left: 0.75rem !important;
+                    padding-right: 0.75rem !important;
+                    padding-top: 0.75rem !important;
+                }}
+                /* Stack all st.columns() layouts vertically on mobile */
+                [data-testid="stHorizontalBlock"] {{
+                    flex-wrap: wrap !important;
+                }}
+                [data-testid="stColumn"] {{
+                    width: 100% !important;
+                    min-width: 100% !important;
+                    flex: 0 0 100% !important;
+                }}
+                /* Header responsive classes (set in render_header) */
+                .coltra-header-flex {{
+                    flex-direction: column !important;
+                    align-items: center !important;
+                    padding: 14px 0 8px 0 !important;
+                    gap: 10px !important;
+                }}
+                .coltra-header-divider {{ display: none !important; }}
+                .coltra-header-logo {{ width: 160px !important; }}
+                .coltra-header-text {{ align-items: center !important; }}
+                /* Shrink KPI values so metric rows don't overflow */
+                .kpi-value {{ font-size: 1.1rem !important; }}
+                .section-card {{ padding: 0.85rem !important; }}
+                .metric-card {{ padding: 0.6rem 0.75rem !important; }}
+                /* Footer: break pipe-separated items onto separate lines */
+                .coltra-footer-inner {{
+                    display: flex !important;
+                    flex-direction: column !important;
+                    gap: 4px !important;
+                }}
+            }}
         </style>
         """,
         unsafe_allow_html=True,

@@ -102,7 +102,7 @@ st.set_page_config(
     page_title=branding["app_name"],
     page_icon=_page_icon,
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 inject_app_css(branding)

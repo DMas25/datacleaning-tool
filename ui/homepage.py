@@ -80,24 +80,24 @@ def render_header(branding: dict) -> None:
     logo_b64 = _encode_logo(logo_path)
 
     if logo_b64:
-        img_tag = f'<img src="data:image/png;base64,{logo_b64}" style="width:234px;height:auto;display:block;flex-shrink:0;border:none;outline:none;" />'
+        img_tag = f'<img class="coltra-header-logo" src="data:image/png;base64,{logo_b64}" style="width:234px;height:auto;display:block;flex-shrink:0;border:none;outline:none;" />'
     else:
-        img_tag = f'<div style="font-size:1.4rem;font-weight:800;color:{branding["primary_colour"]};">{branding["app_name"]}</div>'
+        img_tag = f'<div class="coltra-header-logo" style="font-size:1.4rem;font-weight:800;color:{branding["primary_colour"]};">{branding["app_name"]}</div>'
 
     st.markdown(
         f"""
-        <div style="display:flex;align-items:center;gap:0;padding:32px 0 12px 0;">
+        <div class="coltra-header-flex" style="display:flex;align-items:center;gap:0;padding:32px 0 12px 0;">
             {img_tag}
-            <div style="width:1.5px;height:68px;background:#C8D6DF;margin:0 22px;flex-shrink:0;align-self:center;"></div>
-            <div style="display:flex;flex-direction:column;align-items:center;max-width:360px;">
-                <h3 style="margin:0;color:{branding['primary_colour']};letter-spacing:1.5px;font-size:1.05em;text-align:center;white-space:nowrap;">
+            <div class="coltra-header-divider" style="width:1.5px;height:68px;background:#C8D6DF;margin:0 22px;flex-shrink:0;align-self:center;"></div>
+            <div class="coltra-header-text" style="display:flex;flex-direction:column;align-items:center;max-width:360px;">
+                <h3 style="margin:0;color:{branding['primary_colour']};letter-spacing:1.5px;font-size:1.05em;text-align:center;">
                     DATA &nbsp;&bull;&nbsp; INSIGHTS &nbsp;&bull;&nbsp; INTELLIGENCE
                 </h3>
                 <p style="margin:4px 0 0 0;color:{branding['primary_colour']};font-size:0.9em;font-weight:700;letter-spacing:0.04em;text-align:center;">
                     {branding.get('platform_line', 'Navigate the DataMaze.')}
                 </p>
                 <p style="margin:5px 0 0 0;color:#657286;font-size:0.78em;line-height:1.5;text-align:center;">
-                    From raw, tangled data to clean, validated reports —<br/>wherever your team works.
+                    From raw, tangled data to clean, validated reports — wherever your team works.
                 </p>
             </div>
         </div>
@@ -632,6 +632,23 @@ def _inject_login_css(branding: dict) -> None:
                 font-weight: 600;
                 border: none;
             }}
+            @media (max-width: 768px) {{
+                .block-container {{
+                    padding-left: 0.75rem !important;
+                    padding-right: 0.75rem !important;
+                }}
+                [data-testid="stHorizontalBlock"] {{
+                    flex-wrap: wrap !important;
+                }}
+                [data-testid="stColumn"] {{
+                    width: 100% !important;
+                    min-width: 100% !important;
+                    flex: 0 0 100% !important;
+                }}
+                .coltra-header-flex {{
+                    padding: 24px 0 12px 0 !important;
+                }}
+            }}
         </style>
         """,
         unsafe_allow_html=True,
@@ -684,27 +701,25 @@ def _render_login_features(branding: dict) -> None:
     primary = branding["primary_colour"]
     features = [
         ("🧭", "Find your way through messy data", "Upload any CSV or Excel — ColtraDataAi handles missing values, duplicates, and mixed types automatically."),
-        ("✅", "Instant cleaning & validation", "AI-powered rules map your path through the DataMaze, fixing quality issues in seconds."),
+        ("✅", "Instant cleaning &amp; validation", "AI-powered rules map your path through the DataMaze, fixing quality issues in seconds."),
         ("📊", "Boardroom-ready reports, on any device", "Export cleaned datasets with PDF summaries and chart galleries — delivered to your inbox or home screen."),
     ]
-    cols = st.columns(3)
-    for col, (icon, title, desc) in zip(cols, features):
-        with col:
-            st.markdown(
-                f"""
-                <div style="background:#FFFFFF;border:1px solid #E6ECF0;border-radius:14px;
-                            padding:1.4rem 1.2rem;text-align:center;margin-top:1.6rem;
-                            box-shadow:0 2px 10px rgba(0,0,0,0.04);">
-                    <div style="font-size:1.7rem;margin-bottom:0.55rem;">{icon}</div>
-                    <div style="font-size:0.9rem;font-weight:700;color:{primary};
-                                margin-bottom:0.4rem;">{title}</div>
-                    <div style="font-size:0.78rem;color:#657286;line-height:1.55;">{desc}</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+    cards_html = "".join([
+        f"""<div style="background:#FFFFFF;border:1px solid #E6ECF0;border-radius:14px;
+                        padding:1.4rem 1.2rem;text-align:center;
+                        box-shadow:0 2px 10px rgba(0,0,0,0.04);
+                        flex:1 1 220px;min-width:200px;max-width:340px;">
+                <div style="font-size:1.7rem;margin-bottom:0.55rem;">{icon}</div>
+                <div style="font-size:0.9rem;font-weight:700;color:{primary};margin-bottom:0.4rem;">{title}</div>
+                <div style="font-size:0.78rem;color:#657286;line-height:1.55;">{desc}</div>
+            </div>"""
+        for icon, title, desc in features
+    ])
     st.markdown(
         f"""
+        <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-top:1.6rem;justify-content:center;">
+            {cards_html}
+        </div>
         <div style="text-align:center;margin-top:2.8rem;font-size:0.73rem;color:#9CA3AF;">
             &copy; 2026 {branding.get('company', 'Coltrane Ltd')} &nbsp;&mdash;&nbsp;
             <a href="mailto:{branding['contact_email']}"

@@ -48,6 +48,9 @@ def render_report_delivery_email(app_url: str = "") -> tuple[str, str]:
     body = (
         "Your cleaned data report is attached to this email.\n\n"
         "It includes your full cleaned dataset, quality analysis, and an executive PDF summary.\n\n"
+        "CONFIDENTIALITY NOTICE: This email and its attachment may contain data that is "
+        "commercially sensitive or confidential. It is intended solely for the named recipient. "
+        "If you received this in error, please delete it immediately and do not share its contents.\n\n"
         "To run another report or manage your account, visit the app"
     )
     if app_url:

@@ -300,7 +300,7 @@ def render_results_panel(
             log_usage_event(get_user_email(), "export_excel", user_plan)
             st.session_state["follow_through_this_session"] = True
         if result.get("excel_url"):
-            st.link_button("Permanent download link (1 hr) →", result["excel_url"])
+            st.link_button("Temporary share link (expires in 1 hour) →", result["excel_url"])
         st.caption(
             "Full multi-sheet workbook: cleaned data, quality log, summary statistics, "
             "and an embedded premium chart gallery."
@@ -333,7 +333,7 @@ def render_results_panel(
             log_usage_event(get_user_email(), "export_pdf", user_plan)
             st.session_state["follow_through_this_session"] = True
         if result.get("pdf_url"):
-            st.link_button("Permanent download link (1 hr) →", result["pdf_url"])
+            st.link_button("Temporary share link (expires in 1 hour) →", result["pdf_url"])
         st.caption(
             f"Portable executive summary with the same premium charts as the Excel report.{branding_note}"
         )
@@ -400,37 +400,61 @@ def _render_email_delivery_section(result: dict, user_plan: str) -> None:
         )
         return
 
-    default_email = get_user_email() or ""
+    account_email = get_user_email() or ""
     recipient = st.text_input(
         "Recipient email address",
-        value=default_email,
+        value=account_email,
         placeholder="you@example.com",
         key="email_delivery_recipient",
     )
 
-    if st.button("Send PDF report to inbox", use_container_width=True, key="send_report_email_btn"):
-        if not recipient or "@" not in recipient:
+    # Privacy notice - shown before the send button so the user reads it first.
+    st.info(
+        "Your PDF report contains the data you uploaded and the cleaning results. "
+        "Only send it to yourself or a recipient you intend to share this data with. "
+        "Do not send to unintended parties - once delivered, the attachment cannot be recalled."
+    )
+
+    # Warn explicitly when the recipient differs from the authenticated account email.
+    if recipient and account_email and recipient.strip().lower() != account_email.strip().lower():
+        st.warning(
+            f"You are sending to **{recipient}**, which is different from your account email "
+            f"(**{account_email}**). Confirm this is your intended recipient before proceeding."
+        )
+
+    # Cooldown: block rapid re-sends (e.g. accidental double-tap on mobile).
+    _last_send_key = "email_delivery_last_sent_to"
+    _already_sent = st.session_state.get(_last_send_key) == recipient.strip().lower()
+
+    send_label = "Report already sent to this address - tap again to resend" if _already_sent else "Send PDF report to inbox"
+
+    if st.button(send_label, use_container_width=True, key="send_report_email_btn"):
+        if not recipient or "@" not in recipient or "." not in recipient.split("@")[-1]:
             st.error("Please enter a valid email address.")
         else:
             subject, body = render_report_delivery_email(app_url=email_cfg.get("app_url", ""))
             with st.spinner("Sending report…"):
                 ok = send_email_with_attachment(
                     cfg=email_cfg,
-                    to_email=recipient,
+                    to_email=recipient.strip(),
                     subject=subject,
                     body=body,
                     attachment_data=result["pdf_bytes"],
                     attachment_filename=result["pdf_filename"],
                 )
             if ok:
-                st.success(f"Report sent to {recipient}")
-                if get_user_email():
-                    log_usage_event(get_user_email(), "export_email", user_plan)
+                st.success(f"Report sent to {recipient.strip()}")
+                st.session_state[_last_send_key] = recipient.strip().lower()
+                if account_email:
+                    log_usage_event(account_email, "export_email", user_plan)
                     st.session_state["follow_through_this_session"] = True
             else:
                 st.error("Failed to send the email. Please download the report using the button above.")
 
-    st.caption("The PDF executive summary is attached. Delivery may take a few minutes.")
+    st.caption(
+        "The PDF executive summary is attached. Delivery may take a few minutes. "
+        "This report is intended for the named recipient only."
+    )
 
 
 def _render_branding_test_form(result: dict, raw_df: pd.DataFrame, branding: dict) -> None:
