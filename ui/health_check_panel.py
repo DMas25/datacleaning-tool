@@ -223,9 +223,9 @@ def _inject_css() -> None:
 
         /* ── Hide Streamlit's built-in uploader size hint ── */
         [data-testid="stFileUploaderDropzoneInstructions"] small,
-        [data-testid="stFileUploaderDropzone"] small {
+        [data-testid="stFileUploaderDropzone"] small {{
             display: none !important;
-        }
+        }}
 
         /* ── Primary CTA button override ─────────────── */
         .stButton > button {{
