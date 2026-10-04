@@ -13,7 +13,6 @@ _LS_TIER_MAP = {
     "business":     "Business",
     "enterprise":   "Enterprise",
     "enterprise_api": "Enterprise API",
-    "premium":      "Premium",  # legacy — grandfathered subscribers only
 }
 
 

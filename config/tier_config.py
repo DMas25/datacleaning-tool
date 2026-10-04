@@ -79,22 +79,6 @@ TIERS = {
         },
         "blurb": "White label, dedicated database, SLA, onboarding, custom AI workflows, and dedicated support.",
     },
-    # Legacy tier — grandfathered existing subscribers. Not shown on pricing page.
-    "Premium": {
-        "label": "Premium",
-        "price": "£59/month",
-        "row_limit": 250_000,
-        "features": {
-            "advanced_dashboards": True,
-            "ai_insights": True,
-            "ai_advisory": True,
-            "export": True,
-            "export_pdf": True,
-            "export_branding": True,
-            "api_access": False,
-        },
-        "blurb": "Legacy plan — grandfathered pricing for existing subscribers.",
-    },
 }
 
 

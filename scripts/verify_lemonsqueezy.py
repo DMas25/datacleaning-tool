@@ -166,10 +166,10 @@ def check_local_pricing() -> tuple[bool, str]:
     try:
         from config.plans import PLAN_CONFIG
         expected = {
-            "starter":      "£9/month",
-            "professional": "£29/month",
-            "premium":      "£59/month",
-            "enterprise":   "£299/month",
+            "starter":      "£29/month",
+            "professional": "£99/month",
+            "business":     "£299/month",
+            "enterprise":   "£999/month",
         }
         errors: list[str] = []
         for key, expected_price in expected.items():
@@ -181,7 +181,7 @@ def check_local_pricing() -> tuple[bool, str]:
                 errors.append(key)
         if errors:
             return _fail(f"Price mismatch for: {', '.join(errors)}")
-        return _pass("All four plan prices match expected values")
+        return _pass("All plan prices match expected values")
     except ImportError as exc:
         return _fail(f"Could not import plans config: {exc}")
 

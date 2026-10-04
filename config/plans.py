@@ -79,29 +79,8 @@ PLAN_CONFIG = {
         "max_file_mb_backend": 500,
         "blurb": "White label, dedicated database, SLA, onboarding, custom AI workflows, and dedicated support.",
     },
-    # ── Legacy plan — grandfathered at £59/month for existing subscribers ──────
-    # Not shown to new customers. Do not remove — existing Supabase records
-    # reference this key and must continue to resolve correctly.
-    "premium": {
-        "label": "Premium",
-        "price": "£59/month",
-        "can_download_excel": True,
-        "can_download_pdf": True,
-        "can_view_advanced_insights": True,
-        "can_view_premium_charts": True,
-        "can_brand_reports": True,
-        "can_use_api": False,
-        "api_rows_per_call": 0,
-        "api_calls_per_month": 0,
-        "monthly_runs": 300,
-        "max_rows_backend": 250000,
-        "max_file_mb_backend": 150,
-        "blurb": "Legacy plan — grandfathered pricing for existing subscribers.",
-    },
 }
 
-# Canonical order for upgrade-path logic. "premium" is intentionally excluded
-# — it is a legacy plan, not a purchasable tier for new customers.
 PLAN_ORDER = ["free", "starter", "professional", "business", "enterprise"]
 
 
@@ -115,7 +94,7 @@ def can_feature(plan_key: str, feature: str) -> bool:
 
 def is_higher_plan(a: str, b: str) -> bool:
     """True if plan a is strictly higher than plan b."""
-    order = PLAN_ORDER + ["premium"]  # premium sits between professional and business
+    order = PLAN_ORDER
     try:
         return order.index(a) > order.index(b)
     except ValueError:

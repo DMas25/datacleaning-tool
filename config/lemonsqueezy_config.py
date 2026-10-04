@@ -24,15 +24,11 @@ STARTER_ANNUAL_VARIANT_ID      = "1260029"
 PROFESSIONAL_ANNUAL_VARIANT_ID = "1277759"
 BUSINESS_ANNUAL_VARIANT_ID     = "1277757"
 
-# Legacy variant — grandfathered subscribers only. Do not remove.
-PREMIUM_VARIANT_ID      = "1888466"
-
 # ── Variant ID → plan key ──────────────────────────────────────────────────
 VARIANT_PLAN_MAP: dict[str, str] = {
     STARTER_VARIANT_ID:      "starter",
     PROFESSIONAL_VARIANT_ID: "professional",
     ENTERPRISE_VARIANT_ID:   "enterprise",
-    PREMIUM_VARIANT_ID:      "premium",   # legacy grandfathered
     **({BUSINESS_VARIANT_ID:              "business"}    if BUSINESS_VARIANT_ID              else {}),
     **({API_VARIANT_ID:                   "api"}          if API_VARIANT_ID                   else {}),
     **({STARTER_ANNUAL_VARIANT_ID:        "starter"}      if STARTER_ANNUAL_VARIANT_ID        else {}),
@@ -45,7 +41,6 @@ VARIANT_TIER_MAP: dict[str, str] = {
     STARTER_VARIANT_ID:      "Starter",
     PROFESSIONAL_VARIANT_ID: "Professional",
     ENTERPRISE_VARIANT_ID:   "Enterprise",
-    PREMIUM_VARIANT_ID:      "Premium",   # legacy grandfathered
     **({BUSINESS_VARIANT_ID:              "Business"}       if BUSINESS_VARIANT_ID              else {}),
     **({API_VARIANT_ID:                   "Enterprise API"} if API_VARIANT_ID                   else {}),
     **({STARTER_ANNUAL_VARIANT_ID:        "Starter"}        if STARTER_ANNUAL_VARIANT_ID        else {}),
@@ -68,8 +63,6 @@ CHECKOUT_URLS: dict[str, str] = {
     "Professional Annual":  "https://coltradataai.lemonsqueezy.com/checkout/buy/bd8d38f7-f7c9-481a-8735-e0b7f92564fb",
     "Business Annual":      "https://coltradataai.lemonsqueezy.com/checkout/buy/216f4c52-b280-4a7b-8362-07fc05c02115",
     "Enterprise API Annual":"https://coltradataai.lemonsqueezy.com/checkout/buy/2f0f30f8-88d4-4bea-891c-9852507a439c",
-    # Legacy — do not remove
-    "Premium":          "https://coltradataai.lemonsqueezy.com/checkout/buy/c4a03a84-0d00-401d-8550-1f4974bc54b0",
 }
 
 

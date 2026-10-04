@@ -77,7 +77,7 @@ def render_targeted_upgrade_banner() -> None:
     log_prompt_evaluation(email, shown=True)
 
     url = checkout_url(next_plan(behavior["plan"])) if behavior["plan"] not in (
-        "professional", "premium", "enterprise"
+        "professional", "enterprise"
     ) else None
 
     cta_html = (
@@ -109,12 +109,12 @@ def render_live_upgrade_banner() -> None:
     """Main-area upgrade nudge — shown only to free and starter users.
 
     Reads the active plan from session_state automatically.
-    Renders nothing for professional, premium, and enterprise plans.
+    Renders nothing for professional and enterprise plans.
     """
     from utils.session_helpers import get_plan_key
 
     plan_key = get_plan_key()
-    if plan_key in ("professional", "premium", "enterprise"):
+    if plan_key in ("professional", "enterprise"):
         return
 
     upgrade = next_plan(plan_key)
@@ -159,7 +159,7 @@ def render_live_upgrade_banner() -> None:
 
 def render_upgrade_banner(current_plan_key: str) -> None:
     """Sidebar or top-of-page nudge shown to free/starter users."""
-    if current_plan_key in ("premium", "enterprise"):
+    if current_plan_key in ("enterprise",):
         return
 
     upgrade = next_plan(current_plan_key)

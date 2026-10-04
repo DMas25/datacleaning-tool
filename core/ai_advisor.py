@@ -16,7 +16,6 @@ starter        claude-haiku-4-5-20251001   800        minimal        1–2/secti
 professional   claude-haiku-4-5-20251001  1100        compact        2–3/section
 business       claude-sonnet-4-6          1900        standard       4–6/section
 enterprise     claude-sonnet-4-6          2400        full           6–8/section
-premium        claude-sonnet-4-6          1900        standard       4–6/section  (legacy)
 ───────────────────────────────────────────────────────────────────────────────
 
 Returns None gracefully on any failure so callers never need to handle errors.
@@ -39,7 +38,6 @@ _MODEL: dict[str, str] = {
     "professional": "claude-haiku-4-5-20251001",
     "business":     "claude-sonnet-4-6",
     "enterprise":   "claude-sonnet-4-6",
-    "premium":      "claude-sonnet-4-6",  # legacy grandfathered tier
 }
 
 _MAX_TOKENS: dict[str, int] = {
@@ -47,7 +45,6 @@ _MAX_TOKENS: dict[str, int] = {
     "professional": 1100,
     "business":     1900,
     "enterprise":   2400,  # reduced from 3600 — Sonnet is more token-efficient
-    "premium":      1900,  # legacy grandfathered tier
 }
 
 # How many numeric / categorical columns to include in the prompt context.
@@ -57,7 +54,6 @@ _SUMMARY_DEPTH: dict[str, dict] = {
     "professional": {"num_cols": 8,  "cat_cols": 5,  "correlations": False},
     "business":     {"num_cols": 12, "cat_cols": 8,  "correlations": True},
     "enterprise":   {"num_cols": 20, "cat_cols": 12, "correlations": True},
-    "premium":      {"num_cols": 12, "cat_cols": 8,  "correlations": True},  # legacy
 }
 
 # ── Prompt templates per tier ─────────────────────────────────────────────────
@@ -150,11 +146,6 @@ _PROMPT: dict[str, str] = {
         f"{_PERSONA}\n\n{_SECTION_SPEC}\n\n"
         "Keep this tier concise: 2–3 bullets per section, 5 actions in Top Priority "
         "Actions, and one sentence per remaining heading where a list isn't requested.\n\n"
-        "Dataset summary:\n{summary}"
-    ),
-    "premium": (
-        f"{_PERSONA}\n\n{_SECTION_SPEC}\n\n"
-        "Standard depth: 4–6 bullets per section and 5–6 Top Priority Actions.\n\n"
         "Dataset summary:\n{summary}"
     ),
     "enterprise": (

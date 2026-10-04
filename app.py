@@ -86,9 +86,7 @@ log_app_start_once()
 # │ business        │  ✓    │  ✓  │    ✓     │    ✓     │ 1,000,000 │
 # │ enterprise      │  ✓    │  ✓  │    ✓     │    ✓     │ unlimited │
 # │ enterprise_api  │  ✓    │  ✓  │    ✓     │    ✓     │ unlimited │
-# │ ~~premium~~     │  ✓    │  ✓  │    ✓     │    ✓     │   250,000 │  ← legacy grandfathered only
 # └─────────────────┴───────┴─────┴──────────┴──────────┴───────────┘
-# Note: "premium" plan key is kept in PLAN_CONFIG for grandfathered subscribers — do not remove.
 # =============================================================================
 
 # ── Page configuration ────────────────────────────────────────────────────────
@@ -160,7 +158,7 @@ def _run_app() -> None:
     # ── Session + subscription init ──────────────────────────────────────────
     # Bootstraps st.session_state["plan_key"] on first load.
     # Resolution order: licence-key activation → dev override → "free" default.
-    # Plan keys: "free" | "starter" | "professional" | "premium" | "enterprise"
+    # Plan keys: "free" | "starter" | "professional" | "business" | "enterprise"
     # All feature gates, capacity checks, and paywall cards read from plan_key.
     # See config/plans.py for the full tier matrix and feature flags:
     #   can_download_excel, can_download_pdf, can_view_advanced_insights,

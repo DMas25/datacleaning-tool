@@ -21,8 +21,6 @@ _TIER_TO_PLAN: dict[str, str] = {
     "professional": "professional", "Professional": "professional",
     "business": "business", "Business": "business",
     "enterprise": "enterprise", "Enterprise": "enterprise",
-    # Legacy — grandfathered subscribers only
-    "premium": "premium", "Premium": "premium",
 }
 _FEATURE_MAP: dict[str, str] = {
     "advanced_dashboards": "can_view_advanced_insights",

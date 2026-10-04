@@ -17,7 +17,7 @@ from utils.session_helpers import get_plan_key
 _TIER_TO_PLAN_KEY: dict[str, str] = {
     "free": "free", "starter": "starter",
     "pro": "professional", "professional": "professional",
-    "premium": "premium", "enterprise": "enterprise",
+    "enterprise": "enterprise",
 }
 
 _FILE_TYPE_LABELS = {

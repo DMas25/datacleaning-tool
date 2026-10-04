@@ -26,7 +26,6 @@ _TIER_TO_PLAN: dict[str, str] = {
     "Professional": "professional",
     "Business":     "business",
     "Enterprise":   "enterprise",
-    "Premium":      "premium",  # legacy — grandfathered subscribers only
 }
 
 

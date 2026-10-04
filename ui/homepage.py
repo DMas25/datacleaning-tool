@@ -361,7 +361,7 @@ def _handle_verify_phone_otp(phone: str, code: str, branding: dict) -> None:
 
     _PLAN_DISPLAY = {
         "starter": "Starter", "professional": "Professional",
-        "premium": "Premium", "enterprise": "Enterprise",
+        "enterprise": "Enterprise",
     }
     try:
         from services.licence_manager_pg import get_by_email
@@ -417,7 +417,7 @@ def _handle_verify_otp(email: str, code: str, branding: dict) -> None:
     # The webhook stores the plan against the email; we load it here on first sign-in.
     _PLAN_DISPLAY = {
         "starter": "Starter", "professional": "Professional",
-        "premium": "Premium", "enterprise": "Enterprise",
+        "enterprise": "Enterprise",
     }
     try:
         from services.licence_manager_pg import get_by_email
@@ -498,7 +498,18 @@ def _render_landing_page(branding: dict) -> None:
                       letter-spacing:0.02em;">
                 View Plans &amp; Pricing →
             </a>
-            <div style="margin-top:1.2rem;font-size:0.73rem;color:#9CA3AF;">
+            <div style="margin-top:0.9rem;font-size:0.8rem;">
+                <a href="/API_Docs"
+                   style="color:{primary};text-decoration:none;font-weight:600;
+                          font-size:0.82rem;">
+                    Enterprise REST API →
+                </a>
+                <span style="color:#C8D6DF;margin:0 8px;">|</span>
+                <span style="font-size:0.75rem;color:#9CA3AF;">
+                    Integrate ColtraDataAi directly into your data pipeline
+                </span>
+            </div>
+            <div style="margin-top:1rem;font-size:0.73rem;color:#9CA3AF;">
                 &copy; 2026 {branding.get('company', 'Coltrane Ltd')} &nbsp;&mdash;&nbsp;
                 <a href="mailto:{contact}" style="color:{primary};text-decoration:none;">{contact}</a>
             </div>

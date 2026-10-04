@@ -183,7 +183,7 @@ def candidate_signals(
     if (
         multi_run
         and follow_through_30d > 0
-        and plan not in ("professional", "premium", "enterprise")
+        and plan not in ("professional", "enterprise")
         and "ai_advisory" not in behavior["used_events"]
     ):
         candidates.append("ai_advisory_inactivity")
@@ -198,14 +198,7 @@ def candidate_signals(
     if runs_30d > 0 and follow_through_30d == 0:
         candidates.append("active_no_value")
 
-    # ── Bucket 4: premium underuse ───────────────────────────────────────────
-    if (
-        plan == "premium"
-        and behavior.get("ai_advisory_prior_30_days", 0) > 0
-        and behavior.get("ai_advisory_last_30_days", 0) < behavior["ai_advisory_prior_30_days"]
-    ):
-        candidates.append("ai_advisory_declining")
-    if plan in ("professional", "premium", "enterprise") and _unused_premium_features(behavior):
+    if plan in ("professional", "enterprise") and _unused_premium_features(behavior):
         candidates.append("premium_feature_inactivity")
     # "follow_through" asserts the user IS converting runs into action, so it
     # requires causal evidence — export/ai_advisory actually following a run

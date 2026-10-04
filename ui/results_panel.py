@@ -255,7 +255,6 @@ def render_results_panel(
                 "professional": "Haiku · fast analysis",
                 "business":     "Sonnet · enhanced analysis",
                 "enterprise":   "Sonnet · comprehensive analysis",
-                "premium":      "Sonnet · enhanced analysis",
             }
             st.caption(f"Model: {_model_labels.get(user_plan, 'AI analysis')}")
 

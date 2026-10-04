@@ -93,8 +93,6 @@ PLAN_MAP: dict[str, str] = {
     "professional": "professional",
     "Business":     "business",
     "business":     "business",
-    "Premium":      "premium",
-    "premium":      "premium",
     "Enterprise":   "enterprise",
     "enterprise":   "enterprise",
 }
