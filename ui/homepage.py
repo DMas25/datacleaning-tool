@@ -473,7 +473,7 @@ def _render_landing_page(branding: dict) -> None:
             </div>
             <div style="font-size:1rem;color:#657286;margin-top:10px;line-height:1.7;
                         max-width:500px;margin-left:auto;margin-right:auto;">
-                Upload a file, get a clean dataset and a professional report in minutes — on any device.
+                Upload any CSV or Excel file. ColtraDataAi cleans, validates, and generates executive PDF reports with interactive chart galleries in under two minutes.
             </div>
         </div>
         """,
@@ -700,9 +700,9 @@ def _render_login_header(branding: dict) -> None:
 def _render_login_features(branding: dict) -> None:
     primary = branding["primary_colour"]
     features = [
-        ("🧭", "Find your way through messy data", "Upload any CSV or Excel — ColtraDataAi handles missing values, duplicates, and mixed types automatically."),
+        ("🧭", "Find your way through messy data", "Upload any CSV or Excel — no VLOOKUP formulas or Python scripts needed. ColtraDataAi handles missing values, duplicates, and mixed types automatically."),
         ("✅", "Instant cleaning &amp; validation", "AI-powered rules map your path through the DataMaze, fixing quality issues in seconds."),
-        ("📊", "Boardroom-ready reports, on any device", "Export cleaned datasets with PDF summaries and chart galleries — delivered to your inbox or home screen."),
+        ("📊", "Boardroom-ready reports, anywhere", "Export cleaned datasets with PDF summaries and chart galleries. Fully accessible on mobile via any web browser — no app download required."),
     ]
     cards_html = "".join([
         f"""<div style="background:#FFFFFF;border:1px solid #E6ECF0;border-radius:14px;
