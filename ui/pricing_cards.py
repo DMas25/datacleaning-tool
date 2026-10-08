@@ -160,6 +160,10 @@ def _render_card(
         f'<p class="card-name">{plan["label"]}</p>'
         f'<p class="card-price">{price_display}</p>'
         f'<p class="card-blurb">{plan["blurb"]}</p>'
+        + (
+            f'<p class="card-usage">{plan["usage_context"]}</p>'
+            if plan.get("usage_context") else ""
+        ) +
         f'<hr class="card-rule" />'
         f'<ul class="card-features">{bullets}</ul>'
         f'</div>'
@@ -410,6 +414,13 @@ def _inject_pricing_css() -> None:
             font-size: 0.75rem;
             color: #4B5563;
             margin: 0 0 0 0;
+            line-height: 1.4;
+        }
+        .card-usage {
+            font-size: 0.7rem;
+            color: #6B7280;
+            font-style: italic;
+            margin: 4px 0 0 0;
             line-height: 1.4;
         }
 

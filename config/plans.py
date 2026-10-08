@@ -14,6 +14,7 @@ PLAN_CONFIG = {
         "max_rows_backend": 5000,
         "max_file_mb_backend": 10,
         "blurb": "Clean small datasets and explore your data quality — no card required.",
+        "usage_context": "Suited for individuals testing the tool or processing an occasional file.",
     },
     "starter": {
         "label": "Starter",
@@ -30,6 +31,7 @@ PLAN_CONFIG = {
         "max_rows_backend": 50000,
         "max_file_mb_backend": 25,
         "blurb": "For consultants and small businesses — AI insights, Excel export, and 50 runs/month.",
+        "usage_context": "Suited for a freelancer or consultant managing 5-10 regular client files.",
     },
     "professional": {
         "label": "Professional",
@@ -46,6 +48,7 @@ PLAN_CONFIG = {
         "max_rows_backend": 250000,
         "max_file_mb_backend": 75,
         "blurb": "For SMEs and operations teams — full reports, API access, and advanced analytics.",
+        "usage_context": "Suited for an SME team running weekly or daily validation across multiple data sources.",
     },
     "business": {
         "label": "Business",
@@ -62,6 +65,7 @@ PLAN_CONFIG = {
         "max_rows_backend": 1000000,
         "max_file_mb_backend": 200,
         "blurb": "For manufacturing, healthcare, retail, and logistics — industry templates, multi-user, unlimited API calls.",
+        "usage_context": "Suited for an operations team with scheduled or automated data workflows.",
     },
     "enterprise": {
         "label": "Enterprise",
@@ -78,6 +82,7 @@ PLAN_CONFIG = {
         "max_rows_backend": None,    # unlimited
         "max_file_mb_backend": 500,
         "blurb": "White label, dedicated database, SLA, onboarding, custom AI workflows, and dedicated support.",
+        "usage_context": "Suited for organisations with high-volume data, compliance requirements, or multi-team deployment.",
     },
 }
 
