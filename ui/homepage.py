@@ -27,6 +27,15 @@ import base64
 import os
 
 import streamlit as st
+import streamlit.components.v1 as _components
+
+
+def _clear_otp_url_params() -> None:
+    for key in ("otp", "email"):
+        try:
+            del st.query_params[key]
+        except Exception:
+            pass
 
 
 def check_password(branding: dict) -> bool:
@@ -48,6 +57,19 @@ def check_password(branding: dict) -> bool:
         pass
 
     _inject_login_css(branding)
+
+    # If user clicked the "tap to pre-fill" link from the OTP email, skip straight
+    # to the verify step with the code and email already populated.
+    _url_otp = st.query_params.get("otp", "")
+    _url_email = st.query_params.get("email", "")
+    if _url_otp and _url_email and not st.session_state.get("_otp_step"):
+        st.session_state["_show_login"] = True
+        st.session_state["_otp_email"] = _url_email.lower().strip()
+        st.session_state["_otp_prefill"] = _url_otp
+        st.session_state["_login_method"] = "email"
+        st.session_state["_otp_step"] = "verify"
+        _clear_otp_url_params()
+        st.rerun()
 
     # Show branded landing page first; login form revealed when user clicks CTA.
     if not st.session_state.get("_show_login"):
@@ -134,6 +156,11 @@ def render_footer(branding: dict) -> None:
                 <a href="mailto:{branding['contact_email']}"
                    style="color:{branding['primary_colour']};text-decoration:none;">
                    {branding['contact_email']}
+                </a>
+                &nbsp;&nbsp;|&nbsp;&nbsp;
+                <a href="https://coltrane.ltd"
+                   style="color:{branding['primary_colour']};text-decoration:none;font-weight:600;">
+                   ← Coltrane Ltd
                 </a>
             </div>
             <div style="font-size:0.75rem;color:#9CA3AF;max-width:740px;margin:0 auto;line-height:1.65;">
@@ -238,6 +265,11 @@ def _render_verify_step(branding: dict) -> None:
             """,
             unsafe_allow_html=True,
         )
+        # Pre-fill from email link if available (only on first render)
+        prefill = st.session_state.get("_otp_prefill", "")
+        if prefill and "_login_otp_code" not in st.session_state:
+            st.session_state["_login_otp_code"] = prefill
+
         code = st.text_input(
             "6-digit code",
             label_visibility="collapsed",
@@ -251,23 +283,45 @@ def _render_verify_step(branding: dict) -> None:
             else:
                 _handle_verify_otp(contact, code, branding)
         st.markdown("</div>", unsafe_allow_html=True)
+
+        # Attempt clipboard copy once when arriving via email link
+        if prefill and not st.session_state.get("_otp_clipboard_done"):
+            _components.html(
+                f"<script>try{{navigator.clipboard.writeText('{prefill}')}}catch(e){{}}</script>",
+                height=0,
+            )
+            st.session_state["_otp_clipboard_done"] = True
+            st.success("Code pre-filled and copied to clipboard. Just click Verify to sign in.")
+
         st.markdown(
             f"""
             <div style="text-align:center;margin-top:0.75rem;font-size:0.73rem;color:#9CA3AF;">
-                Code expires in 10 minutes. &nbsp;
-                <span style="color:{primary};cursor:pointer;" id="_otp_resend">
-                    Need a new code?
-                </span>
+                Code expires in 10 minutes.
             </div>
             """,
             unsafe_allow_html=True,
         )
+
+        # Resend button — limited to one resend per session
+        resend_count = st.session_state.get("_otp_resend_count", 0)
+        if resend_count == 0:
+            _, rc, _ = st.columns([2, 1.4, 2])
+            with rc:
+                if st.button("Need a new code?", key="_otp_resend_btn", use_container_width=True):
+                    _handle_resend_otp(branding)
+        else:
+            st.markdown(
+                "<div style='text-align:center;font-size:0.73rem;color:#10B981;'>"
+                "New code sent - check your inbox.</div>",
+                unsafe_allow_html=True,
+            )
+
         back_label = "← Use a different number" if method == "phone" else "← Use a different email"
         if st.button(back_label, key="_otp_back", use_container_width=False):
-            st.session_state.pop("_otp_step", None)
-            st.session_state.pop("_otp_email", None)
-            st.session_state.pop("_otp_phone", None)
-            st.session_state.pop("_login_method", None)
+            for k in ("_otp_step", "_otp_email", "_otp_phone", "_login_method",
+                      "_otp_resend_count", "_otp_prefill", "_otp_clipboard_done",
+                      "_login_otp_code"):
+                st.session_state.pop(k, None)
             st.rerun()
 
 
@@ -315,6 +369,32 @@ def _handle_send_phone_otp(phone: str, branding: dict) -> None:
     st.session_state["_otp_phone"] = phone
     st.session_state["_otp_step"] = "verify"
     st.session_state["_login_method"] = "phone"
+    st.rerun()
+
+
+def _handle_resend_otp(branding: dict) -> None:
+    """Re-issue an OTP to the same contact. Called at most once per verify step."""
+    method = st.session_state.get("_login_method", "email")
+    if method == "phone":
+        phone = st.session_state.get("_otp_phone", "")
+        from services.auth_service import issue_phone_otp
+        with st.spinner("Resending verification code…"):
+            ok, error = issue_phone_otp(phone)
+    else:
+        email = st.session_state.get("_otp_email", "")
+        from services.auth_service import issue_otp
+        with st.spinner("Resending verification code…"):
+            ok, error = issue_otp(email)
+
+    if not ok:
+        st.error(error)
+        return
+
+    st.session_state["_otp_resend_count"] = 1
+    # Clear any stale prefill so the user types the freshly-issued code
+    st.session_state.pop("_otp_prefill", None)
+    st.session_state.pop("_otp_clipboard_done", None)
+    st.session_state.pop("_login_otp_code", None)
     st.rerun()
 
 
